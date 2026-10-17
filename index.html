@@ -297,6 +297,9 @@ input::placeholder,textarea::placeholder{color:#6E5446;font-style:italic;font-we
 input:focus,textarea:focus,select:focus{outline:0;border-bottom-color:var(--red)}
 select{background:transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23800E13' stroke-width='1.5'/%3E%3C/svg%3E") right 6px center no-repeat;margin-top:4px;cursor:pointer}
 form .pill{width:100%;padding:20px;margin-top:22px!important}
+form .pill:disabled{opacity:.6;cursor:wait}
+.osum{display:grid;gap:6px;padding:18px 20px;margin-bottom:10px;background:var(--be-l);border:1px solid var(--line);border-left:3px solid var(--red);border-radius:14px;color:var(--nau);font-size:15px}
+.osum b{color:var(--ink);font-size:16px}.osum em{font-style:normal;font-weight:700;color:var(--red)}.osum small{font-style:italic;font-weight:300}
 .ok,#ok{text-align:center;color:var(--red);font:italic 400 19px/1.4 var(--sans);margin:10px 0 0}
 
 /* product detail */
@@ -787,6 +790,33 @@ input:user-invalid::placeholder{color:#B3261E}
 
 <div id="shade"></div><div id="srch" role="dialog" aria-label="Tìm kiếm"><div class="si"><input id="q" type="search" placeholder="Tìm kiếm trên Lộc Cộc" aria-label="Tìm kiếm" autocomplete="off"><div id="res"></div></div></div><aside id="bag" aria-label="Giỏ hàng"><div class="bh"><h3>Giỏ hàng</h3><button class="rm" id="bx" style="font-size:16px">Đóng</button></div><div class="bl" id="bl"></div><button class="pill" id="bsend" type="button">Gửi đơn cho Lộc Cộc</button></aside>
 <script>
+/* ===== Gửi đơn / yêu cầu về Google Sheet =====
+   Dán "URL ứng dụng web" của Apps Script vào giữa hai dấu nháy dưới đây
+   (xem hướng dẫn trong file "Google Sheet - Apps Script/Code.gs"). */
+var SHEET_URL="https://script.google.com/macros/s/AKfycbzc2ftUntEyk5PQMaHxldWdDqk0LdH39U8qiY_ZoMe3HiDYQ2vSo_1d4jHRHc7J6VLUCg/exec";
+
+var pendingOrder=null; // giỏ hàng đang chờ khách điền tên + SĐT ở trang Liên hệ
+var FIELD={"Tên":"ten","Số điện thoại":"sdt","Size chân":"size","Mã đơn hàng":"maDon","Mô tả":"noiDung","Nội dung":"noiDung"};
+function sendForm(f,e){
+ e.preventDefault();
+ var ok=f.querySelector(".ok"),btn=f.querySelector("button[type=submit]"),pg=f.closest(".pg"),h1=pg&&pg.querySelector("h1");
+ var d={loai:h1?h1.textContent.trim():"Liên hệ",trang:location.href,website:(f.querySelector("[name=website]")||{}).value||""};
+ [].forEach.call(f.querySelectorAll("input,textarea,select"),function(el){var k=FIELD[el.getAttribute("aria-label")];if(k&&el.value.trim())d[k]=(d[k]?d[k]+"\n":"")+el.value.trim()});
+ var withCart=pendingOrder&&pg&&pg.id==="pg-lien-he";
+ if(withCart){d.loai="Đặt hàng (giỏ hàng)";d.gioHang=pendingOrder.text;d.soLuong=pendingOrder.qty;d.tamTinh=pendingOrder.total}
+ function done(msg,good){ok.textContent=msg;ok.hidden=false;ok.style.color=good?"":"#B3261E";btn.disabled=false;btn.textContent=good||!withCart?btn.dataset.t:"Gửi đơn hàng";
+  if(good){f.reset();if(withCart){pendingOrder=null;cart=[];save();draw();var s=f.querySelector(".osum");if(s)s.remove()}}}
+ btn.dataset.t=btn.dataset.t||btn.textContent;btn.disabled=true;btn.textContent="Đang gửi…";ok.hidden=true;
+ if(!SHEET_URL){console.warn("Chưa cấu hình SHEET_URL, đơn chưa được lưu:",d);done("Đã nhận thông tin. Lộc Cộc sẽ liên hệ với bạn sớm.",true);return}
+ // text/plain để trình duyệt không chặn (CORS) khi gửi sang Google Apps Script
+ fetch(SHEET_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(d)})
+  .then(function(){done(withCart?"Đã gửi đơn. Lộc Cộc sẽ gọi xác nhận với bạn sớm.":"Đã nhận thông tin. Lộc Cộc sẽ liên hệ với bạn sớm.",true)})
+  .catch(function(){done("Chưa gửi được, bạn kiểm tra mạng rồi thử lại, hoặc nhắn Zalo cho Lộc Cộc nhé.",false)})}
+function bindForm(f){if(f.dataset.bf)return;f.dataset.bf=1;
+ // ô ẩn chống bot
+ f.insertAdjacentHTML("afterbegin",'<input name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">');
+ f.onsubmit=function(e){sendForm(f,e)}}
+
 var it=[["Tím hoa","Quai thêu hoa tím, gỗ nâu đậm","61.3% 55.2%"],["Xanh rêu","Quai da họa tiết lá, gỗ sáng","95.1% 100%"],["Đen viền vàng","Quai nhung, hạt vàng","0% 0%"],["Xanh cổ vịt","Quai da đính hạt bạc","0% 77.6%"],["Be hạt gỗ","Quai vải be, hạt gỗ","26.8% 82.8%"],["Hoa be đỏ","Quai thêu hoa, gỗ chạm hoa","30.3% 0%"],["Xanh navy","Quai thêu vàng, hạt xanh","70.4% 0%"],["Trắng đinh tán","Quai da trắng, gỗ nâu đỏ","100% 3.4%"]];
 
 /* ---------- Dòng Basic: 10 mẫu, đồng giá ---------- */
@@ -816,7 +846,7 @@ function route(){
   $("crumb").textContent=mb?B[mb[1]][0]:m?it[m[1]][0]:(id==="trang-chu"?"Trang chủ":$("pg-"+id).querySelector("h1").textContent);window.scrollTo(0,0);
 }
 window.addEventListener("hashchange",route);route();
-document.querySelectorAll("form").forEach(function(f){f.onsubmit=function(e){e.preventDefault();f.querySelector(".ok").hidden=false;f.reset()}});
+document.querySelectorAll("form").forEach(bindForm);
 
 var M=[["Cửa hàng","cua-hang",[["Mua hàng",[["Basic","basic"],["Collection","collection"],["Customize","customize"]]],["Liên kết nhanh",[["Tình trạng đơn hàng","tinh-trang-don-hang"],["Gợi ý phối đồ","goi-y-phoi-do"]]],["Mua trực tiếp",[["Địa chỉ các cửa hàng","dia-chi-cua-hang"]]]]],
 ["Basic","basic",0],
@@ -862,7 +892,7 @@ function gen(id){var g=G[id],h=`<div class="ph-h"><h1>${g[0]}</h1><p>${g[1]}</p>
  if(g[4]==="f"||g[4]==="o")h+='<form class="contact" style="margin-top:36px">'+(g[4]==="o"?'<input required placeholder="Mã đơn hàng" aria-label="Mã đơn hàng">':'<input required placeholder="Tên của bạn" aria-label="Tên">')+'<input required type="tel" placeholder="Số điện thoại" aria-label="Số điện thoại">'+(g[4]==="f"?'<textarea rows="4" placeholder="Bạn muốn Lộc Cộc hỗ trợ điều gì?" aria-label="Nội dung"></textarea>':"")+'<button class="pill" type="submit">Gửi</button><p class="ok" role="status" hidden>Đã nhận thông tin. Lộc Cộc sẽ liên hệ với bạn sớm.</p></form>';
  else h+='<p style="text-align:center;margin-top:36px"><a class="pill" href="#/lien-he">Nhắn cho Lộc Cộc</a></p>';
  $("pg-gen").innerHTML=h+"</div></section>";
- document.querySelectorAll("#pg-gen form").forEach(function(f){f.onsubmit=function(e){e.preventDefault();f.querySelector(".ok").hidden=false;f.reset()}})}
+ document.querySelectorAll("#pg-gen form").forEach(bindForm)}
 route();
 
 var cart=[];try{cart=JSON.parse(localStorage.getItem("lc_cart")||"[]")}catch(e){}
@@ -879,7 +909,16 @@ function openP(id){closeP();$(id).classList.add("on");$("shade").classList.add("
 function closeP(){["srch","bag"].forEach(function(x){$(x).classList.remove("on")});$("shade").classList.remove("on")}
 $("shade").onclick=closeP;$("bx").onclick=closeP;$("sb").onclick=function(){openP("srch")};$("bb").onclick=function(){openP("bag")};
 document.addEventListener("keydown",function(e){if(e.key==="Escape")closeP()});
-$("bsend").onclick=function(){var ta=document.querySelector("#pg-lien-he textarea");ta.value="Đơn đặt:\n"+cart.map(function(c){return "- "+pn(c.i)[0]+(isB(c.i)?" (Basic, "+PRICE+")":"")+", size "+c.s+(c.n?", khắc \""+c.n+"\"":"")+", số lượng "+c.q}).join("\n");closeP();location.hash="#/lien-he"};
+$("bsend").onclick=function(){
+ var lines=cart.map(function(c){return "- "+pn(c.i)[0]+(isB(c.i)?" (Basic, "+PRICE+")":" (báo giá sau)")+", size "+c.s+(c.n?", khắc \""+c.n+"\"":"")+", SL "+c.q}),
+  qty=cart.reduce(function(s,c){return s+c.q},0),total=cart.reduce(function(s,c){return s+(isB(c.i)?350000*c.q:0)},0);
+ pendingOrder={text:lines.join("\n"),qty:qty,total:total};
+ var ta=document.querySelector("#pg-lien-he textarea");ta.value="";ta.placeholder="Ghi chú thêm cho đơn (không bắt buộc)";
+ var lf=document.querySelector("#pg-lien-he form"),sum=lf.querySelector(".osum"),lb=lf.querySelector("button[type=submit]");
+ lf.querySelector(".ok").hidden=true;lb.dataset.t=lb.dataset.t||lb.textContent;lb.textContent="Gửi đơn hàng";
+ if(!sum){sum=document.createElement("div");sum.className="osum";lf.insertBefore(sum,lf.firstChild.nextSibling)}
+ sum.innerHTML="<b>Đơn của bạn ("+qty+" đôi)</b>"+lines.map(function(l){return "<span>"+esc(l.slice(2))+"</span>"}).join("")+(total?"<em>Tạm tính: "+total.toLocaleString("vi-VN")+"đ</em>":"")+"<small>Điền tên và số điện thoại để gửi đơn cho Lộc Cộc.</small>";
+ closeP();location.hash="#/lien-he"};
 function nz(s){return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/đ/g,"d")}
 var IX=[["Sản phẩm","san-pham"],["Thiết kế riêng","thiet-ke"],["Phối đồ","phoi-do"],["Hỗ trợ","ho-tro"],["Đánh giá","danh-gia"],["Câu chuyện","cau-chuyen"],["Liên hệ","lien-he"]];
 M.forEach(function(m){IX.push([m[0],m[1]]);(m[2]||[]).forEach(function(g){g[1].forEach(function(l){IX.push([l[0],l[1]])})})});
