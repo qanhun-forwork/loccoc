@@ -803,7 +803,11 @@ function sendForm(f,e){
  var d={loai:h1?h1.textContent.trim():"Liên hệ",trang:location.href,website:(f.querySelector("[name=website]")||{}).value||""};
  [].forEach.call(f.querySelectorAll("input,textarea,select"),function(el){var k=FIELD[el.getAttribute("aria-label")];if(k&&el.value.trim())d[k]=(d[k]?d[k]+"\n":"")+el.value.trim()});
  var withCart=pendingOrder&&pg&&pg.id==="pg-lien-he";
- if(withCart){d.loai="Đặt hàng (giỏ hàng)";d.gioHang=pendingOrder.text;d.soLuong=pendingOrder.qty;d.tamTinh=pendingOrder.total}
+ // nhóm: "don" = khách đặt mua từ giỏ hàng; "lienhe" = mọi form còn lại
+ d.nhom="lienhe";
+ if(pg&&pg.id==="pg-lien-he")d.loai="Liên hệ";
+ if(pg&&pg.id==="pg-thiet-ke")d.loai="Yêu cầu thiết kế riêng";
+ if(withCart){d.nhom="don";d.loai="Đơn hàng";d.gioHang=pendingOrder.text;d.soLuong=pendingOrder.qty;d.tamTinh=pendingOrder.total}
  function done(msg,good){ok.textContent=msg;ok.hidden=false;ok.style.color=good?"":"#B3261E";btn.disabled=false;btn.textContent=good||!withCart?btn.dataset.t:"Gửi đơn hàng";
   if(good){f.reset();if(withCart){pendingOrder=null;cart=[];save();draw();var s=f.querySelector(".osum");if(s)s.remove()}}}
  btn.dataset.t=btn.dataset.t||btn.textContent;btn.disabled=true;btn.textContent="Đang gửi…";ok.hidden=true;
