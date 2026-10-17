@@ -144,7 +144,9 @@ body.lock{overflow:hidden}
 .hk .spk{width:16px;height:16px}
 .hh{font-size:clamp(54px,6.5vw,112px);font-weight:800;line-height:1;letter-spacing:-.055em;margin:28px 0 40px}
 .hh .ln{display:block;white-space:nowrap}
-.hh .ol{color:transparent;-webkit-text-stroke:2px var(--ink);font-weight:800}
+/* Plus Jakarta Sans là font variable nên các nét trong một chữ (m, h, n, a…) vẽ chồng lên nhau: nếu để lòng chữ trong suốt, viền sẽ lộ cả chỗ chồng.
+   Vẽ viền trước rồi tô lòng bằng đúng màu nền để che (viền gấp đôi vì nửa trong bị che); nằm dưới các dòng khác để lúc chữ rơi không che chữ khác */
+.hh .ol{position:relative;z-index:-1;color:var(--be);-webkit-text-stroke:4px var(--ink);paint-order:stroke fill;font-weight:800}
 .hh .wd{display:inline-block;animation:drop 1s var(--spring) both;animation-delay:calc(var(--hd) + var(--d,0)*.11s)}
 .hh em{position:relative;display:inline-block;font-weight:300;letter-spacing:-.035em;word-spacing:.14em;padding:0 .08em .04em 0}
 .hh em::after{content:"";position:absolute;left:0;right:.1em;bottom:-.27em;height:.18em;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 30' preserveAspectRatio='none'%3E%3Cpath d='M4 20 C 80 6, 200 4, 396 14 M30 26 C 140 16, 260 14, 380 22' fill='none' stroke='%23800E13' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E") center/100% 100% no-repeat;clip-path:inset(0 100% 0 0);animation:swash 1s cubic-bezier(.65,0,.35,1) calc(var(--hd) + 1s) forwards}
@@ -250,9 +252,9 @@ h2{font-size:clamp(42px,6.2vw,96px);text-align:center;margin-bottom:22px;line-he
 
 /* band */
 .band{background:var(--be-d);color:var(--ink);text-align:center;overflow:hidden;perspective:900px;padding:170px 28px}
-.band .big{font:800 clamp(58px,11vw,176px)/1.02 var(--sans);letter-spacing:-.06em;color:transparent;-webkit-text-stroke:1.5px rgba(90,62,50,.45);transform:rotateX(70deg) translateY(30px);transform-origin:50% 100%;opacity:.3;transition:transform 1.3s var(--spring),color .9s,opacity 1s,-webkit-text-stroke-color .9s}
+.band .big{font:800 clamp(58px,11vw,176px)/1.02 var(--sans);letter-spacing:-.06em;color:var(--be-d);-webkit-text-stroke:3px rgba(90,62,50,.45);paint-order:stroke fill;transform:rotateX(70deg) translateY(30px);transform-origin:50% 100%;opacity:.3;transition:transform 1.3s var(--spring),color .9s,opacity 1s,-webkit-text-stroke-color .9s}
 .band .big.on{transform:none;color:var(--ink);opacity:1;-webkit-text-stroke-color:transparent}
-.band .big:nth-child(2){font-style:italic;font-weight:300;color:transparent}
+.band .big:nth-child(2){font-style:italic;font-weight:300;color:var(--be-d)}
 .band .big:nth-child(2).on{color:var(--red)}
 .band p{max-width:40ch;margin:56px auto 0;font:italic 300 clamp(19px,2vw,24px)/1.45 var(--sans);color:var(--nau)}
 .band p .pill{font-style:normal}
@@ -533,7 +535,7 @@ footer.ft .in2{max-width:1320px}
  section{padding:90px 18px}.band{padding:120px 18px}.dk{padding:100px 18px}
  .hero{padding:14px 18px 50px;min-height:0}.hero .meta>span:first-child{display:none}.hero .meta{justify-content:flex-end}
  .hh{font-size:clamp(40px,12.6vw,66px);margin:22px 0 30px}
- .hh .ol{-webkit-text-stroke-width:1.5px}
+ .hh .ol{-webkit-text-stroke-width:3px}
  .hart{max-width:420px;width:94%}
  .st .lb{font-size:8.5px;padding:6px 9px}
  .tapes{margin-top:-20px;height:118px}.tape{padding:11px 0}
