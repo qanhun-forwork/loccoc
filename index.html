@@ -1355,7 +1355,7 @@ syncSnd();
 /* ---------- lưới 10 mẫu Basic ---------- */
 var br=$("brail");
 if(br){
- br.innerHTML=B.map(function(x,i){return '<a class="bc" href="#/basic-'+i+'" style="--c:'+BC[i]+'"><span class="no">'+(i<9?"0":"")+(i+1)+'</span>'+gph(i,1)+'<h3>'+x[0]+'</h3><span class="sb">'+x[1]+'</span><span class="go" aria-hidden="true">→</span></a>'}).join("");
+ br.innerHTML=B.map(function(x,i){return '<a class="bc" href="#/basic-'+i+'" style="--c:'+BC[i]+'"><span class="no">'+(i<9?"0":"")+(i+1)+'</span>'+bimg(i)+'<h3>'+x[0]+'</h3><span class="sb">'+x[1]+'</span><span class="go" aria-hidden="true">→</span></a>'}).join("");
 }
 
 /* ---------- hỏi đáp dạng chat: hiện lần lượt ---------- */
