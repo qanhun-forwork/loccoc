@@ -141,7 +141,10 @@ body.lock{overflow:hidden}
 .hcopy{position:relative;z-index:3}
 .hk{display:inline-flex;align-items:center;gap:10px;font:600 11px/1 var(--sans);letter-spacing:.24em;text-transform:uppercase;color:var(--red);border-top:1px solid var(--red);border-bottom:1px solid var(--red);padding:10px 2px;animation:fadeup .8s var(--ease) calc(var(--hd) - .2s) both}
 .hk .spk{width:16px;height:16px}
-.hh{font-size:clamp(54px,6.5vw,112px);font-weight:800;line-height:1;letter-spacing:-.055em;margin:28px 0 40px}
+.hh{font-size:clamp(46px,5.9vw,92px);font-weight:800;line-height:1.02;letter-spacing:-.055em;margin:26px 0 40px}
+/* dòng nối nhỏ giữa câu: in hoa giãn chữ màu đỏ, kẻ mảnh hai bên */
+.hh .ln.cn{display:flex;align-items:center;gap:.9em;margin:1.05em 0 .85em;font-size:.2em;font-weight:700;line-height:1;letter-spacing:.34em;text-transform:uppercase;color:var(--red);animation:fadeup .9s var(--ease) calc(var(--hd) + .55s) both}
+.hh .ln.cn::before,.hh .ln.cn::after{content:"";height:1.5px;background:currentColor;flex:0 0 3.2em}.hh .ln.cn::after{flex:1 1 auto;max-width:9em;opacity:.45}
 .hh .ln{display:block;white-space:nowrap}
 /* Plus Jakarta Sans là font variable nên các nét trong một chữ (m, h, n, a…) vẽ chồng lên nhau: nếu để lòng chữ trong suốt, viền sẽ lộ cả chỗ chồng.
    Vẽ viền trước rồi tô lòng bằng đúng màu nền để che (viền gấp đôi vì nửa trong bị che); nằm dưới các dòng khác để lúc chữ rơi không che chữ khác */
@@ -528,7 +531,7 @@ footer.ft .in2{max-width:1320px}
 @media (max-width:1100px){
  .hx{grid-template-columns:1fr;gap:10px}
  .hart{max-width:540px;margin-top:14px}
- .hh{font-size:clamp(54px,9.4vw,104px)}
+ .hh{font-size:clamp(50px,8.6vw,96px)}
 }
 @media (max-width:980px){
  .at{grid-template-columns:1fr}.at-stage{min-height:440px}
@@ -539,7 +542,8 @@ footer.ft .in2{max-width:1320px}
 @media (max-width:760px){
  section{padding:90px 18px}.band{padding:120px 18px}.dk{padding:100px 18px}
  .hero{padding:14px 18px 50px;min-height:0}.hero .meta>span:first-child{display:none}.hero .meta{justify-content:flex-end}
- .hh{font-size:clamp(40px,12.6vw,66px);margin:22px 0 30px}
+ .hh{font-size:clamp(36px,11.6vw,62px);margin:22px 0 30px}
+ .hh .ln.cn{font-size:.27em;letter-spacing:.22em;gap:.6em;margin:.85em 0 .7em}
  .hh .ol{-webkit-text-stroke-width:3px}
  .hart{max-width:420px;width:94%}
  .st .lb{font-size:8.5px;padding:6px 9px}
@@ -637,8 +641,8 @@ input:user-invalid::placeholder{color:#B3261E}
     <div class="hx">
       <div class="hcopy">
         <span class="hk"><span class="spk" aria-hidden="true"></span>Guốc gỗ cách tân · Việt Nam</span>
-        <h1 class="hh"><span class="ln"><span class="wd" style="--d:0">Dáng</span> <span class="wd" style="--d:1">mộc</span></span><span class="ln ol"><span class="wd" style="--d:2">ôm</span> <span class="wd" style="--d:3">chân,</span></span><span class="ln"><em><span class="wd" style="--d:4">cân</span> <span class="wd" style="--d:5">mọi</span> <span class="wd" style="--d:6">outfit.</span><span class="spk" aria-hidden="true"></span></em></span></h1>
-        <p class="hsub">Guốc gỗ cách tân cho cô gái hiện đại: chọn gỗ, chọn quai, khắc tên của riêng bạn. <b>Chỉn chu từng chi tiết để lựa chọn không hối tiếc.</b></p>
+        <h1 class="hh"><span class="ln"><span class="wd" style="--d:0">Chỉn</span> <span class="wd" style="--d:1">chu</span></span> <span class="ln ol"><span class="wd" style="--d:2">từng</span> <span class="wd" style="--d:3">chi</span> <span class="wd" style="--d:4">tiết</span></span> <span class="ln cn"><span>cho bạn lựa chọn</span></span> <span class="ln"><em><span class="wd" style="--d:6">không</span> <span class="wd" style="--d:7">hối</span> <span class="wd" style="--d:8">tiếc.</span><span class="spk" aria-hidden="true"></span></em></span></h1>
+        <p class="hsub">Guốc gỗ cách tân cho cô gái hiện đại: chọn gỗ, chọn quai, khắc tên của riêng bạn. <b>Dáng mộc ôm chân, cân mọi outfit.</b></p>
         <div class="acts"><a class="pill" href="#/thiet-ke">Thiết kế đôi của bạn</a><a class="pill alt" href="#/basic">Xem 10 mẫu Basic</a></div>
       </div>
       <div class="hart" id="hart">
@@ -649,7 +653,7 @@ input:user-invalid::placeholder{color:#B3261E}
         <span class="seal z1 st" data-z="60" aria-hidden="true"><span>Lộc!</span></span>
         <span class="seal z2 st" data-z="52" aria-hidden="true"><span>Cộc!</span></span>
         <span class="seal z3 st" data-z="30" aria-hidden="true"><span><small>Đồng giá</small>350K</span></span>
-        <span class="badge" aria-hidden="true"><svg viewBox="0 0 200 200"><defs><path id="bdg" d="M100,100 m-80,0 a80,80 0 1,1 160,0 a80,80 0 1,1 -160,0"/></defs><text textLength="496" lengthAdjust="spacing"><textPath href="#bdg">Chỉn chu từng chi tiết ✦ Lựa chọn không hối tiếc ✦</textPath></text></svg><span class="spk"></span></span>
+        <span class="badge" aria-hidden="true"><svg viewBox="0 0 200 200"><defs><path id="bdg" d="M100,100 m-80,0 a80,80 0 1,1 160,0 a80,80 0 1,1 -160,0"/></defs><text textLength="496" lengthAdjust="spacing"><textPath href="#bdg">Dáng mộc ôm chân ✦ Cân mọi outfit ✦ Lộc Cộc ✦</textPath></text></svg><span class="spk"></span></span>
       </div>
     </div>
   </div>
