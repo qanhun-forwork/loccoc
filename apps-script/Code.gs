@@ -19,10 +19,12 @@
  * ───────────────────────────────────────────────────────────────────────────
  */
 
-var PHIEN_BAN = '3.1';
+var PHIEN_BAN = '3.3';
 var TEN_GUI = 'Lộc Cộc';            // tên người gửi trong email
 var GIA_BASIC = 350000;             // giá dòng Basic (tính lại ở máy chủ, không tin giá từ trình duyệt)
 var GIOI_HAN_MOI_GIO = 3;           // tối đa email gửi tới cùng 1 địa chỉ trong 1 giờ
+var CHO_GUI = 'Chờ gửi';            // trạng thái cột "Email xác nhận" khi email còn trong hàng chờ
+var HANG_CHO = 'thu_';              // tiền tố Script Properties của email chờ gửi
 
 var TAB = { BC: '📊 Báo cáo', DON: '🛒 Đơn hàng', CT: '📦 Chi tiết đơn', LH: '💬 Liên hệ', SL: '⚙ Số liệu' };
 var COT = {
@@ -59,38 +61,37 @@ function doPost(e) {
       laDon: d.nhom === 'don', ten: chu_(d.ten, 120), sdt: chu_(d.sdt, 30), email: chu_(d.email, 200),
       noiDung: chu_(d.noiDung, 3000), loai: chu_(d.loai, 80) || 'Liên hệ', items: [], soDoi: 0, tien: 0
     };
-    var sh, row;
+    var sh;
     if (info.laDon) {
       info.items = chuanHoaSP_(d);
       if (!info.items.length) return json_({ ok: false, loi: 'Giỏ hàng đang trống.' });
       info.items.forEach(function (x) { info.soDoi += x.sl; info.tien += x.sl * x.gia; });
       info.ma = maMoi_('DON', 'LC-');
       sh = tab_(TAB.DON);
-      row = ghi_(sh, {
+      ghi_(sh, [{
         'Mã đơn': info.ma, 'Thời gian': now, 'Tên khách': info.ten, 'Số điện thoại': info.sdt, 'Email': info.email,
         'Sản phẩm': info.items.map(moTa_).join('\n'), 'Số đôi': info.soDoi, 'Tạm tính (đ)': info.tien,
-        'Ghi chú của khách': info.noiDung, 'Email xác nhận': 'Đang gửi…'
-      });
-      var ct = tab_(TAB.CT);
-      info.items.forEach(function (x) {
-        ghi_(ct, {
+        'Ghi chú của khách': info.noiDung, 'Email xác nhận': CHO_GUI
+      }]);
+      ghi_(tab_(TAB.CT), info.items.map(function (x) {
+        return {
           'Mã đơn': info.ma, 'Thời gian': now, 'Mẫu': x.mau, 'Dòng': x.dong, 'Size': x.size, 'Khắc tên': x.khac,
           'Số lượng': x.sl, 'Đơn giá (đ)': x.gia, 'Thành tiền (đ)': x.gia * x.sl
-        });
-      });
+        };
+      }));
     } else {
       info.ma = maMoi_('LH', 'LH-');
       sh = tab_(TAB.LH);
-      row = ghi_(sh, {
+      ghi_(sh, [{
         'Mã': info.ma, 'Thời gian': now, 'Nguồn': info.loai, 'Tên khách': info.ten, 'Số điện thoại': info.sdt,
         'Email': info.email, 'Size chân': chu_(d.size, 20), 'Mã đơn cần tra': chu_(d.maDon, 40),
-        'Nội dung': info.noiDung, 'Email xác nhận': 'Đang gửi…'
-      });
+        'Nội dung': info.noiDung, 'Email xác nhận': CHO_GUI
+      }]);
     }
-    SpreadsheetApp.flush(); // chốt dữ liệu trước khi gửi email
-    var kq = guiXacNhan_(info);
-    datO_(sh, row, 'Email xác nhận', kq);
-    return json_({ ok: true, ma: info.ma, email: kq, phienBan: PHIEN_BAN });
+    // email gửi ở nền (guiEmailCho, chạy mỗi phút) để khách không phải chờ MailApp
+    PropertiesService.getScriptProperties().setProperty(HANG_CHO + info.ma, JSON.stringify({ tab: sh.getName(), info: info }));
+    SpreadsheetApp.flush(); // chốt dữ liệu trước khi nhả khoá
+    return json_({ ok: true, ma: info.ma, email: CHO_GUI, phienBan: PHIEN_BAN });
   } catch (err) {
     console.error(err);
     return json_({ ok: false, loi: 'Lỗi máy chủ: ' + String(err).slice(0, 160) });
@@ -101,7 +102,8 @@ function doPost(e) {
 
 // mở URL web app trên trình duyệt để kiểm tra phiên bản đang chạy
 function doGet() {
-  return json_({ ok: true, app: 'loccoc', phienBan: PHIEN_BAN, don: soDong_(TAB.DON), lienHe: soDong_(TAB.LH) });
+  return json_({ ok: true, app: 'loccoc', phienBan: PHIEN_BAN, don: soDong_(TAB.DON), lienHe: soDong_(TAB.LH),
+    emailNen: coEmailNen_(), choGui: soEmailCho_() });
 }
 
 // chuẩn hoá giỏ hàng: ưu tiên danh sách có cấu trúc, dự phòng đọc từ chữ (web bản cũ)
@@ -150,82 +152,120 @@ function guiXacNhan_(info) {
   }
 }
 
+// ★ chạy nền mỗi phút (bật bằng menu "Lộc Cộc → Bật gửi email nền"): gửi các email trong hàng chờ
+function guiEmailCho() {
+  var lock = LockService.getDocumentLock(); // khoá riêng, không chặn doPost (doPost dùng ScriptLock)
+  if (!lock.tryLock(1000)) return;          // lượt trước chưa xong thì bỏ qua lượt này
+  try {
+    var p = PropertiesService.getScriptProperties(), all = p.getProperties();
+    Object.keys(all).forEach(function (k) {
+      if (k.indexOf(HANG_CHO) !== 0) return;
+      var job;
+      try { job = JSON.parse(all[k]); } catch (e) { p.deleteProperty(k); return; }
+      var kq = guiXacNhan_(job.info);
+      p.deleteProperty(k);
+      var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(job.tab);
+      var o = sh && sh.createTextFinder(job.info.ma).matchEntireCell(true).findNext();
+      if (o) datO_(sh, o.getRow(), 'Email xác nhận', kq);
+    });
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function batEmailNen() {
+  ScriptApp.getProjectTriggers().forEach(function (t) {
+    if (t.getHandlerFunction() === 'guiEmailCho') ScriptApp.deleteTrigger(t);
+  });
+  ScriptApp.newTrigger('guiEmailCho').timeBased().everyMinutes(1).create();
+  thongBao_('Đã bật gửi email nền: email cảm ơn sẽ tới khách trong khoảng 1 phút sau khi gửi form.');
+}
+
+function coEmailNen_() {
+  return ScriptApp.getProjectTriggers().some(function (t) { return t.getHandlerFunction() === 'guiEmailCho'; });
+}
+
+function soEmailCho_() {
+  return Object.keys(PropertiesService.getScriptProperties().getProperties())
+    .filter(function (k) { return k.indexOf(HANG_CHO) === 0; }).length;
+}
+
 function noiDungEmail_(info) {
-  var ten = info.ten || 'bạn';
+  var ten = info.ten || 'bạn', M = MAU_MAIL;
   var tien = function (v) { return Number(v || 0).toLocaleString('vi-VN') + 'đ'; };
   var subject, mo, chiTiet = '', chiTietText = '', luuY;
   if (info.laDon) {
     subject = 'Lộc Cộc đã nhận đơn ' + info.ma + ', cảm ơn bạn nhiều!';
-    mo = 'Cảm ơn bạn đã chọn Lộc Cộc! Chúng mình đã nhận được đơn hàng <b>' + esc_(info.ma) + '</b> của bạn:';
-    chiTiet = '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:16px 0">' +
+    mo = 'Cảm ơn bạn đã chọn Lộc Cộc! Chúng mình đã nhận được đơn hàng <b style="color:' + M.do + '">' + esc_(info.ma) + '</b> của bạn:';
+    chiTiet = '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:18px 0 6px">' +
       info.items.map(function (x) {
-        return '<tr><td style="padding:12px 0;font-size:15px;color:#FFFFFF">' + chu_(
-          '<b>' + esc_(x.mau) + '</b> (' + esc_(x.dong) + ')<br>' +
-          '<span style="font-size:13px">Size ' + esc_(x.size) + (x.khac ? ' · Khắc "' + esc_(x.khac) + '"' : '') + '</span>') + '</td>' +
-          '<td align="right" style="padding:12px 0;font-size:15px;color:#FFFFFF;white-space:nowrap">' + chu_('× ' + x.sl) + '</td></tr>' + vach_(2);
+        return '<tr><td width="100%" style="padding:12px 12px 12px 0;border-bottom:1px solid ' + M.vach + ';font-size:15px;color:' + M.dam + '">' +
+          '<b>' + esc_(x.mau) + '</b> <span style="color:' + M.mo + '">· ' + esc_(x.dong) + '</span><br>' +
+          '<span style="font-size:13px;color:' + M.mo + '">Size ' + esc_(x.size) + (x.khac ? ' · Khắc "' + esc_(x.khac) + '"' : '') + '</span></td>' +
+          '<td align="right" style="padding:12px 0;border-bottom:1px solid ' + M.vach + ';font-size:15px;color:' + M.nau + ';white-space:nowrap">× ' + x.sl + '</td></tr>';
       }).join('') +
-      '<tr><td style="padding:14px 0 0;font-size:15px;color:#FFFFFF">' + chu_(info.soDoi + ' đôi') + '</td>' +
-      '<td align="right" style="padding:14px 0 0;font-size:17px;color:#FFFFFF">' + chu_('<b>' + (info.tien ? 'Tạm tính ' + tien(info.tien) : '') + '</b>') + '</td></tr></table>';
+      // dòng tổng là bảng riêng để chữ "Tạm tính …" không làm cột "× SL" phía trên rộng ra
+      '<tr><td colspan="2" style="padding:14px 0 0"><table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>' +
+      '<td style="font-size:15px;color:' + M.nau + '">' + info.soDoi + ' đôi</td>' +
+      '<td align="right" style="font-size:17px;color:' + M.do + ';white-space:nowrap"><b>' + (info.tien ? 'Tạm tính ' + tien(info.tien) : '') + '</b></td>' +
+      '</tr></table></td></tr></table>';
     chiTietText = info.items.map(function (x) { return '- ' + moTa_(x); }).join('\n') +
       '\n' + info.soDoi + ' đôi' + (info.tien ? ' · Tạm tính ' + tien(info.tien) : '');
     luuY = 'Đơn hàng này chỉ nhằm mục đích trải nghiệm và thử nghiệm website: <b>bạn sẽ không bị thu tiền và cũng sẽ không có sản phẩm nào được giao</b>.';
   } else {
     subject = 'Lộc Cộc đã nhận tin nhắn của bạn (' + info.ma + ')';
     mo = 'Cảm ơn bạn đã liên hệ với Lộc Cộc! Chúng mình đã nhận được yêu cầu <b>' + esc_(info.loai) +
-      '</b> của bạn, mã <b>' + esc_(info.ma) + '</b>.';
+      '</b> của bạn, mã <b style="color:' + M.do + '">' + esc_(info.ma) + '</b>.';
     if (info.noiDung) {
-      chiTiet = '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:16px 0"><tr>' +
-        '<td width="3" style="' + nen_(MAU_MAIL.do) + 'font-size:0">&nbsp;</td>' +
-        '<td style="' + nen_(MAU_MAIL.hop) + 'padding:14px 16px;font-size:15px;color:#FFFFFF;white-space:pre-line">' + chu_(esc_(info.noiDung)) + '</td></tr></table>';
+      chiTiet = '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:18px 0 6px"><tr>' +
+        '<td width="3" style="' + nen_(M.do) + 'font-size:0">&nbsp;</td>' +
+        '<td style="background:' + M.hop + ';padding:14px 16px;font-size:15px;color:' + M.nau + ';white-space:pre-line">' + esc_(info.noiDung) + '</td></tr></table>';
       chiTietText = 'Nội dung: ' + info.noiDung;
     }
     luuY = 'Yêu cầu này chỉ nhằm mục đích trải nghiệm và thử nghiệm website: <b>sẽ không có giao dịch, tư vấn bán hàng hay thu phí nào phát sinh</b>.';
   }
   var thongBao = 'Lộc Cộc là <b>dự án học tập</b> thuộc môn <b>Truyền thông số</b> của sinh viên <b>Trường Đại học Văn Lang</b>. ' + luuY;
-  // Gmail iOS/Android tự đảo màu khi máy để chế độ tối: nền vẽ bằng linear-gradient và ảnh thì Gmail không đảo,
-  // còn chữ trắng được giữ bằng mẹo mix-blend-mode (lớp .lc-s/.lc-d, chỉ Gmail khớp "u + .body").
-  // Vì mẹo chỉ giữ được chữ TRẮNG nên mọi chữ trong email đều màu trắng trên nền đậm.
-  var o = 'padding:0 28px;font-size:15px;line-height:1.6;color:#FFFFFF';
+  // Thân email tông sáng (be nhạt, chữ nâu); khi Gmail để chế độ tối, phần này tự đảo thành nâu đậm, chữ sáng.
+  // Riêng thanh đầu được khoá màu: nền gradient đỏ + logo là ảnh + chữ trắng bọc trang_() nên giữ nguyên ở mọi chế độ.
+  var o = 'padding:0 32px;font-size:15px;line-height:1.65;color:' + M.nau;
   var html =
     '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width">' +
     '<meta name="color-scheme" content="light only"><meta name="supported-color-schemes" content="light only">' +
     '<style>u + .body .lc-s{background:#000;mix-blend-mode:screen}u + .body .lc-d{background:#000;mix-blend-mode:difference}</style>' +
-    '</head><body class="body" style="margin:0;padding:0">' +
-    '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="' + nen_(MAU_MAIL.be) + 'font-family:\'Plus Jakarta Sans\',\'Be Vietnam Pro\',\'Segoe UI\',Arial,sans-serif"><tr><td style="padding:28px 12px">' +
-    '<table role="presentation" align="center" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;margin:0 auto;' + nen_(MAU_MAIL.nau) + 'border-radius:18px;overflow:hidden">' +
-    '<tr><td style="' + nen_(MAU_MAIL.do) + 'padding:28px 28px 24px">' +
-    '<img src="' + LOGO_MAIL + '" width="180" alt="Lộc Cộc" style="display:block;width:180px;max-width:60%;height:auto;border:0">' +
-    '<div style="font-size:13px;letter-spacing:0.5px;color:#FFFFFF;margin-top:12px">' + chu_('Chỉn chu từng chi tiết - Cho bạn lựa chọn không hối tiếc') + '</div>' +
+    '</head><body class="body" style="margin:0;padding:0;background:' + M.be + '">' +
+    '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:' + M.be + ';font-family:\'Plus Jakarta Sans\',\'Be Vietnam Pro\',\'Segoe UI\',Arial,sans-serif"><tr><td style="padding:28px 12px">' +
+    '<table role="presentation" align="center" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;margin:0 auto;background:' + M.the + ';border-radius:18px;overflow:hidden">' +
+    '<tr><td style="' + nen_(M.do) + 'padding:28px 32px 24px">' +
+    '<img src="' + LOGO_MAIL + '" width="170" alt="Lộc Cộc" style="display:block;width:170px;max-width:60%;height:auto;border:0">' +
+    '<div style="font-size:13px;letter-spacing:0.3px;color:#FFFFFF;margin-top:12px">' + trang_('Chỉn chu từng chi tiết - Cho bạn lựa chọn không hối tiếc') + '</div>' +
     '</td></tr>' +
-    '<tr><td style="padding:28px 28px 0;font-size:20px;font-weight:700;color:#FFFFFF">' + chu_('Chào ' + esc_(ten) + ',') + '</td></tr>' +
-    '<tr><td style="' + o + ';padding-top:10px">' + chu_(mo) + '</td></tr>' +
-    '<tr><td style="padding:0 28px">' + chiTiet + '</td></tr>' +
-    '<tr><td style="padding:8px 28px 22px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="' + nen_(MAU_MAIL.hop) + 'border-radius:12px">' +
-    '<tr><td style="padding:16px 18px;font-size:14px;line-height:1.6;color:#FFFFFF">' +
-    chu_('<div style="font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px">Lưu ý nhỏ từ Lộc Cộc</div>' + thongBao) +
+    '<tr><td style="padding:30px 32px 0;font-size:21px;font-weight:700;color:' + M.dam + '">Chào ' + esc_(ten) + ',</td></tr>' +
+    '<tr><td style="' + o + ';padding-top:10px">' + mo + '</td></tr>' +
+    '<tr><td style="padding:0 32px">' + chiTiet + '</td></tr>' +
+    '<tr><td style="padding:16px 32px 22px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:' + M.hop + ';border-radius:12px">' +
+    '<tr><td style="padding:16px 18px;font-size:14px;line-height:1.6;color:' + M.nau + '">' +
+    '<div style="font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:' + M.do + ';margin-bottom:6px">Lưu ý nhỏ từ Lộc Cộc</div>' + thongBao +
     '</td></tr></table></td></tr>' +
-    '<tr><td style="' + o + '">' + chu_('Cảm ơn bạn đã dành thời gian trải nghiệm và ủng hộ dự án của chúng mình. Mỗi lượt ghé thăm đều là một bước "lộc cộc" thật đáng quý!') + '</td></tr>' +
-    '<tr><td style="' + o + ';padding-top:18px;padding-bottom:24px">' + chu_('Thân mến,<br><b>Team Lộc Cộc</b>') + '</td></tr>' +
-    '<tr><td style="padding:0 28px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0">' + vach_(1) + '</table></td></tr>' +
-    '<tr><td style="padding:18px 28px 24px;font-size:12px;line-height:1.6;color:#FFFFFF">' +
-    chu_('<i>Dáng mộc ôm chân, cân mọi outfit.</i><br>Email tự động từ website Lộc Cộc · loccoc.com.vn · Mã: ' + esc_(info.ma)) +
+    '<tr><td style="' + o + '">Cảm ơn bạn đã dành thời gian trải nghiệm và ủng hộ dự án của chúng mình. Mỗi lượt ghé thăm đều là một bước "lộc cộc" thật đáng quý!</td></tr>' +
+    '<tr><td style="' + o + ';padding-top:18px;padding-bottom:26px">Thân mến,<br><b style="color:' + M.dam + '">Team Lộc Cộc</b></td></tr>' +
+    '<tr><td style="padding:18px 32px 24px;border-top:1px solid ' + M.vach + ';font-size:12px;line-height:1.6;color:' + M.mo + '">' +
+    '<i>Dáng mộc ôm chân, cân mọi outfit.</i><br>Email tự động từ website Lộc Cộc · loccoc.com.vn · Mã: ' + esc_(info.ma) +
     '</td></tr></table></td></tr></table></body></html>';
   var text = 'Chào ' + ten + ',\n\n' + mo.replace(/<[^>]+>/g, '') + '\n\n' + (chiTietText ? chiTietText + '\n\n' : '') +
     'LƯU Ý: ' + thongBao.replace(/<[^>]+>/g, '') + '\n\nCảm ơn bạn đã dành thời gian trải nghiệm và ủng hộ dự án của chúng mình!\n\nThân mến,\nTeam Lộc Cộc\nloccoc.com.vn';
   return { subject: subject, html: html, text: text };
 }
 
-// Màu email (Brand Guideline): Be, Đỏ, Nâu + 2 sắc đậm/nhạt của Nâu
-var MAU_MAIL = { be: '#E8DCC8', do: '#800E13', nau: '#5A3E32', hop: '#46302A', vach: '#7A5C4E' };
+// Màu email (Brand Guideline): Be, Đỏ, Nâu + sắc đậm/nhạt của chúng
+var MAU_MAIL = { be: '#E8DCC8', the: '#F7F1E7', hop: '#EFE5D5', vach: '#DDCDB5',
+  do: '#800E13', nau: '#5A3E32', dam: '#3E2A21', mo: '#8A6F60' };
 // Logo trắng nằm trên website (Gmail không hiện ảnh base64/SVG nên phải dùng link ảnh PNG)
 var LOGO_MAIL = 'https://www.loccoc.com.vn/img/email/logo-trang.png';
 
 // Nền bằng gradient một màu: Gmail chế độ tối không đảo màu ảnh nền
 function nen_(c) { return 'background-color:' + c + ';background-image:linear-gradient(' + c + ',' + c + ');'; }
-// Bọc chữ (trắng) để Gmail chế độ tối không đổi màu chữ
-function chu_(s) { return '<div class="lc-s"><div class="lc-d">' + s + '</div></div>'; }
-// Đường kẻ ngang 1px (không dùng border vì Gmail đảo màu border)
-function vach_(cot) { return '<tr><td colspan="' + cot + '" height="1" style="' + nen_(MAU_MAIL.vach) + 'height:1px;font-size:0;line-height:0">&nbsp;</td></tr>'; }
+// Bọc chữ TRẮNG để Gmail chế độ tối không đổi màu (mẹo mix-blend-mode, chỉ đúng với chữ trắng)
+function trang_(s) { return '<div class="lc-s"><div class="lc-d">' + s + '</div></div>'; }
 
 /* ═════════════════════════ 3. MENU + HÀM CHẠY TAY ═════════════════════════ */
 
@@ -234,6 +274,7 @@ function onOpen() {
     .addItem('Làm mới báo cáo & giao diện', 'lamMoiBaoCao')
     .addItem('Kiểm tra hệ thống', 'kiemTra')
     .addItem('Gửi email thử cho tôi', 'guiEmailThu')
+    .addItem('Bật gửi email nền (chạy 1 lần)', 'batEmailNen')
     .addSeparator()
     .addItem('Xoá hết dữ liệu và cài đặt lại…', 'xoaHetVaCaiDatLai')
     .addToUi();
@@ -284,6 +325,7 @@ function kiemTra() {
   dong.push('Định dạng công thức của Sheet: ngăn bằng "' + sep_() + '"');
   dong.push('Múi giờ Sheet: ' + ss.getSpreadsheetTimeZone());
   dong.push('Hạn mức email còn hôm nay: ' + MailApp.getRemainingDailyQuota());
+  dong.push((coEmailNen_() ? '✓ Đã bật' : '✗ CHƯA bật (menu Lộc Cộc → Bật gửi email nền)') + ' gửi email nền · đang chờ gửi: ' + soEmailCho_());
   var thu = chuanHoaSP_({ items: [{ ten: 'Bạc Hà', dong: 'Basic', size: '37', khac: 'Lan', sl: 2 }] });
   dong.push('Thử đọc giỏ hàng: ' + (thu.length === 1 && thu[0].gia === GIA_BASIC && thu[0].sl === 2 ? '✓ ' : '✗ ') + moTa_(thu[0]));
   thongBao_(dong.join('\n'));
@@ -319,15 +361,21 @@ function tab_(ten) {
   return sh;
 }
 
-// ghi 1 dòng theo TÊN CỘT; tự điền Ngày/Giờ bằng công thức lấy từ cột Thời gian (theo múi giờ của Sheet)
-function ghi_(sh, obj) {
+// ghi nhiều dòng theo TÊN CỘT trong 1 lần gọi; Ngày/Giờ là công thức lấy từ cột Thời gian (theo múi giờ của Sheet)
+function ghi_(sh, ds) {
   var hd = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0].map(String);
-  sh.appendRow(hd.map(function (h) { return Object.prototype.hasOwnProperty.call(obj, h) ? an_(obj[h]) : ''; }));
-  var r = sh.getLastRow();
-  var cT = hd.indexOf('Thời gian') + 1, cN = hd.indexOf('Ngày') + 1, cG = hd.indexOf('Giờ') + 1;
-  if (cT && cN) sh.getRange(r, cN).setFormulaR1C1('=INT(R[0]C[' + (cT - cN) + '])');
-  if (cT && cG) sh.getRange(r, cG).setFormulaR1C1('=HOUR(R[0]C[' + (cT - cG) + '])');
-  return r;
+  var r0 = sh.getLastRow() + 1;
+  var cT = hd.indexOf('Thời gian'), cN = hd.indexOf('Ngày'), cG = hd.indexOf('Giờ');
+  var t = cT < 0 ? '' : sh.getRange(1, cT + 1).getA1Notation().replace(/\d+/g, ''); // chữ cột, vd "B"
+  var rows = ds.map(function (obj, i) {
+    return hd.map(function (h, j) {
+      if (t && j === cN) return '=INT(' + t + (r0 + i) + ')';
+      if (t && j === cG) return '=HOUR(' + t + (r0 + i) + ')';
+      return Object.prototype.hasOwnProperty.call(obj, h) ? an_(obj[h]) : '';
+    });
+  });
+  sh.getRange(r0, 1, rows.length, hd.length).setValues(rows);
+  return r0;
 }
 
 function datO_(sh, r, tenCot, v) {

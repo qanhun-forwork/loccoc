@@ -60,9 +60,12 @@ Lộc Cộc tại loccoc.com.vn. Không phục vụ mục đích thương mại:
 - Sau khi sửa `Code.gs`: dán vào Apps Script của Sheet "LỘC CỘC - ĐƠN HÀNG", rồi
   Triển khai → Quản lý triển khai → ✎ → Phiên bản: "Phiên bản mới". Không tạo "triển khai mới"
   (URL sẽ đổi). Kiểm tra: mở SHEET_URL trên trình duyệt phải thấy `"phienBan"` đúng số trong code.
-- Email cảm ơn (v3.1) giữ nguyên màu cả khi Gmail để chế độ tối: nền vẽ bằng `nen_()` (gradient),
-  chữ bọc `chu_()` (mẹo mix-blend-mode, chỉ giữ được chữ TRẮNG), kẻ ngang bằng `vach_()` thay border.
-  Logo là ảnh `img/email/logo-trang.png` trên loccoc.com.vn: phải push web trước thì email mới hiện logo.
+- Email cảm ơn (v3.3) tông sáng: thân be nhạt, chữ Nâu, nhấn Đỏ; Gmail chế độ tối tự đảo phần thân
+  thành nâu đậm. Riêng thanh đầu khoá màu: nền gradient `nen_()`, logo là ảnh, chữ trắng bọc `trang_()`
+  (mẹo mix-blend-mode, chỉ đúng với chữ TRẮNG). Logo là `img/email/logo-trang.png` trên www.loccoc.com.vn.
+- Email gửi ở NỀN: doPost chỉ ghi Sheet + xếp email vào Script Properties (`thu_<mã>`), trigger mỗi phút
+  chạy `guiEmailCho` để gửi và cập nhật cột "Email xác nhận" (Chờ gửi → Đã gửi). Trigger phải bật 1 lần
+  bằng menu Lộc Cộc → "Bật gửi email nền"; SHEET_URL trả `"emailNen":true` khi đã bật.
 - Gmail cá nhân gửi tối đa khoảng 100 email/ngày; mỗi địa chỉ tối đa 3 email/giờ (chống lạm dụng).
 
 ## Mạng xã hội
