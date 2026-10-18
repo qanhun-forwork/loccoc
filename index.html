@@ -183,7 +183,7 @@ body.lock{overflow:hidden}
 @keyframes beat{0%,100%{transform:scale(1)}8%{transform:scale(1.1)}18%{transform:scale(.98)}28%{transform:scale(1)}}
 .z1{left:0;top:4%;width:24%;rotate:-14deg;--sc:var(--red);--de:.6s}
 .z2{right:-1%;bottom:-2%;width:22%;rotate:12deg;--sc:var(--nau);--bd:.6s;--de:.75s}
-.z3{left:1%;top:38%;width:19%;rotate:8deg;--sc:var(--be-xl);--st:var(--red);--de:.9s}.z3::before{animation:none}
+.z3{left:40%;top:-3%;width:19%;rotate:8deg;--sc:var(--be-xl);--st:var(--red);--de:.9s}.z3::before{animation:none}
 /* huy hiệu xoay */
 .badge{position:absolute;left:-3%;bottom:4%;width:30%;aspect-ratio:1;z-index:4;background:var(--be-xl);border:1px solid rgba(90,62,50,.3);border-radius:50%;box-shadow:var(--sh);display:grid;place-items:center;animation:pop .8s var(--spring) calc(var(--hd) + 1s) both}
 .badge svg{position:absolute;inset:4%;width:92%;height:92%;animation:spin 20s linear infinite}
@@ -816,14 +816,18 @@ function sendForm(f,e){
  d.nhom="lienhe";
  if(pg&&pg.id==="pg-lien-he")d.loai="Liên hệ";
  if(pg&&pg.id==="pg-thiet-ke")d.loai="Yêu cầu thiết kế riêng";
- if(withCart){d.nhom="don";d.loai="Đơn hàng";d.gioHang=pendingOrder.text;d.soLuong=pendingOrder.qty;d.tamTinh=pendingOrder.total}
+ if(withCart){d.nhom="don";d.loai="Đơn hàng";d.gioHang=pendingOrder.text;d.soLuong=pendingOrder.qty;d.tamTinh=pendingOrder.total;d.items=pendingOrder.items}
  function done(msg,good){ok.textContent=msg;ok.hidden=false;ok.style.color=good?"":"#B3261E";btn.disabled=false;btn.textContent=good||!withCart?btn.dataset.t:"Gửi đơn hàng";
   if(good){f.reset();if(withCart){pendingOrder=null;cart=[];save();draw();var s=f.querySelector(".osum");if(s)s.remove()}}}
  btn.dataset.t=btn.dataset.t||btn.textContent;btn.disabled=true;btn.textContent="Đang gửi…";ok.hidden=true;
  if(!SHEET_URL){console.warn("Chưa cấu hình SHEET_URL, đơn chưa được lưu:",d);done("Đã nhận thông tin. Lộc Cộc sẽ liên hệ với bạn sớm.",true);return}
- // text/plain để trình duyệt không chặn (CORS) khi gửi sang Google Apps Script
- fetch(SHEET_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(d)})
-  .then(function(){done(withCart?"Đã gửi đơn. Bạn kiểm tra hộp thư để nhận email xác nhận từ Lộc Cộc nhé.":"Đã nhận thông tin. Lộc Cộc sẽ gửi email xác nhận cho bạn.",true)})
+ // text/plain: không cần bước kiểm tra CORS; Apps Script trả JSON {ok, ma, email} hoặc {ok:false, loi}
+ fetch(SHEET_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(d)})
+  .then(function(r){return r.json()})
+  .then(function(res){
+   if(!res||!res.ok){done((res&&res.loi)||"Chưa gửi được, bạn thử lại sau ít phút nhé.",false);return}
+   var ma=res.ma?" "+res.ma:"",mail=res.email==="Đã gửi"?" Email xác nhận đã được gửi tới hộp thư của bạn.":(res.email?" (Chưa gửi được email xác nhận, nhưng Lộc Cộc vẫn đã nhận"+(withCart?" đơn":" thông tin")+" của bạn.)":"");
+   done((withCart?"Đã gửi đơn"+ma+".":"Đã nhận yêu cầu"+ma+".")+mail,true)})
   .catch(function(){done("Chưa gửi được, bạn kiểm tra mạng rồi thử lại, hoặc nhắn Zalo cho Lộc Cộc nhé.",false)})}
 function bindForm(f){if(f.dataset.bf)return;f.dataset.bf=1;
  // ô ẩn chống bot
@@ -934,7 +938,7 @@ document.addEventListener("keydown",function(e){if(e.key==="Escape")closeP()});
 $("bsend").onclick=function(){
  var lines=cart.map(function(c){return "- "+pn(c.i)[0]+(isB(c.i)?" (Basic, "+PRICE+")":" (báo giá sau)")+", size "+c.s+(c.n?", khắc \""+c.n+"\"":"")+", SL "+c.q}),
   qty=cart.reduce(function(s,c){return s+c.q},0),total=cart.reduce(function(s,c){return s+(isB(c.i)?350000*c.q:0)},0);
- pendingOrder={text:lines.join("\n"),qty:qty,total:total};
+ pendingOrder={text:lines.join("\n"),qty:qty,total:total,items:cart.filter(function(c){return isB(c.i)}).map(function(c){return {ten:pn(c.i)[0],dong:"Basic",size:c.s,khac:c.n,sl:c.q}})};
  var ta=document.querySelector("#pg-lien-he textarea");ta.value="";ta.placeholder="Ghi chú thêm cho đơn (không bắt buộc)";
  var lf=document.querySelector("#pg-lien-he form"),sum=lf.querySelector(".osum"),lb=lf.querySelector("button[type=submit]");
  lf.querySelector(".ok").hidden=true;lb.dataset.t=lb.dataset.t||lb.textContent;lb.textContent="Gửi đơn hàng";
