@@ -19,7 +19,7 @@
  * ───────────────────────────────────────────────────────────────────────────
  */
 
-var PHIEN_BAN = '3.0';
+var PHIEN_BAN = '3.1';
 var TEN_GUI = 'Lộc Cộc';            // tên người gửi trong email
 var GIA_BASIC = 350000;             // giá dòng Basic (tính lại ở máy chủ, không tin giá từ trình duyệt)
 var GIOI_HAN_MOI_GIO = 3;           // tối đa email gửi tới cùng 1 địa chỉ trong 1 giờ
@@ -159,13 +159,13 @@ function noiDungEmail_(info) {
     mo = 'Cảm ơn bạn đã chọn Lộc Cộc! Chúng mình đã nhận được đơn hàng <b>' + esc_(info.ma) + '</b> của bạn:';
     chiTiet = '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:16px 0">' +
       info.items.map(function (x) {
-        return '<tr><td style="padding:12px 0;border-bottom:1px solid #E3D6C1;font-size:15px;color:#2A1C16">' +
-          '<b>' + esc_(x.mau) + '</b> <span style="color:#8A7565">(' + esc_(x.dong) + ')</span><br>' +
-          '<span style="font-size:13px;color:#5A3E32">Size ' + esc_(x.size) + (x.khac ? ' · Khắc "' + esc_(x.khac) + '"' : '') + '</span></td>' +
-          '<td align="right" style="padding:12px 0;border-bottom:1px solid #E3D6C1;font-size:15px;color:#5A3E32;white-space:nowrap">× ' + x.sl + '</td></tr>';
+        return '<tr><td style="padding:12px 0;font-size:15px;color:#FFFFFF">' + chu_(
+          '<b>' + esc_(x.mau) + '</b> (' + esc_(x.dong) + ')<br>' +
+          '<span style="font-size:13px">Size ' + esc_(x.size) + (x.khac ? ' · Khắc "' + esc_(x.khac) + '"' : '') + '</span>') + '</td>' +
+          '<td align="right" style="padding:12px 0;font-size:15px;color:#FFFFFF;white-space:nowrap">' + chu_('× ' + x.sl) + '</td></tr>' + vach_(2);
       }).join('') +
-      '<tr><td style="padding:14px 0 0;font-size:15px;color:#5A3E32">' + info.soDoi + ' đôi</td>' +
-      '<td align="right" style="padding:14px 0 0;font-size:16px;color:#800E13"><b>' + (info.tien ? 'Tạm tính ' + tien(info.tien) : '') + '</b></td></tr></table>';
+      '<tr><td style="padding:14px 0 0;font-size:15px;color:#FFFFFF">' + chu_(info.soDoi + ' đôi') + '</td>' +
+      '<td align="right" style="padding:14px 0 0;font-size:17px;color:#FFFFFF">' + chu_('<b>' + (info.tien ? 'Tạm tính ' + tien(info.tien) : '') + '</b>') + '</td></tr></table>';
     chiTietText = info.items.map(function (x) { return '- ' + moTa_(x); }).join('\n') +
       '\n' + info.soDoi + ' đôi' + (info.tien ? ' · Tạm tính ' + tien(info.tien) : '');
     luuY = 'Đơn hàng này chỉ nhằm mục đích trải nghiệm và thử nghiệm website: <b>bạn sẽ không bị thu tiền và cũng sẽ không có sản phẩm nào được giao</b>.';
@@ -174,32 +174,58 @@ function noiDungEmail_(info) {
     mo = 'Cảm ơn bạn đã liên hệ với Lộc Cộc! Chúng mình đã nhận được yêu cầu <b>' + esc_(info.loai) +
       '</b> của bạn, mã <b>' + esc_(info.ma) + '</b>.';
     if (info.noiDung) {
-      chiTiet = '<div style="margin:16px 0;padding:14px 16px;background:#FAF6EF;border-left:3px solid #800E13;border-radius:8px;font-size:15px;color:#5A3E32;white-space:pre-line">' + esc_(info.noiDung) + '</div>';
+      chiTiet = '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:16px 0"><tr>' +
+        '<td width="3" style="' + nen_(MAU_MAIL.do) + 'font-size:0">&nbsp;</td>' +
+        '<td style="' + nen_(MAU_MAIL.hop) + 'padding:14px 16px;font-size:15px;color:#FFFFFF;white-space:pre-line">' + chu_(esc_(info.noiDung)) + '</td></tr></table>';
       chiTietText = 'Nội dung: ' + info.noiDung;
     }
     luuY = 'Yêu cầu này chỉ nhằm mục đích trải nghiệm và thử nghiệm website: <b>sẽ không có giao dịch, tư vấn bán hàng hay thu phí nào phát sinh</b>.';
   }
   var thongBao = 'Lộc Cộc là <b>dự án học tập</b> thuộc môn <b>Truyền thông số</b> của sinh viên <b>Trường Đại học Văn Lang</b>. ' + luuY;
+  // Gmail iOS/Android tự đảo màu khi máy để chế độ tối: nền vẽ bằng linear-gradient và ảnh thì Gmail không đảo,
+  // còn chữ trắng được giữ bằng mẹo mix-blend-mode (lớp .lc-s/.lc-d, chỉ Gmail khớp "u + .body").
+  // Vì mẹo chỉ giữ được chữ TRẮNG nên mọi chữ trong email đều màu trắng trên nền đậm.
+  var o = 'padding:0 28px;font-size:15px;line-height:1.6;color:#FFFFFF';
   var html =
-    '<div style="margin:0;padding:28px 12px;background:#E8DCC8;font-family:\'Be Vietnam Pro\',\'Segoe UI\',Arial,sans-serif">' +
-    '<table role="presentation" align="center" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;margin:0 auto;background:#FFFFFF;border-radius:18px;overflow:hidden">' +
-    '<tr><td style="background:#800E13;padding:26px 28px">' +
-    '<div style="font-size:28px;font-weight:800;letter-spacing:-1px;color:#F3EBDD">lộc cộc</div>' +
-    '<div style="font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#E9CFC9;margin-top:6px">Dáng mộc ôm chân · Cân mọi outfit</div>' +
-    '</td></tr><tr><td style="padding:28px 28px 8px;color:#2A1C16;font-size:15px;line-height:1.6">' +
-    '<p style="margin:0 0 12px;font-size:20px;font-weight:700">Chào ' + esc_(ten) + ',</p>' +
-    '<p style="margin:0">' + mo + '</p>' + chiTiet +
-    '<div style="margin:22px 0;padding:16px 18px;background:#F3EBDD;border-radius:12px;font-size:14px;color:#5A3E32;line-height:1.6">' +
-    '<div style="font-weight:700;color:#800E13;margin-bottom:6px">Lưu ý nhỏ từ Lộc Cộc</div>' + thongBao + '</div>' +
-    '<p style="margin:0 0 6px">Cảm ơn bạn đã dành thời gian trải nghiệm và ủng hộ dự án của chúng mình. Mỗi lượt ghé thăm đều là một bước "lộc cộc" thật đáng quý!</p>' +
-    '<p style="margin:18px 0 0">Thân mến,<br><b>Team Lộc Cộc</b></p></td></tr>' +
-    '<tr><td style="padding:22px 28px 26px;border-top:1px solid #E3D6C1;font-size:12px;color:#8A7565;line-height:1.6">' +
-    '<i>Chỉn chu từng chi tiết để lựa chọn không hối tiếc.</i><br>Email tự động từ website Lộc Cộc · loccoc.com.vn · Mã: ' + esc_(info.ma) +
-    '</td></tr></table></div>';
+    '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width">' +
+    '<meta name="color-scheme" content="light only"><meta name="supported-color-schemes" content="light only">' +
+    '<style>u + .body .lc-s{background:#000;mix-blend-mode:screen}u + .body .lc-d{background:#000;mix-blend-mode:difference}</style>' +
+    '</head><body class="body" style="margin:0;padding:0">' +
+    '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="' + nen_(MAU_MAIL.be) + 'font-family:\'Plus Jakarta Sans\',\'Be Vietnam Pro\',\'Segoe UI\',Arial,sans-serif"><tr><td style="padding:28px 12px">' +
+    '<table role="presentation" align="center" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;margin:0 auto;' + nen_(MAU_MAIL.nau) + 'border-radius:18px;overflow:hidden">' +
+    '<tr><td style="' + nen_(MAU_MAIL.do) + 'padding:28px 28px 24px">' +
+    '<img src="' + LOGO_MAIL + '" width="180" alt="Lộc Cộc" style="display:block;width:180px;max-width:60%;height:auto;border:0">' +
+    '<div style="font-size:13px;letter-spacing:0.5px;color:#FFFFFF;margin-top:12px">' + chu_('Chỉn chu từng chi tiết - Cho bạn lựa chọn không hối tiếc') + '</div>' +
+    '</td></tr>' +
+    '<tr><td style="padding:28px 28px 0;font-size:20px;font-weight:700;color:#FFFFFF">' + chu_('Chào ' + esc_(ten) + ',') + '</td></tr>' +
+    '<tr><td style="' + o + ';padding-top:10px">' + chu_(mo) + '</td></tr>' +
+    '<tr><td style="padding:0 28px">' + chiTiet + '</td></tr>' +
+    '<tr><td style="padding:8px 28px 22px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="' + nen_(MAU_MAIL.hop) + 'border-radius:12px">' +
+    '<tr><td style="padding:16px 18px;font-size:14px;line-height:1.6;color:#FFFFFF">' +
+    chu_('<div style="font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px">Lưu ý nhỏ từ Lộc Cộc</div>' + thongBao) +
+    '</td></tr></table></td></tr>' +
+    '<tr><td style="' + o + '">' + chu_('Cảm ơn bạn đã dành thời gian trải nghiệm và ủng hộ dự án của chúng mình. Mỗi lượt ghé thăm đều là một bước "lộc cộc" thật đáng quý!') + '</td></tr>' +
+    '<tr><td style="' + o + ';padding-top:18px;padding-bottom:24px">' + chu_('Thân mến,<br><b>Team Lộc Cộc</b>') + '</td></tr>' +
+    '<tr><td style="padding:0 28px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0">' + vach_(1) + '</table></td></tr>' +
+    '<tr><td style="padding:18px 28px 24px;font-size:12px;line-height:1.6;color:#FFFFFF">' +
+    chu_('<i>Dáng mộc ôm chân, cân mọi outfit.</i><br>Email tự động từ website Lộc Cộc · loccoc.com.vn · Mã: ' + esc_(info.ma)) +
+    '</td></tr></table></td></tr></table></body></html>';
   var text = 'Chào ' + ten + ',\n\n' + mo.replace(/<[^>]+>/g, '') + '\n\n' + (chiTietText ? chiTietText + '\n\n' : '') +
     'LƯU Ý: ' + thongBao.replace(/<[^>]+>/g, '') + '\n\nCảm ơn bạn đã dành thời gian trải nghiệm và ủng hộ dự án của chúng mình!\n\nThân mến,\nTeam Lộc Cộc\nloccoc.com.vn';
   return { subject: subject, html: html, text: text };
 }
+
+// Màu email (Brand Guideline): Be, Đỏ, Nâu + 2 sắc đậm/nhạt của Nâu
+var MAU_MAIL = { be: '#E8DCC8', do: '#800E13', nau: '#5A3E32', hop: '#46302A', vach: '#7A5C4E' };
+// Logo trắng nằm trên website (Gmail không hiện ảnh base64/SVG nên phải dùng link ảnh PNG)
+var LOGO_MAIL = 'https://loccoc.com.vn/img/email/logo-trang.png';
+
+// Nền bằng gradient một màu: Gmail chế độ tối không đảo màu ảnh nền
+function nen_(c) { return 'background-color:' + c + ';background-image:linear-gradient(' + c + ',' + c + ');'; }
+// Bọc chữ (trắng) để Gmail chế độ tối không đổi màu chữ
+function chu_(s) { return '<div class="lc-s"><div class="lc-d">' + s + '</div></div>'; }
+// Đường kẻ ngang 1px (không dùng border vì Gmail đảo màu border)
+function vach_(cot) { return '<tr><td colspan="' + cot + '" height="1" style="' + nen_(MAU_MAIL.vach) + 'height:1px;font-size:0;line-height:0">&nbsp;</td></tr>'; }
 
 /* ═════════════════════════ 3. MENU + HÀM CHẠY TAY ═════════════════════════ */
 

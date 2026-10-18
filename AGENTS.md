@@ -60,6 +60,9 @@ Lộc Cộc tại loccoc.com.vn. Không phục vụ mục đích thương mại:
 - Sau khi sửa `Code.gs`: dán vào Apps Script của Sheet "LỘC CỘC - ĐƠN HÀNG", rồi
   Triển khai → Quản lý triển khai → ✎ → Phiên bản: "Phiên bản mới". Không tạo "triển khai mới"
   (URL sẽ đổi). Kiểm tra: mở SHEET_URL trên trình duyệt phải thấy `"phienBan"` đúng số trong code.
+- Email cảm ơn (v3.1) giữ nguyên màu cả khi Gmail để chế độ tối: nền vẽ bằng `nen_()` (gradient),
+  chữ bọc `chu_()` (mẹo mix-blend-mode, chỉ giữ được chữ TRẮNG), kẻ ngang bằng `vach_()` thay border.
+  Logo là ảnh `img/email/logo-trang.png` trên loccoc.com.vn: phải push web trước thì email mới hiện logo.
 - Gmail cá nhân gửi tối đa khoảng 100 email/ngày; mỗi địa chỉ tối đa 3 email/giờ (chống lạm dụng).
 
 ## Mạng xã hội
