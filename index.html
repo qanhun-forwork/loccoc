@@ -371,7 +371,9 @@ footer.ft .in2{max-width:1320px}
 .scene{position:absolute;inset:0;transform-style:preserve-3d;display:grid;place-items:center}
 .ring{position:absolute;left:50%;top:50%;width:0;height:0;transform-style:preserve-3d}
 .card3{position:absolute;left:calc(var(--cw)/-2);top:calc(var(--cw)*-.62);width:var(--cw);--cw:clamp(150px,15vw,230px);display:block;color:var(--ink);text-decoration:none;transform-style:preserve-3d}
-.card3 .face{position:relative;background:var(--be-l);border:6px solid var(--be-xl);border-radius:999px 999px 18px 18px;overflow:hidden;box-shadow:0 30px 60px -30px rgba(0,0,0,.6);display:flex;flex-direction:column;filter:brightness(var(--lit,1));opacity:var(--op,1)}
+.card3 .face{position:relative;background:var(--be-l);border:6px solid var(--be-xl);border-radius:999px 999px 18px 18px;overflow:hidden;box-shadow:0 30px 60px -30px rgba(0,0,0,.6);display:flex;flex-direction:column;opacity:var(--op,1)}
+/* làm tối thẻ phía sau bằng lớp phủ thay cho filter:brightness: Safari iOS phải vẽ lại filter mỗi khung hình trong không gian 3D nên ảnh chớp nháy */
+.card3 .face::after{content:"";position:absolute;inset:0;background:#000;opacity:calc(1 - var(--lit,1));pointer-events:none}
 .card3 .ph,.card3 .bph{aspect-ratio:1;background-color:#fff}
 .card3 .cap{padding:10px 14px 12px;display:flex;justify-content:center;background:var(--be-xl)}
 .card3 .cap i{font:italic 400 16px/1 var(--sans);letter-spacing:-.02em;color:var(--ink)}
