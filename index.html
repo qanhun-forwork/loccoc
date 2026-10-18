@@ -629,6 +629,21 @@ input:user-invalid::placeholder{color:#B3261E}
 .bi .bph{width:84px;height:84px;aspect-ratio:auto;border-radius:999px 999px 6px 6px;flex:none;background-size:cover,100% 100%}
 .stack .tile .bph{border-radius:999px 999px 18px 18px;margin:0;border:8px solid var(--be-xl);box-shadow:var(--sh-l)}
 @media (max-width:760px){.stack .tile .bph{max-width:260px;width:100%;justify-self:center}.bhead{align-items:flex-start}.tagp{width:120px}.spec{max-width:420px;margin-left:auto;margin-right:auto}}
+/* Hero trên điện thoại: tối giản, bỏ bớt chi tiết trang trí (nút bật tiếng đã có ở thanh trên) */
+@media (max-width:760px){
+.hero .meta{display:none}
+.hero .hx{padding-top:28px}
+.hk{border:0;padding:0;gap:0;font-size:10px;letter-spacing:.28em;color:var(--nau)}
+.hk .spk,.hh em .spk,.hh .ln.cn::after{display:none}
+.hh{margin:18px 0 26px}
+.hh .ln.cn::before{flex-basis:2em}
+.hh em::after{left:0;right:.12em;bottom:-.14em;height:2px;background:var(--red);opacity:.85}
+.hsub{font-size:16px;line-height:1.6;margin-bottom:28px}
+.hsub b{display:none}
+.hero .acts{flex-direction:column;align-items:stretch;gap:10px}
+.hero .acts .pill{padding:17px 20px;letter-spacing:.14em}
+.hart .seal.z1,.hart .seal.z2,.hart .badge,.hart .arch b{display:none}
+}
 </style>
 </head>
 <body>
