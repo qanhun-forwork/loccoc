@@ -66,6 +66,9 @@ Lộc Cộc tại loccoc.com.vn. Không phục vụ mục đích thương mại:
 - Email gửi ở NỀN: doPost chỉ ghi Sheet + xếp email vào Script Properties (`thu_<mã>`), trigger mỗi phút
   chạy `guiEmailCho` để gửi và cập nhật cột "Email xác nhận" (Chờ gửi → Đã gửi). Trigger phải bật 1 lần
   bằng menu Lộc Cộc → "Bật gửi email nền"; SHEET_URL trả `"emailNen":true` khi đã bật.
+- Tab 📦 Chi tiết đơn bị ẨN (sapXepTab_): người xem đơn dùng tab 🛒 Đơn hàng; Chi tiết đơn chỉ để ⚙ Số liệu tính
+  mẫu bán chạy. ⚙ Số liệu: dòng 1 tên khối, dòng 2 tiêu đề, dữ liệu từ dòng 3 (biểu đồ đọc A2:C32, G2:H12, J2:K12, M2:O26).
+- Biểu đồ Sheets: KHÔNG đặt fontName/chartArea (font ngoài danh sách là biểu đồ ra khung trắng).
 - Gmail cá nhân gửi tối đa khoảng 100 email/ngày; mỗi địa chỉ tối đa 3 email/giờ (chống lạm dụng).
 
 ## Mạng xã hội

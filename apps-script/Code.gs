@@ -19,7 +19,7 @@
  * ───────────────────────────────────────────────────────────────────────────
  */
 
-var PHIEN_BAN = '3.3';
+var PHIEN_BAN = '3.6';
 var TEN_GUI = 'Lộc Cộc';            // tên người gửi trong email
 var GIA_BASIC = 350000;             // giá dòng Basic (tính lại ở máy chủ, không tin giá từ trình duyệt)
 var GIOI_HAN_MOI_GIO = 3;           // tối đa email gửi tới cùng 1 địa chỉ trong 1 giờ
@@ -442,43 +442,92 @@ function L_(k, name) { var i = COT[k].indexOf(name); if (i < 0) throw new Error(
 function R_(k, name, tu) { var l = L_(k, name); return "'" + TAB[k] + "'!$" + l + '$' + (tu || 2) + ':$' + l; }
 function colChu_(n) { var s = ''; while (n > 0) { var m = (n - 1) % 26; s = String.fromCharCode(65 + m) + s; n = Math.floor((n - 1) / 26); } return s; }
 
+// Bố cục tab Số liệu: dòng 1 = tên khối, dòng 2 = tiêu đề cột, từ dòng 3 = dữ liệu.
+// Biểu đồ ở Báo cáo đọc đúng các khối này: A2:C32 (xu hướng), G2:H12 (mẫu), J2:K12 (nguồn), M2:O26 (khung giờ).
 function taoSoLieu_() {
-  var sh = lamMoiTab_(TAB.SL, 40, 20);
-  sh.setTabColor('#9E9E9E');
+  var sh = lamMoiTab_(TAB.SL, 40, 18);
+  sh.setTabColor(C.nau); sh.setHiddenGridlines(true);
+  sh.getRange(1, 1, sh.getMaxRows(), sh.getMaxColumns()).setFontFamily(FONT).setFontSize(10).setFontColor(C.ink)
+    .setBackground(C.white).setVerticalAlignment('middle');
   var DN = R_('DON', 'Ngày'), DG = R_('DON', 'Giờ'), LN = R_('LH', 'Ngày'), LG = R_('LH', 'Giờ');
-  // A: 30 ngày gần nhất
-  sh.getRange('A1:E1').setValues([['Ngày', 'Đơn hàng', 'Liên hệ', 'Số đôi', 'Tạm tính']]);
-  ct_(sh, 'A2', '=SEQUENCE(30,1,TODAY()-29,1)');
+  var SO = '#,##0;-#,##0;"–"';            // số 0 hiện thành gạch ngang mờ cho dễ nhìn
+  var khoi = function (a1Ten, ten, a1Dau, dau, a1Than) {
+    sh.getRange(a1Ten).merge().setValue(ten).setBackground(C.red).setFontColor(C.beL).setFontWeight('bold')
+      .setFontSize(10).setHorizontalAlignment('left');
+    sh.getRange(a1Dau).setValues([dau]).setBackground(C.beL).setFontColor(C.nau).setFontWeight('bold')
+      .setHorizontalAlignment('center')
+      .setBorder(null, null, true, null, null, null, C.nau, SpreadsheetApp.BorderStyle.SOLID);
+    sh.getRange(a1Than).setBorder(null, null, true, null, null, true, C.line, SpreadsheetApp.BorderStyle.SOLID)
+      .setHorizontalAlignment('center');
+  };
+
+  // A–E: 30 ngày gần nhất (+ dòng tổng)
+  khoi('A1:E1', 'XU HƯỚNG 30 NGÀY', 'A2:E2', ['Ngày', 'Đơn hàng', 'Liên hệ', 'Số đôi', 'Tạm tính'], 'A3:E33');
+  ct_(sh, 'A3', '=SEQUENCE(30,1,TODAY()-29,1)');
   var fA = [];
-  for (var i = 2; i <= 31; i++) fA.push([
+  for (var i = 3; i <= 32; i++) fA.push([
     '=COUNTIF(' + DN + ',$A' + i + ')', '=COUNTIF(' + LN + ',$A' + i + ')',
     '=SUMIF(' + DN + ',$A' + i + ',' + R_('DON', 'Số đôi') + ')', '=SUMIF(' + DN + ',$A' + i + ',' + R_('DON', 'Tạm tính (đ)') + ')']);
-  cts_(sh, 'B2:E31', fA);
-  sh.getRange('A2:A31').setNumberFormat('dd/MM');
-  // G: mẫu được đặt nhiều nhất (cột Mẫu..Số lượng của Chi tiết đơn)
-  var ctM = L_('CT', 'Mẫu'), ctS = L_('CT', 'Số lượng'), ctZ = L_('CT', 'Size');
-  ct_(sh, 'G1', '=IFERROR(QUERY(\'' + TAB.CT + '\'!$' + ctM + '$1:$' + ctS + ',"select ' + ctM + ', sum(' + ctS + ') where ' + ctM +
-    ' <> \'\' group by ' + ctM + ' order by sum(' + ctS + ') desc limit 10 label ' + ctM + ' \'Mẫu\', sum(' + ctS + ') \'Số đôi\'",1),"Chưa có")');
-  // J: phân bố size
-  ct_(sh, 'J1', '=IFERROR(QUERY(\'' + TAB.CT + '\'!$' + ctZ + '$1:$' + ctS + ',"select ' + ctZ + ', sum(' + ctS + ') where ' + ctZ +
-    ' is not null group by ' + ctZ + ' order by ' + ctZ + ' label ' + ctZ + ' \'Size\', sum(' + ctS + ') \'Số đôi\'",1),"Chưa có")');
-  // M: nguồn khách gửi form
-  var nguon = [['Nguồn', 'Lượt gửi'], ['Đặt hàng (giỏ hàng)', '']].concat(NGUON.map(function (x) { return [x, '']; })).concat([['Khác', '']]);
-  sh.getRange(1, 13, nguon.length, 2).setValues(nguon);
+  cts_(sh, 'B3:E32', fA);
+  sh.getRange('A33').setValue('Tổng');
+  cts_(sh, 'B33:E33', [['=SUM(B3:B32)', '=SUM(C3:C32)', '=SUM(D3:D32)', '=SUM(E3:E32)']]);
+  sh.getRange('A33:E33').setFontWeight('bold').setBackground(C.beL).setFontColor(C.red)
+    .setBorder(true, null, null, null, null, null, C.nau, SpreadsheetApp.BorderStyle.SOLID);
+  sh.getRange('A3:A32').setNumberFormat('dd/MM');
+  sh.getRange('B3:D33').setNumberFormat(SO);
+  sh.getRange('E3:E33').setNumberFormat('#,##0"đ";-#,##0"đ";"–"').setHorizontalAlignment('right');
+
+  // G–H: mẫu được đặt nhiều nhất
+  khoi('G1:H1', 'MẪU ĐƯỢC ĐẶT NHIỀU NHẤT', 'G2:H2', ['Mẫu', 'Số đôi'], 'G3:H12');
+  var ctM = L_('CT', 'Mẫu'), ctS = L_('CT', 'Số lượng');
+  sh.getRange('G2:H2').clearContent(); // QUERY tự in tiêu đề vào G2:H2; để chữ sẵn ở đây là QUERY báo lỗi #REF
+  ct_(sh, 'G2', '=IFERROR(QUERY(\'' + TAB.CT + '\'!$' + ctM + '$1:$' + ctS + ',"select ' + ctM + ', sum(' + ctS + ') where ' + ctM +
+    ' <> \'\' group by ' + ctM + ' order by sum(' + ctS + ') desc limit 10 label ' + ctM + ' \'Mẫu\', sum(' + ctS + ') \'Số đôi\'",1),"Chưa có đơn")');
+  sh.getRange('G3:G12').setHorizontalAlignment('left');
+  sh.getRange('H3:H12').setNumberFormat(SO);
+
+  // J–K: nguồn khách gửi form
+  khoi('J1:K1', 'KHÁCH GỬI TỪ FORM NÀO', 'J2:K2', ['Nguồn', 'Lượt gửi'], 'J3:K12');
+  var nguon = [['Đặt hàng (giỏ hàng)']].concat(NGUON.map(function (x) { return [x]; })).concat([['Khác']]);
+  sh.getRange(3, 10, nguon.length, 1).setValues(nguon).setHorizontalAlignment('left');
   var fN = [['=COUNTA(' + R_('DON', 'Mã đơn') + ')']];
-  NGUON.forEach(function (x, j) { fN.push(['=COUNTIF(' + R_('LH', 'Nguồn') + ',$M' + (j + 3) + ')']); });
-  fN.push(['=COUNTA(' + R_('LH', 'Mã') + ')-SUM(N3:N' + (NGUON.length + 2) + ')']);
-  cts_(sh, 'N2:N' + (nguon.length), fN);
-  // P: khung giờ
-  sh.getRange('P1:R1').setValues([['Giờ', 'Đơn hàng', 'Liên hệ']]);
-  ct_(sh, 'P2', '=SEQUENCE(24,1,0,1)');
+  NGUON.forEach(function (x, j) { fN.push(['=COUNTIF(' + R_('LH', 'Nguồn') + ',$J' + (j + 4) + ')']); });
+  fN.push(['=COUNTA(' + R_('LH', 'Mã') + ')-SUM(K4:K' + (NGUON.length + 3) + ')']);
+  cts_(sh, 'K3:K' + (nguon.length + 2), fN);
+  sh.getRange('K3:K12').setNumberFormat(SO);
+
+  // M–O: khung giờ
+  khoi('M1:O1', 'KHUNG GIỜ KHÁCH GỬI FORM', 'M2:O2', ['Giờ', 'Đơn hàng', 'Liên hệ'], 'M3:O26');
+  ct_(sh, 'M3', '=SEQUENCE(24,1,0,1)');
   var fG = [];
-  for (var h = 2; h <= 25; h++) fG.push(['=COUNTIF(' + DG + ',$P' + h + ')', '=COUNTIF(' + LG + ',$P' + h + ')']);
-  cts_(sh, 'Q2:R25', fG);
-  sh.getRange('P2:P25').setNumberFormat('0"h"');
-  sh.getRange('A1:R1').setFontWeight('bold').setBackground(C.beL);
-  sh.getRange(1, 1, sh.getMaxRows(), sh.getMaxColumns()).setFontFamily(FONT).setFontSize(10);
-  sh.getRange('T1').setValue('Tab này chỉ để tính số liệu cho "📊 Báo cáo" — không cần sửa.').setFontColor(C.mute);
+  for (var h = 3; h <= 26; h++) fG.push(['=COUNTIF(' + DG + ',$M' + h + ')', '=COUNTIF(' + LG + ',$M' + h + ')']);
+  cts_(sh, 'N3:O26', fG);
+  sh.getRange('M3:M26').setNumberFormat('0"h"');
+  sh.getRange('N3:O26').setNumberFormat(SO);
+
+  // tô màu theo độ lớn (trắng → nâu nhạt) + làm nổi dòng hôm nay
+  var b = SpreadsheetApp.newConditionalFormatRule;
+  var thang = function (a1) {
+    return b().setGradientMinpointWithValue(C.white, SpreadsheetApp.InterpolationType.NUMBER, '0')
+      .setGradientMaxpoint('#D8C7AA').setRanges([sh.getRange(a1)]).build();
+  };
+  sh.setConditionalFormatRules([
+    b().whenFormulaSatisfied('=$A3=TODAY()').setBold(true).setFontColor(C.red).setRanges([sh.getRange('A3:E32')]).build(),
+    thang('B3:B32'), thang('C3:C32'), thang('D3:D32'), thang('E3:E32'),
+    thang('H3:H12'), thang('K3:K12'), thang('N3:O26')
+  ]);
+
+  // kích thước + cột ngăn cách
+  sh.setColumnWidths(1, 1, 70); sh.setColumnWidths(2, 3, 80); sh.setColumnWidth(5, 110);
+  sh.setColumnWidth(7, 160); sh.setColumnWidth(8, 70);
+  sh.setColumnWidth(10, 170); sh.setColumnWidth(11, 80);
+  sh.setColumnWidth(13, 60); sh.setColumnWidths(14, 2, 80);
+  [6, 9, 12, 16].forEach(function (c) { sh.setColumnWidth(c, 18); });
+  sh.setRowHeight(1, 30); sh.setRowHeight(2, 26); sh.setRowHeights(3, 31, 22);
+  sh.setFrozenRows(2);
+  sh.getRange('Q1').setValue('Tab này chỉ để tính số liệu cho "📊 Báo cáo", không cần sửa. Số 0 hiện là "–".')
+    .setFontColor(C.mute).setFontSize(9).setWrap(true);
+  sh.setColumnWidth(17, 220);
 }
 
 /* ═════════════════════════ 6. DASHBOARD BÁO CÁO ═════════════════════════ */
@@ -529,16 +578,15 @@ function taoBaoCao_() {
 
   // biểu đồ
   tieuDe_(tk, 'B15:M15', 'XU HƯỚNG 30 NGÀY: ĐƠN HÀNG & LIÊN HỆ', C.red);
-  chart_(tk, Charts.ChartType.COLUMN, S + 'A1:C31', 16, 2, 1150, 300, { colors: [C.red, '#B08A5E'], legend: 'top' });
-  tieuDe_(tk, 'B30:G30', 'MẪU ĐƯỢC ĐẶT NHIỀU NHẤT', C.red);
-  tieuDe_(tk, 'H30:M30', 'PHÂN BỐ SIZE CHÂN', C.red);
-  chart_(tk, Charts.ChartType.BAR, S + 'G1:H11', 31, 2, 570, 300, { colors: [C.red], legend: 'none' });
-  chart_(tk, Charts.ChartType.COLUMN, S + 'J1:K16', 31, 8, 570, 300, { colors: [C.nau], legend: 'none' });
+  chart_(tk, Charts.ChartType.LINE, S + 'A2:C32', 16, 2, 1150, 300,
+    { colors: [C.red, '#B08A5E'], legend: 'top', them: { lineWidth: 3, pointSize: 6 } });
+  tieuDe_(tk, 'B30:M30', 'MẪU ĐƯỢC ĐẶT NHIỀU NHẤT', C.red);
+  chart_(tk, Charts.ChartType.BAR, S + 'G2:H12', 31, 2, 1150, 300, { colors: [C.red], legend: 'none' });
   tieuDe_(tk, 'B45:G45', 'KHÁCH GỬI TỪ FORM NÀO', C.nau);
   tieuDe_(tk, 'H45:M45', 'KHUNG GIỜ KHÁCH GỬI FORM', C.nau);
-  chart_(tk, Charts.ChartType.PIE, S + 'M1:N11', 46, 2, 570, 300,
+  chart_(tk, Charts.ChartType.PIE, S + 'J2:K12', 46, 2, 570, 300,
     { colors: [C.red, C.nau, '#B08A5E', '#D8C7AA', '#9A1A20', '#3E2A21', '#C9A27E', '#7A5C4E', '#E3D6C1', '#5E0A0E'], legend: 'right', pieHole: 0.5 });
-  chart_(tk, Charts.ChartType.COLUMN, S + 'P1:R25', 46, 8, 570, 300, { colors: [C.red, '#B08A5E'], legend: 'top', stacked: true });
+  chart_(tk, Charts.ChartType.COLUMN, S + 'M2:O26', 46, 8, 570, 300, { colors: [C.red, '#B08A5E'], legend: 'top', stacked: true });
 
   // bảng mới nhất
   var D = "'" + TAB.DON + "'!", L = "'" + TAB.LH + "'!";
@@ -601,12 +649,13 @@ function bangNho_(tk, dau, than) {
 function chart_(tk, loai, a1, row, col, w, h, o) {
   var src = SpreadsheetApp.getActiveSpreadsheet().getRange(a1);
   var b = tk.newChart().setChartType(loai).addRange(src).setNumHeaders(1).setPosition(row, col, 0, 6)
-    .setOption('width', w).setOption('height', h).setOption('fontName', FONT)
+    // không đặt fontName/chartArea: biểu đồ Sheets chỉ nhận font trong danh sách có sẵn, sai là vẽ ra khung trắng
+    .setOption('width', w).setOption('height', h)
     .setOption('backgroundColor', C.white).setOption('colors', o.colors)
-    .setOption('legend', { position: o.legend, textStyle: { color: C.ink, fontSize: 10 } })
-    .setOption('chartArea', { left: 60, top: 30, width: '75%', height: '70%' });
-  if (o.pieHole) b = b.setOption('pieHole', o.pieHole).setOption('chartArea', { left: 20, top: 20, width: '90%', height: '85%' });
+    .setOption('legend', { position: o.legend, textStyle: { color: C.ink, fontSize: 10 } });
+  if (o.pieHole) b = b.setOption('pieHole', o.pieHole);
   if (o.stacked) b = b.setOption('isStacked', true);
+  Object.keys(o.them || {}).forEach(function (k) { b = b.setOption(k, o.them[k]); });
   if (loai !== Charts.ChartType.PIE) b = b.setOption('vAxis', { minValue: 0, gridlines: { color: C.line } });
   tk.insertChart(b.build());
 }
@@ -633,6 +682,10 @@ function sapXepTab_() {
   });
   var bc = ss.getSheetByName(TAB.BC);
   if (bc) ss.setActiveSheet(bc);
+  // Chi tiết đơn chỉ để Số liệu/Báo cáo đọc: ẩn đi, xem đơn ở tab Đơn hàng (cột Sản phẩm liệt kê từng đôi).
+  // Ẩn sau cùng vì setActiveSheet ở trên sẽ hiện lại tab đang ẩn.
+  var ct = ss.getSheetByName(TAB.CT);
+  if (ct) ct.hideSheet();
 }
 
 // dấu ngăn đối số trong công thức của Sheet: "," (định dạng Mỹ) hoặc ";" (định dạng Việt Nam…)
