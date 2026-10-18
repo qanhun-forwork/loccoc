@@ -218,7 +218,7 @@ function noiDungEmail_(info) {
 // Màu email (Brand Guideline): Be, Đỏ, Nâu + 2 sắc đậm/nhạt của Nâu
 var MAU_MAIL = { be: '#E8DCC8', do: '#800E13', nau: '#5A3E32', hop: '#46302A', vach: '#7A5C4E' };
 // Logo trắng nằm trên website (Gmail không hiện ảnh base64/SVG nên phải dùng link ảnh PNG)
-var LOGO_MAIL = 'https://loccoc.com.vn/img/email/logo-trang.png';
+var LOGO_MAIL = 'https://www.loccoc.com.vn/img/email/logo-trang.png';
 
 // Nền bằng gradient một màu: Gmail chế độ tối không đảo màu ảnh nền
 function nen_(c) { return 'background-color:' + c + ';background-image:linear-gradient(' + c + ',' + c + ');'; }
