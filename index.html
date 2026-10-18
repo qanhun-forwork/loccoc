@@ -620,7 +620,7 @@ input:user-invalid::placeholder{color:#B3261E}
 @media (min-width:1100px){.bgrid{grid-template-columns:repeat(5,1fr);gap:20px}.bgrid .item h3{font-size:23px}}
 .tagp{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;background:var(--red);border-radius:50%;width:150px;aspect-ratio:1;box-shadow:var(--sh);rotate:8deg;outline:1.5px dashed rgba(232,220,200,.6);outline-offset:-12px}
 .tagp small{font:600 10px/1 var(--sans);letter-spacing:.2em;text-transform:uppercase;color:var(--be-d)}
-.tagp b{font:800 clamp(26px,3vw,34px)/1 var(--sans);letter-spacing:-.05em;color:var(--be-l)}
+.tagp b{font:800 clamp(17px,1.8vw,24px)/1 var(--sans);letter-spacing:-.05em;color:var(--be-l)}
 .det .big-ph.bph{aspect-ratio:4/5;background-size:cover,100% 100%;grid-row:2/span 7}
 .det .price{justify-self:start;width:max-content;font:800 30px/1 var(--sans);letter-spacing:-.03em;color:var(--red);border-top:1px solid var(--red);border-bottom:1px solid var(--red);padding:12px 2px;margin:4px 0 26px}
 .spec{display:grid;grid-template-columns:auto 1fr;gap:12px 22px;margin:0 0 28px;padding:20px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);font-size:15px;text-align:left}
@@ -646,6 +646,10 @@ input:user-invalid::placeholder{color:#B3261E}
 .hero .acts{flex-direction:column;align-items:stretch;gap:10px}
 .hero .acts .pill{padding:17px 20px;letter-spacing:.14em}
 .hart .seal.z1,.hart .seal.z2,.hart .badge,.hart .arch b{display:none}
+/* đã bỏ chữ "lộc cộc" ở đáy vòm nên thu ngắn vòm vừa cụm ảnh, bỏ vòng sóng để khỏi trống */
+.hart .arch{bottom:12%}
+.hart .arch i{display:none}
+.hart{margin-bottom:-12%}
 }
 </style>
 </head>
