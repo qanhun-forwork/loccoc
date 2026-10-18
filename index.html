@@ -371,9 +371,11 @@ footer.ft .in2{max-width:1320px}
 .scene{position:absolute;inset:0;transform-style:preserve-3d;display:grid;place-items:center}
 .ring{position:absolute;left:50%;top:50%;width:0;height:0;transform-style:preserve-3d}
 .card3{position:absolute;left:calc(var(--cw)/-2);top:calc(var(--cw)*-.62);width:var(--cw);--cw:clamp(150px,15vw,230px);display:block;color:var(--ink);text-decoration:none;transform-style:preserve-3d}
-.card3 .face{position:relative;background:var(--be-l);border:6px solid var(--be-xl);border-radius:999px 999px 18px 18px;overflow:hidden;box-shadow:0 30px 60px -30px rgba(0,0,0,.6);display:flex;flex-direction:column;opacity:var(--op,1)}
-/* làm tối thẻ phía sau bằng lớp phủ thay cho filter:brightness: Safari iOS phải vẽ lại filter mỗi khung hình trong không gian 3D nên ảnh chớp nháy */
-.card3 .face::after{content:"";position:absolute;inset:0;background:#000;opacity:calc(1 - var(--lit,1));pointer-events:none}
+.card3 .face{position:relative;background:var(--be-l);border:6px solid var(--be-xl);border-radius:999px 999px 18px 18px;overflow:hidden;box-shadow:0 30px 60px -30px rgba(0,0,0,.6);display:flex;flex-direction:column}
+/* thẻ phía sau mờ/tối dần bằng lớp phủ màu nền thay cho filter/opacity trên chính thẻ: Safari iOS vẽ lại cả thẻ có ảnh
+   mỗi khung hình trong không gian 3D nên ảnh chớp rồi mất. Thẻ có ảnh giữ yên, chỉ lớp phủ (không có ảnh) đổi độ mờ. */
+.card3{-webkit-backface-visibility:hidden;backface-visibility:hidden}
+.card3 .face::after{content:"";position:absolute;inset:0;background:#4A080C;opacity:calc(1 - var(--op,1) * var(--lit,1));pointer-events:none}
 .card3 .ph,.card3 .bph{aspect-ratio:1;background-color:#fff}
 .card3 .cap{padding:10px 14px 12px;display:flex;justify-content:center;background:var(--be-xl)}
 .card3 .cap i{font:italic 400 16px/1 var(--sans);letter-spacing:-.02em;color:var(--ink)}
@@ -550,7 +552,7 @@ footer.ft .in2{max-width:1320px}
  .hart{max-width:420px;width:94%}
  .st .lb{font-size:8.5px;padding:6px 9px}
  .tapes{margin-top:-20px;height:118px}.tape{padding:11px 0}
- .stage{min-height:380px}.card3{--cw:132px}.card3 .face{border-width:4px}.card3 .cap{padding:7px 10px 9px}.card3 .cap i{font-size:12px}.floor{transform:translate3d(0,150px,0) rotateX(90deg)}
+ .stage{min-height:380px}.card3{--cw:132px}.card3 .face{border-width:4px;box-shadow:none}.card3 .cap{padding:7px 10px 9px}.card3 .cap i{font-size:12px}.floor{transform:translate3d(0,150px,0) rotateX(90deg)}
  .cols3,.steps{grid-template-columns:1fr}
  .fcols{grid-template-columns:1fr 1fr}.link{display:inline-block;margin:16px 0 0 18px}
  .ph-h{padding:72px 18px 20px}.at-stage{min-height:380px}
