@@ -11,7 +11,9 @@
  *
  * ── CÀI ĐẶT (làm đúng thứ tự) ─────────────────────────────────────────────
  * 1. Sheet → Tiện ích mở rộng → Apps Script → xoá hết code cũ → dán file này → Lưu.
- * 2. Chọn hàm "xoaHetVaCaiDatLai" → Chạy → cấp quyền (có quyền "gửi email thay bạn").
+ * 2. Chọn hàm "kiemTra" → Chạy → cấp quyền (có quyền "gửi email thay bạn"). Hàm này chỉ đọc, KHÔNG xoá gì.
+ *    ⚠ KHÔNG chạy "xoaHetVaCaiDatLai" khi cập nhật code: hàm đó XOÁ SẠCH mọi tab (đơn hàng, liên hệ, bài viết…).
+ *    Chỉ dùng cho file Sheet mới tinh, và chỉ chạy được từ menu Sheet (có hộp thoại xác nhận).
  * 3. Triển khai → Quản lý triển khai → bút chì ✎ → Phiên bản: "Phiên bản mới" → Triển khai.
  *    ⚠ Bỏ bước 3 thì website vẫn chạy CODE CŨ (lỗi xô cột, không gửi email).
  * 4. Mở URL ứng dụng web trên trình duyệt: phải thấy "phienBan" đúng số PHIEN_BAN bên dưới.
@@ -20,7 +22,7 @@
  * ───────────────────────────────────────────────────────────────────────────
  */
 
-var PHIEN_BAN = '4.0';
+var PHIEN_BAN = '4.1';
 var TEN_GUI = 'Lộc Cộc';            // tên người gửi trong email
 var GIA_BASIC = 350000;             // giá dòng Basic (tính lại ở máy chủ, không tin giá từ trình duyệt)
 var GIOI_HAN_MOI_GIO = 3;           // tối đa email gửi tới cùng 1 địa chỉ trong 1 giờ
@@ -292,13 +294,14 @@ function onOpen() {
 
 // ★ Cài đặt từ đầu: XOÁ TOÀN BỘ các tab trong file, tạo lại cấu trúc + báo cáo, đặt lại mã về 0001
 function xoaHetVaCaiDatLai() {
-  // chạy từ menu: hỏi xác nhận; chạy từ trình soạn thảo Apps Script: không có hộp thoại, chạy luôn
-  var ui = ui_();
-  if (ui) {
-    var tl = null;
-    try { tl = ui.alert('Xoá toàn bộ dữ liệu?', 'Mọi tab trong file sẽ bị xoá và tạo lại từ đầu. Không hoàn tác được.', ui.ButtonSet.YES_NO); } catch (e) { tl = null; }
-    if (tl !== null && tl !== ui.Button.YES) return;
-  }
+  // chỉ chạy khi người dùng bấm "Có" trong hộp thoại; chạy từ trình soạn thảo (không có hộp thoại) mà Sheet
+  // đã có dữ liệu thì từ chối, vì trước đây chạy nhầm từ trình soạn thảo đã xoá mất dữ liệu khách thật
+  var ui = ui_(), tl = null;
+  if (ui) { try { tl = ui.alert('Xoá toàn bộ dữ liệu?', 'Mọi tab trong file (đơn hàng, liên hệ, bài viết, lượt xem) sẽ bị xoá và tạo lại từ đầu. Không hoàn tác được.', ui.ButtonSet.YES_NO); } catch (e) { tl = null; } }
+  if (tl === null) {
+    var coDuLieu = [TAB.DON, TAB.LH, TAB.BV, TAB.XEM].some(function (t) { return soDong_(t) > 0; });
+    if (coDuLieu) throw new Error('Đã dừng: Sheet đang có dữ liệu. Muốn xoá sạch thì mở Sheet → menu Lộc Cộc → "Xoá hết dữ liệu và cài đặt lại…". Để cấp quyền, hãy chạy hàm kiemTra.');
+  } else if (tl !== ui.Button.YES) return;
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var tam = ss.insertSheet('_tam_' + Date.now());
   ss.getSheets().forEach(function (s) { if (s.getSheetId() !== tam.getSheetId()) ss.deleteSheet(s); });
