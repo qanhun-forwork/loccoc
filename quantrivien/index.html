@@ -122,6 +122,18 @@ textarea#nd{min-height:380px;font:14.5px/1.65 ui-monospace,SFMono-Regular,Menlo,
 .rd{display:flex;gap:16px;flex-wrap:wrap;font-size:14px;text-transform:none;letter-spacing:0;font-weight:500;color:var(--ink)}
 .rd label{display:flex;gap:6px;align-items:center;cursor:pointer}
 
+/* thành viên + nhật ký */
+.ds-q{display:flex;flex-wrap:wrap;gap:6px 12px}
+.ds-q label{display:flex;gap:6px;align-items:center;font-size:13px;cursor:pointer;white-space:nowrap}
+.tv-moi{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;align-items:end}
+.tv-moi .ds-q{grid-column:1/-1}
+.mk-hang{display:flex;gap:8px}
+.mk-hang .in{flex:1}
+.vt{display:inline-block;padding:3px 9px;border-radius:999px;font-size:11px;font-weight:700;background:var(--red);color:var(--be-l)}
+.vt.phu{background:var(--be-l);color:var(--nau)}
+.hd-nk{font-weight:700}
+.form-mk{max-width:440px;display:grid;gap:14px}
+@media (max-width:760px){.tv-moi{grid-template-columns:1fr}}
 #tb{position:fixed;left:50%;bottom:26px;translate:-50% 0;background:var(--ink);color:var(--be-l);padding:12px 20px;border-radius:999px;font-size:14px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .25s;z-index:9}
 #tb.on{opacity:1}
 .dang-tai{color:var(--mute);padding:40px 0;text-align:center}
@@ -160,7 +172,9 @@ textarea#nd{min-height:380px;font:14.5px/1.65 ui-monospace,SFMono-Regular,Menlo,
   <button type="button" data-v="don">Đơn hàng &amp; liên hệ</button>
   <button type="button" data-v="bai">Bài viết</button>
   <button type="button" data-v="xem">Lượt truy cập</button>
+  <button type="button" data-v="tv" data-chinh>Thành viên &amp; nhật ký</button>
   <p class="du" id="du-ten"></p>
+  <button type="button" data-v="mk">Đổi mật khẩu</button>
   <button type="button" id="dx">Đăng xuất</button>
  </aside>
  <main id="vung" tabindex="-1"></main>
@@ -171,7 +185,7 @@ textarea#nd{min-height:380px;font:14.5px/1.65 ui-monospace,SFMono-Regular,Menlo,
 /* Cùng địa chỉ Apps Script với website (var SHEET_URL trong index.html). Đổi một chỗ thì đổi cả hai. */
 var API="https://script.google.com/macros/s/AKfycbzc2ftUntEyk5PQMaHxldWdDqk0LdH39U8qiY_ZoMe3HiDYQ2vSo_1d4jHRHc7J6VLUCg/exec";
 var MAU=["#800E13","#5A3E32","#B08A5E","#D8C7AA","#9A1A20","#3E2A21","#C9A27E","#7A5C4E","#E3D6C1","#5E0A0E"];
-var token="",V="ban",DL=null,BAI=null,BIEU={};
+var token="",V="ban",DL=null,BAI=null,BIEU={},TOI={quyen:[],vaiTro:""};
 
 function $(i){return document.getElementById(i)}
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
@@ -190,19 +204,25 @@ function goi(hanh,du){
 
 /* ---------- đăng nhập ---------- */
 $("fdn").addEventListener("submit",function(e){e.preventDefault();var n=$("dn-nut");n.disabled=true;n.textContent="Đang kiểm tra…";$("dn-loi").textContent="";
- goi("dangNhap",{ten:$("dn-ten").value,matKhau:$("dn-mk").value}).then(function(j){token=j.token;try{sessionStorage.setItem("qt_tk",token);sessionStorage.setItem("qt_ten",j.ten)}catch(x){}$("dn-mk").value="";vao(j.ten)})
+ goi("dangNhap",{ten:$("dn-ten").value,matKhau:$("dn-mk").value}).then(function(j){token=j.token;try{sessionStorage.setItem("qt_tk",token)}catch(x){}$("dn-mk").value="";vao(j)})
  .catch(function(er){$("dn-loi").textContent=er.message||"Không kết nối được máy chủ."}).finally(function(){n.disabled=false;n.textContent="Đăng nhập"})});
-function vao(ten){$("dn").classList.add("an");$("app").classList.remove("an");$("du-ten").textContent="Đang đăng nhập: "+ten;mo(location.hash.slice(1)||"ban")}
+// quyền chỉ để ẩn/hiện mục trên giao diện; máy chủ vẫn kiểm tra quyền ở mỗi lệnh
+var QV={ban:"ban",don:"don",bai:"bai",xem:"xem"};
+function duocXem(v){return v==="mk"||(v==="tv"?TOI.vaiTro==="chinh":TOI.quyen.indexOf(QV[v])>-1)}
+function vao(j){TOI=j;$("dn").classList.add("an");$("app").classList.remove("an");
+ $("du-ten").innerHTML="Đang đăng nhập:<br><b>"+esc(j.hoTen||j.ten)+"</b> ("+esc(j.ten)+")<br>"+(j.vaiTro==="chinh"?"Admin chính":"Admin phụ");
+ document.querySelectorAll(".sb [data-v]").forEach(function(b){b.classList.toggle("an",!duocXem(b.dataset.v))});
+ mo(location.hash.slice(1))}
 function thoat(){token="";DL=null;BAI=null;try{sessionStorage.removeItem("qt_tk")}catch(x){}$("app").classList.add("an");$("dn").classList.remove("an");$("dn-ten").focus()}
 $("dx").onclick=function(){goi("dangXuat").catch(function(){});thoat()};
 document.querySelectorAll(".sb [data-v]").forEach(function(b){b.onclick=function(){mo(b.dataset.v)}});
 addEventListener("hashchange",function(){if(token)mo(location.hash.slice(1))});
 
 function mo(v){
- if(["ban","don","bai","xem"].indexOf(v)<0)v="ban";V=v;if(location.hash.slice(1)!==v)history.replaceState(null,"","#"+v);
+ if(!duocXem(v))v=["ban","don","bai","xem"].filter(duocXem)[0]||"mk";V=v;if(location.hash.slice(1)!==v)history.replaceState(null,"","#"+v);
  document.querySelectorAll(".sb [data-v]").forEach(function(b){b.toggleAttribute("aria-current",b.dataset.v===v);if(b.dataset.v===v)b.setAttribute("aria-current","page")});
  Object.keys(BIEU).forEach(function(k){BIEU[k].destroy()});BIEU={};
- ({ban:vBan,don:vDon,bai:vBai,xem:vXem})[v]();$("vung").focus({preventScroll:true});scrollTo(0,0)}
+ ({ban:vBan,don:vDon,bai:vBai,xem:vXem,tv:vTv,mk:vMk})[v]();$("vung").focus({preventScroll:true});scrollTo(0,0)}
 
 /* ---------- chọn khoảng ngày ---------- */
 var KH={};
@@ -357,7 +377,7 @@ function veBai(){
  var n=$("bai-nd");if(!n)return;var ds=BAI.slice().sort(function(a,b){return new Date(b["Cập nhật lúc"])-new Date(a["Cập nhật lúc"])});
  if(!ds.length){n.innerHTML='<p class="trong">Chưa có bài viết nào. Bấm "+ Viết bài mới" để bắt đầu.</p>';return}
  n.innerHTML='<table class="bg"><thead><tr><th>Bài viết</th><th>Trạng thái</th><th>Xuất bản lúc</th><th>Cập nhật</th><th></th></tr></thead><tbody>'+ds.map(function(b){var t=ttBai(b);
-  return '<tr><td><b>'+esc(b["Tiêu đề"])+'</b><br><span class="mo">/#/tap-chi/'+esc(b["Đường dẫn"])+'</span></td><td><span class="nh-tt '+t[1]+'">'+t[0]+'</span></td><td class="mo">'+(b["Trạng thái"]==="Xuất bản"?gioVN(b["Xuất bản lúc"]):"–")+'</td><td class="mo">'+gioVN(b["Cập nhật lúc"])+'</td>'+
+  return '<tr><td><b>'+esc(b["Tiêu đề"])+'</b><br><span class="mo">/#/tap-chi/'+esc(b["Đường dẫn"])+(b["Tạo bởi"]?' · viết bởi '+esc(b["Tạo bởi"]):"")+(b["Cập nhật bởi"]&&b["Cập nhật bởi"]!==b["Tạo bởi"]?' · sửa bởi '+esc(b["Cập nhật bởi"]):"")+'</span></td><td><span class="nh-tt '+t[1]+'">'+t[0]+'</span></td><td class="mo">'+(b["Trạng thái"]==="Xuất bản"?gioVN(b["Xuất bản lúc"]):"–")+'</td><td class="mo">'+gioVN(b["Cập nhật lúc"])+'</td>'+
    '<td style="white-space:nowrap"><button class="btn nh ph" type="button" data-sua="'+esc(b["Mã"])+'">Sửa</button>'+(t[1]==="xb"?' <a class="btn nh xoa" href="/#/tap-chi/'+esc(b["Đường dẫn"])+'" target="_blank" rel="noopener">Xem</a>':"")+' <button class="btn nh xoa" type="button" data-xoa="'+esc(b["Mã"])+'">Xoá</button></td></tr>'}).join("")+'</tbody></table>';
  n.querySelectorAll("[data-sua]").forEach(function(b){b.onclick=function(){soan(BAI.filter(function(x){return x["Mã"]===b.dataset.sua})[0])}});
  n.querySelectorAll("[data-xoa]").forEach(function(b){b.onclick=function(){var x=BAI.filter(function(y){return y["Mã"]===b.dataset.xoa})[0];
@@ -430,9 +450,69 @@ function vXemVe(j,jt,k){
 function bangXep(ds,ten,tong,fn){if(!ds.length)return '<p class="trong">Chưa có dữ liệu trong khoảng này.</p>';
  return '<table class="bg"><thead><tr><th>'+ten+'</th><th class="so-p">Lượt</th><th class="so-p">Tỉ trọng</th></tr></thead><tbody>'+ds.map(function(x){return '<tr><td>'+esc(fn?fn(x[0]):x[0])+(fn&&fn(x[0])!==x[0]?'<br><span class="mo">'+esc(x[0])+'</span>':"")+'</td><td class="so-p">'+so(x[1])+'</td><td class="so-p">'+(tong?pt(x[1]/tong):"–")+'</td></tr>'}).join("")+'</tbody></table>'}
 
+/* ═════════ 5. THÀNH VIÊN & NHẬT KÝ (chỉ admin chính) ═════════ */
+var TK=null,QUYEN={},NK=null;
+function mkNgauNhien(){var a="abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789",r=new Uint32Array(14);crypto.getRandomValues(r);return [].map.call(r,function(x){return a[x%a.length]}).join("")}
+function oQuyen(ten,ds){return '<div class="ds-q">'+Object.keys(QUYEN).map(function(q){return '<label><input type="checkbox" name="'+ten+'" value="'+q+'"'+(ds.indexOf(q)>-1?" checked":"")+'> '+esc(QUYEN[q])+'</label>'}).join("")+'</div>'}
+function layQuyen(box,ten){return [].map.call(box.querySelectorAll('input[name="'+ten+'"]:checked'),function(i){return i.value})}
+function vTv(){
+ $("vung").innerHTML='<div id="v-tv"><div class="dau"><div><h1>Thành viên &amp; nhật ký</h1><p>Tạo tài khoản admin phụ cho thành viên dự án, chọn quyền, khoá hoặc xoá. Mọi thao tác đều được ghi vào nhật ký.</p></div><div class="cong"><button class="btn nh" type="button" id="lm">Làm mới</button></div></div>'+
+ '<div class="the-luoi"><section class="the"><h2>Tạo tài khoản admin phụ</h2><form class="tv-moi" id="ftv">'+
+  '<label class="f">Tên đăng nhập<input class="in" id="tv-ten" required maxlength="30" placeholder="vd: lan.nguyen" autocomplete="off"></label>'+
+  '<label class="f">Họ tên thành viên<input class="in" id="tv-ht" required maxlength="80" placeholder="Nguyễn Lan"></label>'+
+  '<label class="f">Mật khẩu ban đầu<span class="mk-hang"><input class="in" id="tv-mk" required minlength="10" autocomplete="new-password"><button class="btn ph nh" type="button" id="tv-ng">Tạo ngẫu nhiên</button></span></label>'+
+  '<div class="f" style="grid-column:1/-1;display:grid;gap:8px">Quyền<span id="tv-q"></span></div>'+
+  '<p class="loi" id="tv-loi" role="alert" style="grid-column:1/-1"></p><div><button class="btn" type="submit" id="tv-nut">Tạo tài khoản</button></div></form>'+
+  '<p class="goi-y" style="margin:12px 0 0">Gửi tên đăng nhập và mật khẩu cho thành viên qua kênh riêng (tin nhắn trực tiếp). Thành viên nên tự đổi mật khẩu ở mục "Đổi mật khẩu" sau lần đăng nhập đầu.</p></section>'+
+ '<section class="the"><h2>Tài khoản</h2><div class="bc" id="tv-ds"><p class="dang-tai">Đang tải…</p></div></section>'+
+ '<section class="the"><h2>Lịch sử hoạt động</h2><div class="thanh"><select class="in" id="nk-ai" aria-label="Lọc theo tài khoản"></select><input class="in" type="search" id="nk-tim" placeholder="Tìm hành động, mã đơn, mã bài…" aria-label="Tìm trong nhật ký"></div><div class="bc" id="nk-ds"><p class="dang-tai">Đang tải…</p></div></section></div></div>';
+ $("tv-ng").onclick=function(){$("tv-mk").value=mkNgauNhien()};
+ $("lm").onclick=function(){taiTv()};
+ $("nk-ai").onchange=veNk;$("nk-tim").oninput=veNk;
+ $("ftv").onsubmit=function(e){e.preventDefault();var n=$("tv-nut");n.disabled=true;$("tv-loi").textContent="";
+  goi("taoTaiKhoan",{ten:$("tv-ten").value,hoTen:$("tv-ht").value,matKhau:$("tv-mk").value,quyen:layQuyen($("tv-q"),"q-moi")})
+   .then(function(){tb("Đã tạo tài khoản "+$("tv-ten").value.trim().toLowerCase());$("ftv").reset();taiTv()})
+   .catch(function(er){$("tv-loi").textContent=er.message}).finally(function(){n.disabled=false})};
+ taiTv()}
+function taiTv(){Promise.all([goi("dsTaiKhoan"),goi("nhatKy")]).then(function(r){TK=r[0].tk;QUYEN=r[0].quyen;NK=r[1].nk.slice().reverse();
+ if(!$("tv-q").innerHTML)$("tv-q").innerHTML=oQuyen("q-moi",["bai"]);veTk();
+ var ai=$("nk-ai"),cu=ai.value,ds={};NK.forEach(function(x){ds[x["Tài khoản"]]=1});
+ ai.innerHTML='<option value="">Mọi tài khoản</option>'+Object.keys(ds).sort().map(function(t){return '<option'+(t===cu?" selected":"")+'>'+esc(t)+'</option>'}).join("");veNk()}).catch(function(e){$("tv-ds").innerHTML='<p class="trong">'+esc(e.message)+'</p>'})}
+function veTk(){
+ $("tv-ds").innerHTML='<table class="bg"><thead><tr><th>Tài khoản</th><th>Vai trò</th><th style="min-width:260px">Quyền</th><th>Trạng thái</th><th></th></tr></thead><tbody>'+TK.map(function(t,i){var chinh=t.vaiTro==="chinh";
+  return '<tr data-i="'+i+'"><td><b>'+esc(t.hoTen)+'</b><br><span class="mo">'+esc(t.ten)+(t.tao?' · tạo '+gioVN(t.tao):"")+'</span></td><td><span class="vt'+(chinh?"":" phu")+'">'+(chinh?"Admin chính":"Admin phụ")+'</span></td>'+
+   '<td>'+(chinh?'<span class="mo">Toàn quyền, quản lý thành viên</span>':oQuyen("q"+i,t.quyen))+'</td><td>'+(chinh?"–":'<span class="nh-tt'+(t.khoa?" loi":" xb")+'">'+(t.khoa?"Đang khoá":"Hoạt động")+'</span>')+'</td>'+
+   '<td style="white-space:nowrap">'+(chinh?"":'<button class="btn nh" type="button" data-a="q" disabled>Lưu quyền</button> <button class="btn nh ph" type="button" data-a="mk">Đặt lại mật khẩu</button> <button class="btn nh ph" type="button" data-a="k">'+(t.khoa?"Mở khoá":"Khoá")+'</button> <button class="btn nh xoa" type="button" data-a="x">Xoá</button>')+'</td></tr>'}).join("")+'</tbody></table>';
+ $("tv-ds").querySelectorAll("tr[data-i]").forEach(function(tr){var t=TK[+tr.dataset.i],nq=tr.querySelector('[data-a="q"]');if(t.vaiTro==="chinh")return;
+  tr.querySelectorAll('input[type=checkbox]').forEach(function(c){c.onchange=function(){nq.disabled=false}});
+  var lam=function(b,du,msg){b.disabled=true;goi("suaTaiKhoan",Object.assign({ten:t.ten},du)).then(function(){tb(msg);taiTv()}).catch(function(e){tb(e.message);b.disabled=false})};
+  nq.onclick=function(){lam(nq,{quyen:layQuyen(tr,"q"+tr.dataset.i)},"Đã lưu quyền của "+t.ten)};
+  tr.querySelector('[data-a="k"]').onclick=function(e){if(!t.khoa&&!confirm("Khoá "+t.ten+"? Thành viên bị đăng xuất ngay và không đăng nhập được cho tới khi mở khoá."))return;lam(e.target,{khoa:!t.khoa},(t.khoa?"Đã mở khoá ":"Đã khoá ")+t.ten)};
+  tr.querySelector('[data-a="mk"]').onclick=function(e){var m=mkNgauNhien();if(!confirm("Đặt lại mật khẩu cho "+t.ten+" thành:\n\n"+m+"\n\nHãy chép mật khẩu này và gửi riêng cho thành viên. Tiếp tục?"))return;
+   lam(e.target,{matKhau:m},"Đã đặt lại mật khẩu cho "+t.ten);try{navigator.clipboard.writeText(m)}catch(x){}};
+  tr.querySelector('[data-a="x"]').onclick=function(e){if(!confirm("Xoá hẳn tài khoản "+t.ten+" ("+t.hoTen+")? Nhật ký hoạt động cũ của tài khoản vẫn được giữ."))return;
+   e.target.disabled=true;goi("xoaTaiKhoan",{ten:t.ten}).then(function(){tb("Đã xoá "+t.ten);taiTv()}).catch(function(er){tb(er.message);e.target.disabled=false})}})}
+function veNk(){if(!NK||!$("nk-ds"))return;var ai=$("nk-ai").value,q=$("nk-tim").value.trim().toLowerCase();
+ var ds=NK.filter(function(x){return (!ai||x["Tài khoản"]===ai)&&(!q||(x["Hành động"]+" "+x["Chi tiết"]).toLowerCase().indexOf(q)>-1)}).slice(0,300);
+ $("nk-ds").innerHTML=ds.length?'<table class="bg"><thead><tr><th>Thời gian</th><th>Tài khoản</th><th>Hành động</th><th>Chi tiết</th></tr></thead><tbody>'+ds.map(function(x){
+  return '<tr><td class="mo" style="white-space:nowrap">'+gioVN(x["Thời gian"])+'</td><td><b>'+esc(x["Tài khoản"])+'</b><br><span class="mo">'+esc(x["Vai trò"])+'</span></td><td class="hd-nk"'+(/thất bại|Xoá|khoá/i.test(x["Hành động"])?' style="color:var(--red)"':"")+'>'+esc(x["Hành động"])+'</td><td>'+esc(x["Chi tiết"])+'</td></tr>'}).join("")+'</tbody></table>'+(ds.length===300?'<p class="goi-y">Đang hiện 300 dòng mới nhất khớp bộ lọc. Toàn bộ nhật ký nằm ở tab "🕘 Nhật ký" của Google Sheet.</p>':"")
+  :'<p class="trong">Chưa có hoạt động nào khớp.</p>'}
+
+/* ═════════ 6. ĐỔI MẬT KHẨU (mọi tài khoản) ═════════ */
+function vMk(){
+ $("vung").innerHTML='<div class="dau"><div><h1>Đổi mật khẩu</h1><p>Tài khoản '+esc(TOI.ten)+'. Đổi xong bạn sẽ được đăng xuất ở mọi thiết bị và đăng nhập lại bằng mật khẩu mới.</p></div></div>'+
+ '<section class="the"><form class="form-mk" id="fmk"><label class="f">Mật khẩu hiện tại<input class="in" type="password" id="mk-cu" required autocomplete="current-password"></label>'+
+ '<label class="f">Mật khẩu mới (ít nhất 10 ký tự)<input class="in" type="password" id="mk-moi" required minlength="10" autocomplete="new-password"></label>'+
+ '<label class="f">Nhập lại mật khẩu mới<input class="in" type="password" id="mk-lai" required minlength="10" autocomplete="new-password"></label>'+
+ '<p class="loi" id="mk-loi" role="alert"></p><div><button class="btn" type="submit" id="mk-nut">Đổi mật khẩu</button></div></form></section>';
+ $("fmk").onsubmit=function(e){e.preventDefault();if($("mk-moi").value!==$("mk-lai").value){$("mk-loi").textContent="Hai lần nhập mật khẩu mới chưa khớp.";return}
+  var n=$("mk-nut");n.disabled=true;$("mk-loi").textContent="";
+  goi("doiMatKhau",{cu:$("mk-cu").value,moi:$("mk-moi").value}).then(function(){tb("Đã đổi mật khẩu. Hãy đăng nhập lại.");thoat()})
+   .catch(function(er){$("mk-loi").textContent=er.message;n.disabled=false})}}
+
 /* ---------- khởi động: còn phiên trong tab này thì vào thẳng ---------- */
 try{token=sessionStorage.getItem("qt_tk")||""}catch(x){}
-if(token)vao(sessionStorage.getItem("qt_ten")||"");else $("dn-ten").focus();
+if(token)goi("toi").then(vao).catch(function(){thoat()});else $("dn-ten").focus();
 </script>
 </body>
 </html>

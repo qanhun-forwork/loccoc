@@ -73,13 +73,18 @@ Lộc Cộc tại loccoc.com.vn. Không phục vụ mục đích thương mại:
 
 ## Quản trị website (Apps Script v4)
 
-- Trang quản trị: `qt-lvcl4du5avhf/index.html` → https://www.loccoc.com.vn/qt-lvcl4du5avhf/ (không gắn link ở đâu,
-  có `noindex`). Repo GitHub công khai nên đường dẫn KHÔNG bí mật thật: bảo vệ là đăng nhập phía Apps Script.
+- Trang quản trị: `quantrivien/index.html` → https://www.loccoc.com.vn/quantrivien (người dùng chọn đường dẫn dễ nhớ;
+  có `noindex`, không gắn link trên web). Đường dẫn không bí mật: bảo vệ là đăng nhập phía Apps Script.
 - Tài khoản: Sheet → menu Lộc Cộc → "Đặt tài khoản quản trị…" (lưu tên + bản băm SHA-256 có muối trong Script
   Properties, không lưu mật khẩu). Sai 8 lần → khoá 15 phút. Token phiên 6 giờ trong CacheService, gia hạn khi dùng;
   đổi mật khẩu là mọi phiên cũ mất hiệu lực. Không bao giờ ghi mật khẩu vào code hay repo.
+- Nhiều tài khoản (v4.2): ADMIN CHÍNH đặt bằng menu Sheet (qt_ten/qt_bam). ADMIN PHỤ do admin chính tạo trên web
+  (mục "Thành viên & nhật ký"), lưu JSON trong Script Property `qt_tk`, có quyền riêng: ban / don / bai / xem.
+  Máy chủ kiểm quyền ở MỖI lệnh (bảng `LENH`); giao diện chỉ ẩn mục. Khoá, xoá, đặt lại mật khẩu → phiên của
+  thành viên hết hiệu lực ngay. Mọi đăng nhập (kể cả thất bại) và thao tác ghi vào tab "🕘 Nhật ký".
 - doPost có `hanh`: `xem` (đếm lượt xem, không cần đăng nhập) | `dangNhap` | các lệnh cần token: `tongQuan`,
-  `suaDong` (chỉ Trạng thái + Ghi chú nội bộ), `dsBai`, `luuBai`, `xoaBai`, `luotXem`. Không có `hanh` = form đơn hàng/liên hệ như cũ.
+  `suaDong` (chỉ Trạng thái + Ghi chú nội bộ), `dsBai`, `luuBai`, `xoaBai`, `luotXem`, `toi`, `doiMatKhau`;
+  chỉ admin chính: `dsTaiKhoan`, `taoTaiKhoan`, `suaTaiKhoan`, `xoaTaiKhoan`, `nhatKy`. Không có `hanh` = form đơn hàng/liên hệ như cũ.
   doGet `?hanh=bai` = bài đã xuất bản (cache 5 phút, lọc giờ xuất bản ở mỗi lần gọi nên bài hẹn giờ tự hiện).
 - Tab mới: 📰 Bài viết (hiện), 👁 Lượt xem (ẩn, mỗi lượt xem 1 dòng, giữ vĩnh viễn). Đơn hàng/Liên hệ có thêm cột
   "Trạng thái" ở CUỐI (L_ tính vị trí cột theo COT nên chỉ thêm cột vào cuối mảng).

@@ -17,12 +17,13 @@
  * 3. Triển khai → Quản lý triển khai → bút chì ✎ → Phiên bản: "Phiên bản mới" → Triển khai.
  *    ⚠ Bỏ bước 3 thì website vẫn chạy CODE CŨ (lỗi xô cột, không gửi email).
  * 4. Mở URL ứng dụng web trên trình duyệt: phải thấy "phienBan" đúng số PHIEN_BAN bên dưới.
- * 5. (v4) Menu Lộc Cộc → "Đặt tài khoản quản trị…" để đăng nhập trang quản trị của website.
+ * 5. (v4) Menu Lộc Cộc → "Đặt tài khoản quản trị…" = tài khoản ADMIN CHÍNH. Admin chính tạo tài khoản admin phụ
+ *    cho thành viên ngay trên trang quản trị (mục Thành viên); mọi thao tác được ghi ở tab "🕘 Nhật ký".
  * Sau đó dùng menu "Lộc Cộc" ngay trên thanh menu của Sheet (tải lại Sheet nếu chưa thấy).
  * ───────────────────────────────────────────────────────────────────────────
  */
 
-var PHIEN_BAN = '4.1';
+var PHIEN_BAN = '4.2';
 var TEN_GUI = 'Lộc Cộc';            // tên người gửi trong email
 var GIA_BASIC = 350000;             // giá dòng Basic (tính lại ở máy chủ, không tin giá từ trình duyệt)
 var GIOI_HAN_MOI_GIO = 3;           // tối đa email gửi tới cùng 1 địa chỉ trong 1 giờ
@@ -30,15 +31,17 @@ var CHO_GUI = 'Chờ gửi';            // trạng thái cột "Email xác nhậ
 var HANG_CHO = 'thu_';              // tiền tố Script Properties của email chờ gửi
 
 var TAB = { BC: '📊 Báo cáo', DON: '🛒 Đơn hàng', CT: '📦 Chi tiết đơn', LH: '💬 Liên hệ', SL: '⚙ Số liệu',
-  BV: '📰 Bài viết', XEM: '👁 Lượt xem' };
+  BV: '📰 Bài viết', XEM: '👁 Lượt xem', NK: '🕘 Nhật ký' };
 var COT = {
   DON: ['Mã đơn', 'Thời gian', 'Ngày', 'Giờ', 'Tên khách', 'Số điện thoại', 'Email', 'Sản phẩm', 'Số đôi',
     'Tạm tính (đ)', 'Ghi chú của khách', 'Email xác nhận', 'Ghi chú nội bộ', 'Trạng thái'],
   CT: ['Mã đơn', 'Thời gian', 'Ngày', 'Mẫu', 'Dòng', 'Size', 'Khắc tên', 'Số lượng', 'Đơn giá (đ)', 'Thành tiền (đ)'],
   LH: ['Mã', 'Thời gian', 'Ngày', 'Giờ', 'Nguồn', 'Tên khách', 'Số điện thoại', 'Email', 'Size chân',
     'Mã đơn cần tra', 'Nội dung', 'Email xác nhận', 'Ghi chú nội bộ', 'Trạng thái'],
-  BV: ['Mã', 'Tiêu đề', 'Đường dẫn', 'Tóm tắt', 'Ảnh bìa', 'Nội dung', 'Trạng thái', 'Xuất bản lúc', 'Tạo lúc', 'Cập nhật lúc'],
-  XEM: ['Thời gian', 'Ngày', 'Khách', 'Phiên', 'Trang', 'Nguồn', 'Thiết bị']
+  BV: ['Mã', 'Tiêu đề', 'Đường dẫn', 'Tóm tắt', 'Ảnh bìa', 'Nội dung', 'Trạng thái', 'Xuất bản lúc', 'Tạo lúc', 'Cập nhật lúc',
+    'Tạo bởi', 'Cập nhật bởi'],
+  XEM: ['Thời gian', 'Ngày', 'Khách', 'Phiên', 'Trang', 'Nguồn', 'Thiết bị'],
+  NK: ['Thời gian', 'Tài khoản', 'Vai trò', 'Hành động', 'Chi tiết']
 };
 // các form trên website (tên = tiêu đề trang chứa form)
 var NGUON = ['Liên hệ', 'Yêu cầu thiết kế riêng', 'Tư vấn 1:1', 'Chăm sóc đặc biệt', 'Tình trạng đơn hàng',
@@ -756,7 +759,9 @@ function json_(o) {
  *   dangNhap → trả token phiên (6 giờ, gia hạn mỗi lần dùng); các lệnh khác bắt buộc có token hợp lệ.
  * Tài khoản đặt bằng menu "Lộc Cộc → Đặt tài khoản quản trị…": chỉ lưu bản băm có muối, không lưu mật khẩu.
  */
-var QT = { PHIEN: 21600, SAI_TOI_DA: 8, KHOA_GIAY: 900, VONG_BAM: 600 };
+var QT = { PHIEN: 21600, SAI_TOI_DA: 8, SAI_CHUNG: 30, KHOA_GIAY: 900, VONG_BAM: 600, TK_TOI_DA: 30 };
+// quyền của admin phụ (admin chính luôn có tất cả + quản lý thành viên, nhật ký)
+var QUYEN = { ban: 'Tổng quan bán hàng', don: 'Đơn hàng & liên hệ', bai: 'Bài viết', xem: 'Lượt truy cập' };
 var TT_DON = ['Mới', 'Đang xử lý', 'Hoàn tất', 'Huỷ'];
 var TT_LH = ['Mới', 'Đã phản hồi', 'Đóng'];
 
@@ -770,9 +775,11 @@ function datTaiKhoanQuanTri() {
   if (b.getSelectedButton() !== ui.Button.OK) return;
   var mk = b.getResponseText();
   if (mk.length < 10) { ui.alert('Mật khẩu cần ít nhất 10 ký tự.'); return; }
+  if (dsTK_()[ten]) { ui.alert('Tên "' + ten + '" đang là một admin phụ. Chọn tên khác cho admin chính.'); return; }
   var muoi = Utilities.getUuid();
   PropertiesService.getScriptProperties().setProperties({ qt_ten: ten, qt_muoi: muoi, qt_bam: bam_(muoi, mk) });
-  ui.alert('Đã lưu tài khoản quản trị "' + ten + '". Mọi phiên đăng nhập cũ sẽ hết hạn trong tối đa 6 giờ.');
+  ui.alert('Đã lưu tài khoản ADMIN CHÍNH "' + ten + '". Phiên đăng nhập cũ của admin chính hết hiệu lực ngay.');
+  ghiNK_(ten, 'chinh', 'Đặt tài khoản admin chính', 'Từ menu Google Sheet');
 }
 
 function bam_(muoi, mk) {
@@ -791,50 +798,160 @@ function bangNhau_(a, b) {
   return x === 0;
 }
 
-function dangNhap_(d) {
-  var p = PropertiesService.getScriptProperties().getProperties(), cache = CacheService.getScriptCache();
-  if (!p.qt_bam) return { ok: false, loi: 'Chưa có tài khoản quản trị. Vào Sheet → menu Lộc Cộc → Đặt tài khoản quản trị.' };
-  var sai = Number(cache.get('qt_sai') || 0);
-  if (sai >= QT.SAI_TOI_DA) return { ok: false, loi: 'Sai quá nhiều lần. Thử lại sau 15 phút.' };
-  var dung = String(d.ten || '').trim().toLowerCase() === p.qt_ten && bangNhau_(bam_(p.qt_muoi, String(d.matKhau || '')), p.qt_bam);
-  if (!dung) {
-    cache.put('qt_sai', String(sai + 1), QT.KHOA_GIAY);
-    return { ok: false, loi: 'Tên đăng nhập hoặc mật khẩu không đúng.' };
-  }
-  cache.remove('qt_sai');
-  var token = (Utilities.getUuid() + Utilities.getUuid()).replace(/-/g, '');
-  // gắn phiên với bản băm hiện tại: đổi mật khẩu là phiên cũ mất hiệu lực
-  cache.put('qt_p_' + token, p.qt_bam.slice(0, 16), QT.PHIEN);
-  return { ok: true, token: token, ten: p.qt_ten };
+/* ---------- Tài khoản ----------
+ * Admin chính: qt_ten/qt_muoi/qt_bam (đặt bằng menu Sheet). Admin phụ: JSON trong Script Property "qt_tk"
+ *   { ten: { hoTen, muoi, bam, quyen: ['ban','don','bai','xem'], khoa, tao, taoBoi } } do admin chính tạo trên web.
+ * Phiên (CacheService "qt_p_<token>") lưu tên + 16 ký tự đầu bản băm: đổi mật khẩu, khoá hay xoá tài khoản là phiên mất hiệu lực.
+ */
+function dsTK_() { try { return JSON.parse(PropertiesService.getScriptProperties().getProperty('qt_tk') || '{}'); } catch (e) { return {}; } }
+function luuDsTK_(ds) { PropertiesService.getScriptProperties().setProperty('qt_tk', JSON.stringify(ds)); }
+
+function timTK_(ten) {
+  var p = PropertiesService.getScriptProperties().getProperties();
+  if (p.qt_ten && ten === p.qt_ten) return { ten: ten, hoTen: 'Admin chính', vaiTro: 'chinh', muoi: p.qt_muoi, bam: p.qt_bam, quyen: Object.keys(QUYEN) };
+  var x = dsTK_()[ten];
+  if (!x) return null;
+  return { ten: ten, hoTen: x.hoTen, vaiTro: 'phu', muoi: x.muoi, bam: x.bam, khoa: !!x.khoa,
+    quyen: (x.quyen || []).filter(function (q) { return q in QUYEN; }) };
 }
 
-function phienHopLe_(token) {
-  if (!/^[a-f0-9]{64}$/.test(String(token || ''))) return false;
-  var cache = CacheService.getScriptCache(), v = cache.get('qt_p_' + token);
-  var bam = PropertiesService.getScriptProperties().getProperty('qt_bam') || '';
-  if (!v || v !== bam.slice(0, 16)) return false;
-  cache.put('qt_p_' + token, v, QT.PHIEN); // gia hạn khi còn dùng
-  return true;
+function dangNhap_(d) {
+  var p = PropertiesService.getScriptProperties(), cache = CacheService.getScriptCache();
+  if (!p.getProperty('qt_bam')) return { ok: false, loi: 'Chưa có tài khoản quản trị. Vào Sheet → menu Lộc Cộc → Đặt tài khoản quản trị.' };
+  var ten = String(d.ten || '').trim().toLowerCase().slice(0, 30);
+  var kSai = 'qt_sai_' + ten.replace(/[^a-z0-9._-]/g, ''), sai = Number(cache.get(kSai) || 0), chung = Number(cache.get('qt_sai') || 0);
+  if (sai >= QT.SAI_TOI_DA || chung >= QT.SAI_CHUNG) return { ok: false, loi: 'Sai quá nhiều lần. Thử lại sau 15 phút.' };
+  var tk = timTK_(ten);
+  // luôn băm kể cả khi không có tài khoản, để thời gian phản hồi không lộ tên nào tồn tại
+  var bam = bam_(tk ? tk.muoi : 'khong-co', String(d.matKhau || ''));
+  if (!tk || !bangNhau_(bam, tk.bam)) {
+    cache.put(kSai, String(sai + 1), QT.KHOA_GIAY); cache.put('qt_sai', String(chung + 1), QT.KHOA_GIAY);
+    ghiNK_(ten || '(trống)', '', 'Đăng nhập thất bại', 'Sai tên hoặc mật khẩu');
+    return { ok: false, loi: 'Tên đăng nhập hoặc mật khẩu không đúng.' };
+  }
+  if (tk.khoa) { ghiNK_(ten, tk.vaiTro, 'Đăng nhập thất bại', 'Tài khoản đang bị khoá'); return { ok: false, loi: 'Tài khoản này đang bị khoá. Liên hệ admin chính.' }; }
+  cache.remove(kSai);
+  var token = (Utilities.getUuid() + Utilities.getUuid()).replace(/-/g, '');
+  cache.put('qt_p_' + token, JSON.stringify({ ten: ten, ky: tk.bam.slice(0, 16) }), QT.PHIEN);
+  ghiNK_(ten, tk.vaiTro, 'Đăng nhập', '');
+  return { ok: true, token: token, ten: ten, hoTen: tk.hoTen, vaiTro: tk.vaiTro, quyen: tk.quyen };
 }
+
+// trả về tài khoản đang đăng nhập, hoặc null nếu phiên hết hạn / tài khoản đã đổi mật khẩu, bị khoá, bị xoá
+function phien_(token) {
+  if (!/^[a-f0-9]{64}$/.test(String(token || ''))) return null;
+  var cache = CacheService.getScriptCache(), v = cache.get('qt_p_' + token), o;
+  try { o = JSON.parse(v); } catch (e) { return null; }
+  var tk = o && timTK_(o.ten);
+  if (!tk || tk.khoa || o.ky !== tk.bam.slice(0, 16)) return null;
+  cache.put('qt_p_' + token, v, QT.PHIEN); // gia hạn khi còn dùng
+  return tk;
+}
+
+function ghiNK_(ten, vaiTro, hanhDong, chiTiet) {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(TAB.NK) || tab_(TAB.NK);
+    sh.appendRow([new Date(), an_(String(ten)), vaiTro === 'chinh' ? 'Admin chính' : vaiTro === 'phu' ? 'Admin phụ' : '', an_(hanhDong), an_(String(chiTiet || '').slice(0, 500))]);
+  } catch (e) { console.error(e); } // ghi nhật ký lỗi không được làm hỏng thao tác chính
+}
+
+// lệnh → quyền cần có (admin chính có tất cả; "chinh" = chỉ admin chính)
+var LENH = { tongQuan: ['ban', 'don'], suaDong: ['don'], dsBai: ['bai'], luuBai: ['bai'], xoaBai: ['bai'], luotXem: ['xem'],
+  dsTaiKhoan: 'chinh', taoTaiKhoan: 'chinh', suaTaiKhoan: 'chinh', xoaTaiKhoan: 'chinh', nhatKy: 'chinh' };
 
 function quanTri_(d) {
   try {
     if (d.hanh === 'dangNhap') return dangNhap_(d);
-    if (!phienHopLe_(d.token)) return { ok: false, hetPhien: true, loi: 'Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại.' };
+    var tk = phien_(d.token);
+    if (!tk) return { ok: false, hetPhien: true, loi: 'Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại.' };
+    var can = LENH[d.hanh];
+    if (can === 'chinh' ? tk.vaiTro !== 'chinh' : can && !can.some(function (q) { return tk.quyen.indexOf(q) > -1; }))
+      return { ok: false, loi: 'Tài khoản của bạn không có quyền làm việc này.' };
+    var nk = function (hd, ct) { ghiNK_(tk.ten, tk.vaiTro, hd, ct); };
     switch (d.hanh) {
-      case 'dangXuat': CacheService.getScriptCache().remove('qt_p_' + d.token); return { ok: true };
+      case 'toi': return { ok: true, ten: tk.ten, hoTen: tk.hoTen, vaiTro: tk.vaiTro, quyen: tk.quyen };
+      case 'dangXuat': CacheService.getScriptCache().remove('qt_p_' + d.token); nk('Đăng xuất', ''); return { ok: true };
+      case 'doiMatKhau': return coKhoa_(function () { return doiMatKhau_(tk, d, nk); });
       case 'tongQuan': return { ok: true, don: bang_(TAB.DON), ct: bang_(TAB.CT), lh: bang_(TAB.LH), ttDon: TT_DON, ttLh: TT_LH };
-      case 'suaDong': return coKhoa_(function () { return suaDong_(d); });
+      case 'suaDong': return coKhoa_(function () {
+        var r = suaDong_(d);
+        if (r.ok) nk('Sửa ' + (d.tab === 'LH' ? 'liên hệ' : 'đơn hàng'), d.ma + ': ' + Object.keys(d.truong || {}).map(function (k) { return k + ' = ' + String(d.truong[k]).slice(0, 80); }).join(' · '));
+        return r; });
       case 'dsBai': return { ok: true, bai: bang_(TAB.BV) };
-      case 'luuBai': return coKhoa_(function () { return luuBai_(d.bai || {}); });
-      case 'xoaBai': return coKhoa_(function () { return xoaBai_(d.ma); });
+      case 'luuBai': return coKhoa_(function () {
+        var b = d.bai || {}, r = luuBai_(b, tk.ten);
+        if (r.ok) nk(b.ma ? 'Sửa bài viết' : 'Tạo bài viết', r.ma + ' · "' + String(b.tieuDe || '').slice(0, 80) + '" · ' + (b.trangThai === 'Xuất bản' ? 'Xuất bản ' + (b.xuatBanLuc || '') : 'Nháp'));
+        return r; });
+      case 'xoaBai': return coKhoa_(function () { var r = xoaBai_(d.ma); if (r.ok) nk('Xoá bài viết', d.ma + (r.tieuDe ? ' · "' + r.tieuDe + '"' : '')); return r; });
       case 'luotXem': return thongKeXem_(d.tu, d.den);
+      case 'dsTaiKhoan': return { ok: true, tk: dsTaiKhoan_(), quyen: QUYEN };
+      case 'taoTaiKhoan': return coKhoa_(function () { return taoTaiKhoan_(d, tk, nk); });
+      case 'suaTaiKhoan': return coKhoa_(function () { return suaTaiKhoan_(d, nk); });
+      case 'xoaTaiKhoan': return coKhoa_(function () { return xoaTaiKhoan_(d.ten, nk); });
+      case 'nhatKy': return { ok: true, nk: bang_(TAB.NK).slice(-3000) };
     }
     return { ok: false, loi: 'Lệnh không hợp lệ.' };
   } catch (err) {
     console.error(err);
     return { ok: false, loi: 'Lỗi máy chủ: ' + String(err).slice(0, 160) };
   }
+}
+
+function kiemMK_(mk) { return String(mk || '').length >= 10 ? '' : 'Mật khẩu cần ít nhất 10 ký tự.'; }
+
+function doiMatKhau_(tk, d, nk) {
+  if (!bangNhau_(bam_(tk.muoi, String(d.cu || '')), tk.bam)) return { ok: false, loi: 'Mật khẩu hiện tại không đúng.' };
+  var l = kiemMK_(d.moi); if (l) return { ok: false, loi: l };
+  var muoi = Utilities.getUuid(), bam = bam_(muoi, String(d.moi));
+  if (tk.vaiTro === 'chinh') PropertiesService.getScriptProperties().setProperties({ qt_muoi: muoi, qt_bam: bam });
+  else { var ds = dsTK_(); ds[tk.ten].muoi = muoi; ds[tk.ten].bam = bam; luuDsTK_(ds); }
+  nk('Đổi mật khẩu', 'Tự đổi mật khẩu của mình');
+  return { ok: true, dangNhapLai: true };
+}
+
+function dsTaiKhoan_() {
+  var p = PropertiesService.getScriptProperties().getProperty('qt_ten'), ds = dsTK_();
+  return [{ ten: p, hoTen: 'Admin chính', vaiTro: 'chinh', quyen: Object.keys(QUYEN), khoa: false }].concat(Object.keys(ds).sort().map(function (k) {
+    var x = ds[k]; return { ten: k, hoTen: x.hoTen, vaiTro: 'phu', quyen: x.quyen || [], khoa: !!x.khoa, tao: x.tao, taoBoi: x.taoBoi };
+  }));
+}
+
+function locQuyen_(q) { return (Array.isArray(q) ? q : []).filter(function (x, i, a) { return x in QUYEN && a.indexOf(x) === i; }); }
+
+function taoTaiKhoan_(d, tk, nk) {
+  var ten = String(d.ten || '').trim().toLowerCase(), ds = dsTK_();
+  if (!/^[a-z0-9._-]{3,30}$/.test(ten)) return { ok: false, loi: 'Tên đăng nhập 3–30 ký tự: chữ thường không dấu, số, dấu chấm, gạch.' };
+  if (ten === PropertiesService.getScriptProperties().getProperty('qt_ten') || ds[ten]) return { ok: false, loi: 'Tên đăng nhập "' + ten + '" đã có.' };
+  if (Object.keys(ds).length >= QT.TK_TOI_DA) return { ok: false, loi: 'Tối đa ' + QT.TK_TOI_DA + ' tài khoản admin phụ.' };
+  var hoTen = chu_(d.hoTen, 80); if (!hoTen) return { ok: false, loi: 'Nhập họ tên thành viên.' };
+  var l = kiemMK_(d.matKhau); if (l) return { ok: false, loi: l };
+  var quyen = locQuyen_(d.quyen); if (!quyen.length) return { ok: false, loi: 'Chọn ít nhất một quyền.' };
+  var muoi = Utilities.getUuid();
+  ds[ten] = { hoTen: hoTen, muoi: muoi, bam: bam_(muoi, String(d.matKhau)), quyen: quyen, khoa: false, tao: new Date().toISOString(), taoBoi: tk.ten };
+  luuDsTK_(ds);
+  nk('Tạo tài khoản', ten + ' (' + hoTen + ') · quyền: ' + quyen.map(function (q) { return QUYEN[q]; }).join(', '));
+  return { ok: true };
+}
+
+function suaTaiKhoan_(d, nk) {
+  var ds = dsTK_(), x = ds[d.ten];
+  if (!x) return { ok: false, loi: 'Không sửa được tài khoản này (admin chính đổi mật khẩu ở mục Đổi mật khẩu).' };
+  var ghi = [];
+  if ('hoTen' in d) { var h = chu_(d.hoTen, 80); if (!h) return { ok: false, loi: 'Họ tên không được trống.' }; if (h !== x.hoTen) { ghi.push('họ tên: ' + h); x.hoTen = h; } }
+  if ('quyen' in d) { var q = locQuyen_(d.quyen); if (!q.length) return { ok: false, loi: 'Chọn ít nhất một quyền.' }; x.quyen = q; ghi.push('quyền: ' + q.map(function (k) { return QUYEN[k]; }).join(', ')); }
+  if ('khoa' in d) { x.khoa = !!d.khoa; ghi.push(x.khoa ? 'khoá tài khoản' : 'mở khoá'); }
+  if (d.matKhau) { var l = kiemMK_(d.matKhau); if (l) return { ok: false, loi: l }; x.muoi = Utilities.getUuid(); x.bam = bam_(x.muoi, String(d.matKhau)); ghi.push('đặt lại mật khẩu'); }
+  luuDsTK_(ds);
+  nk('Sửa tài khoản', d.ten + ': ' + ghi.join(' · '));
+  return { ok: true };
+}
+
+function xoaTaiKhoan_(ten, nk) {
+  var ds = dsTK_();
+  if (!ds[ten]) return { ok: false, loi: 'Không tìm thấy tài khoản (không xoá được admin chính).' };
+  var h = ds[ten].hoTen; delete ds[ten]; luuDsTK_(ds);
+  nk('Xoá tài khoản', ten + ' (' + h + ')');
+  return { ok: true };
 }
 
 function coKhoa_(fn) {
@@ -882,7 +999,7 @@ function duongDan_(s) {
     .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80);
 }
 
-function luuBai_(b) {
+function luuBai_(b, ai) {
   var sh = tab_(TAB.BV), now = new Date();
   var tieuDe = chu_(b.tieuDe, 200);
   if (!tieuDe) return { ok: false, loi: 'Bài viết cần có tiêu đề.' };
@@ -898,13 +1015,13 @@ function luuBai_(b) {
   var cu = bang_(TAB.BV).filter(function (x) { return x['Đường dẫn'] === dd && x['Mã'] !== b.ma; });
   if (cu.length) return { ok: false, loi: 'Đường dẫn "' + dd + '" đã có ở bài ' + cu[0]['Mã'] + '. Hãy đổi đường dẫn khác.' };
   var o = { 'Tiêu đề': tieuDe, 'Đường dẫn': dd, 'Tóm tắt': chu_(b.tomTat, 400), 'Ảnh bìa': anh, 'Nội dung': noiDung,
-    'Trạng thái': tt, 'Xuất bản lúc': xb, 'Cập nhật lúc': now };
+    'Trạng thái': tt, 'Xuất bản lúc': xb, 'Cập nhật lúc': now, 'Cập nhật bởi': ai || '' };
   var r = timDong_(sh, 'Mã', b.ma), ma = b.ma;
   if (r) {
     Object.keys(o).forEach(function (h) { datO_(sh, r, h, o[h]); });
   } else {
     ma = maMoi_('BV', 'BV-');
-    o['Mã'] = ma; o['Tạo lúc'] = now;
+    o['Mã'] = ma; o['Tạo lúc'] = now; o['Tạo bởi'] = ai || '';
     ghi_(sh, [o]);
   }
   CacheService.getScriptCache().remove('bai_cong_khai');
@@ -914,9 +1031,11 @@ function luuBai_(b) {
 function xoaBai_(ma) {
   var sh = tab_(TAB.BV), r = timDong_(sh, 'Mã', ma);
   if (!r) return { ok: false, loi: 'Không tìm thấy bài ' + ma + '.' };
+  var hd = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0].map(String);
+  var tieuDe = String(sh.getRange(r, hd.indexOf('Tiêu đề') + 1).getValue() || '').slice(0, 80);
   sh.deleteRow(r);
   CacheService.getScriptCache().remove('bai_cong_khai');
-  return { ok: true };
+  return { ok: true, tieuDe: tieuDe };
 }
 
 // bài "Xuất bản" có giờ xuất bản đã tới; lọc giờ ở mỗi lần gọi nên bài hẹn giờ tự hiện đúng lúc
