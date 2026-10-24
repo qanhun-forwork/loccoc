@@ -14,25 +14,29 @@
  * 2. Chọn hàm "xoaHetVaCaiDatLai" → Chạy → cấp quyền (có quyền "gửi email thay bạn").
  * 3. Triển khai → Quản lý triển khai → bút chì ✎ → Phiên bản: "Phiên bản mới" → Triển khai.
  *    ⚠ Bỏ bước 3 thì website vẫn chạy CODE CŨ (lỗi xô cột, không gửi email).
- * 4. Mở URL ứng dụng web trên trình duyệt: phải thấy "phienBan":"3.0".
+ * 4. Mở URL ứng dụng web trên trình duyệt: phải thấy "phienBan" đúng số PHIEN_BAN bên dưới.
+ * 5. (v4) Menu Lộc Cộc → "Đặt tài khoản quản trị…" để đăng nhập trang quản trị của website.
  * Sau đó dùng menu "Lộc Cộc" ngay trên thanh menu của Sheet (tải lại Sheet nếu chưa thấy).
  * ───────────────────────────────────────────────────────────────────────────
  */
 
-var PHIEN_BAN = '3.6';
+var PHIEN_BAN = '4.0';
 var TEN_GUI = 'Lộc Cộc';            // tên người gửi trong email
 var GIA_BASIC = 350000;             // giá dòng Basic (tính lại ở máy chủ, không tin giá từ trình duyệt)
 var GIOI_HAN_MOI_GIO = 3;           // tối đa email gửi tới cùng 1 địa chỉ trong 1 giờ
 var CHO_GUI = 'Chờ gửi';            // trạng thái cột "Email xác nhận" khi email còn trong hàng chờ
 var HANG_CHO = 'thu_';              // tiền tố Script Properties của email chờ gửi
 
-var TAB = { BC: '📊 Báo cáo', DON: '🛒 Đơn hàng', CT: '📦 Chi tiết đơn', LH: '💬 Liên hệ', SL: '⚙ Số liệu' };
+var TAB = { BC: '📊 Báo cáo', DON: '🛒 Đơn hàng', CT: '📦 Chi tiết đơn', LH: '💬 Liên hệ', SL: '⚙ Số liệu',
+  BV: '📰 Bài viết', XEM: '👁 Lượt xem' };
 var COT = {
   DON: ['Mã đơn', 'Thời gian', 'Ngày', 'Giờ', 'Tên khách', 'Số điện thoại', 'Email', 'Sản phẩm', 'Số đôi',
-    'Tạm tính (đ)', 'Ghi chú của khách', 'Email xác nhận', 'Ghi chú nội bộ'],
+    'Tạm tính (đ)', 'Ghi chú của khách', 'Email xác nhận', 'Ghi chú nội bộ', 'Trạng thái'],
   CT: ['Mã đơn', 'Thời gian', 'Ngày', 'Mẫu', 'Dòng', 'Size', 'Khắc tên', 'Số lượng', 'Đơn giá (đ)', 'Thành tiền (đ)'],
   LH: ['Mã', 'Thời gian', 'Ngày', 'Giờ', 'Nguồn', 'Tên khách', 'Số điện thoại', 'Email', 'Size chân',
-    'Mã đơn cần tra', 'Nội dung', 'Email xác nhận', 'Ghi chú nội bộ']
+    'Mã đơn cần tra', 'Nội dung', 'Email xác nhận', 'Ghi chú nội bộ', 'Trạng thái'],
+  BV: ['Mã', 'Tiêu đề', 'Đường dẫn', 'Tóm tắt', 'Ảnh bìa', 'Nội dung', 'Trạng thái', 'Xuất bản lúc', 'Tạo lúc', 'Cập nhật lúc'],
+  XEM: ['Thời gian', 'Ngày', 'Khách', 'Phiên', 'Trang', 'Nguồn', 'Thiết bị']
 };
 // các form trên website (tên = tiêu đề trang chứa form)
 var NGUON = ['Liên hệ', 'Yêu cầu thiết kế riêng', 'Tư vấn 1:1', 'Chăm sóc đặc biệt', 'Tình trạng đơn hàng',
@@ -46,6 +50,10 @@ var C = { red: '#800E13', nau: '#5A3E32', be: '#E8DCC8', beL: '#F3EBDD', beXL: '
 /* ═════════════════════════ 1. NHẬN DỮ LIỆU TỪ WEBSITE ═════════════════════════ */
 
 function doPost(e) {
+  var d0;
+  try { d0 = JSON.parse((e && e.postData && e.postData.contents) || '{}'); } catch (x) { d0 = {}; }
+  if (d0.hanh === 'xem') return json_(ghiLuotXem_(d0));   // lượt xem trang: không cần khoá
+  if (d0.hanh) return json_(quanTri_(d0));                // trang quản trị
   var lock = LockService.getScriptLock();
   try { lock.waitLock(20000); } catch (x) {
     return json_({ ok: false, loi: 'Hệ thống đang bận, bạn thử lại sau vài giây nhé.' });
@@ -101,7 +109,8 @@ function doPost(e) {
 }
 
 // mở URL web app trên trình duyệt để kiểm tra phiên bản đang chạy
-function doGet() {
+function doGet(e) {
+  if (e && e.parameter && e.parameter.hanh === 'bai') return json_({ ok: true, bai: baiCongKhai_() });
   return json_({ ok: true, app: 'loccoc', phienBan: PHIEN_BAN, don: soDong_(TAB.DON), lienHe: soDong_(TAB.LH),
     emailNen: coEmailNen_(), choGui: soEmailCho_() });
 }
@@ -275,6 +284,7 @@ function onOpen() {
     .addItem('Kiểm tra hệ thống', 'kiemTra')
     .addItem('Gửi email thử cho tôi', 'guiEmailThu')
     .addItem('Bật gửi email nền (chạy 1 lần)', 'batEmailNen')
+    .addItem('Đặt tài khoản quản trị…', 'datTaiKhoanQuanTri')
     .addSeparator()
     .addItem('Xoá hết dữ liệu và cài đặt lại…', 'xoaHetVaCaiDatLai')
     .addToUi();
@@ -684,8 +694,7 @@ function sapXepTab_() {
   if (bc) ss.setActiveSheet(bc);
   // Chi tiết đơn chỉ để Số liệu/Báo cáo đọc: ẩn đi, xem đơn ở tab Đơn hàng (cột Sản phẩm liệt kê từng đôi).
   // Ẩn sau cùng vì setActiveSheet ở trên sẽ hiện lại tab đang ẩn.
-  var ct = ss.getSheetByName(TAB.CT);
-  if (ct) ct.hideSheet();
+  [TAB.CT, TAB.XEM].forEach(function (t) { var x = ss.getSheetByName(t); if (x) x.hideSheet(); });
 }
 
 // dấu ngăn đối số trong công thức của Sheet: "," (định dạng Mỹ) hoặc ";" (định dạng Việt Nam…)
@@ -737,4 +746,232 @@ function thongBao_(msg) {
 
 function json_(o) {
   return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON);
+}
+
+/* ═════════════════════════ 8. QUẢN TRỊ WEBSITE ═════════════════════════
+ * Trang quản trị (đường dẫn riêng trên loccoc.com.vn) gọi doPost với "hanh":
+ *   dangNhap → trả token phiên (6 giờ, gia hạn mỗi lần dùng); các lệnh khác bắt buộc có token hợp lệ.
+ * Tài khoản đặt bằng menu "Lộc Cộc → Đặt tài khoản quản trị…": chỉ lưu bản băm có muối, không lưu mật khẩu.
+ */
+var QT = { PHIEN: 21600, SAI_TOI_DA: 8, KHOA_GIAY: 900, VONG_BAM: 600 };
+var TT_DON = ['Mới', 'Đang xử lý', 'Hoàn tất', 'Huỷ'];
+var TT_LH = ['Mới', 'Đã phản hồi', 'Đóng'];
+
+function datTaiKhoanQuanTri() {
+  var ui = SpreadsheetApp.getUi();
+  var a = ui.prompt('Tài khoản quản trị (1/2)', 'Tên đăng nhập (chữ thường, không dấu, 3–30 ký tự):', ui.ButtonSet.OK_CANCEL);
+  if (a.getSelectedButton() !== ui.Button.OK) return;
+  var ten = a.getResponseText().trim().toLowerCase();
+  if (!/^[a-z0-9._-]{3,30}$/.test(ten)) { ui.alert('Tên đăng nhập không hợp lệ.'); return; }
+  var b = ui.prompt('Tài khoản quản trị (2/2)', 'Mật khẩu (ít nhất 10 ký tự). Ô này không che chữ, hãy chắc không ai nhìn màn hình:', ui.ButtonSet.OK_CANCEL);
+  if (b.getSelectedButton() !== ui.Button.OK) return;
+  var mk = b.getResponseText();
+  if (mk.length < 10) { ui.alert('Mật khẩu cần ít nhất 10 ký tự.'); return; }
+  var muoi = Utilities.getUuid();
+  PropertiesService.getScriptProperties().setProperties({ qt_ten: ten, qt_muoi: muoi, qt_bam: bam_(muoi, mk) });
+  ui.alert('Đã lưu tài khoản quản trị "' + ten + '". Mọi phiên đăng nhập cũ sẽ hết hạn trong tối đa 6 giờ.');
+}
+
+function bam_(muoi, mk) {
+  var h = muoi + '|' + mk;
+  for (var i = 0; i < QT.VONG_BAM; i++) {
+    h = Utilities.base64Encode(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, h + muoi, Utilities.Charset.UTF_8));
+  }
+  return h;
+}
+
+// so sánh không dừng sớm, tránh đoán dần mật khẩu theo thời gian phản hồi
+function bangNhau_(a, b) {
+  if (a.length !== b.length) return false;
+  var x = 0;
+  for (var i = 0; i < a.length; i++) x |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return x === 0;
+}
+
+function dangNhap_(d) {
+  var p = PropertiesService.getScriptProperties().getProperties(), cache = CacheService.getScriptCache();
+  if (!p.qt_bam) return { ok: false, loi: 'Chưa có tài khoản quản trị. Vào Sheet → menu Lộc Cộc → Đặt tài khoản quản trị.' };
+  var sai = Number(cache.get('qt_sai') || 0);
+  if (sai >= QT.SAI_TOI_DA) return { ok: false, loi: 'Sai quá nhiều lần. Thử lại sau 15 phút.' };
+  var dung = String(d.ten || '').trim().toLowerCase() === p.qt_ten && bangNhau_(bam_(p.qt_muoi, String(d.matKhau || '')), p.qt_bam);
+  if (!dung) {
+    cache.put('qt_sai', String(sai + 1), QT.KHOA_GIAY);
+    return { ok: false, loi: 'Tên đăng nhập hoặc mật khẩu không đúng.' };
+  }
+  cache.remove('qt_sai');
+  var token = (Utilities.getUuid() + Utilities.getUuid()).replace(/-/g, '');
+  // gắn phiên với bản băm hiện tại: đổi mật khẩu là phiên cũ mất hiệu lực
+  cache.put('qt_p_' + token, p.qt_bam.slice(0, 16), QT.PHIEN);
+  return { ok: true, token: token, ten: p.qt_ten };
+}
+
+function phienHopLe_(token) {
+  if (!/^[a-f0-9]{64}$/.test(String(token || ''))) return false;
+  var cache = CacheService.getScriptCache(), v = cache.get('qt_p_' + token);
+  var bam = PropertiesService.getScriptProperties().getProperty('qt_bam') || '';
+  if (!v || v !== bam.slice(0, 16)) return false;
+  cache.put('qt_p_' + token, v, QT.PHIEN); // gia hạn khi còn dùng
+  return true;
+}
+
+function quanTri_(d) {
+  try {
+    if (d.hanh === 'dangNhap') return dangNhap_(d);
+    if (!phienHopLe_(d.token)) return { ok: false, hetPhien: true, loi: 'Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại.' };
+    switch (d.hanh) {
+      case 'dangXuat': CacheService.getScriptCache().remove('qt_p_' + d.token); return { ok: true };
+      case 'tongQuan': return { ok: true, don: bang_(TAB.DON), ct: bang_(TAB.CT), lh: bang_(TAB.LH), ttDon: TT_DON, ttLh: TT_LH };
+      case 'suaDong': return coKhoa_(function () { return suaDong_(d); });
+      case 'dsBai': return { ok: true, bai: bang_(TAB.BV) };
+      case 'luuBai': return coKhoa_(function () { return luuBai_(d.bai || {}); });
+      case 'xoaBai': return coKhoa_(function () { return xoaBai_(d.ma); });
+      case 'luotXem': return thongKeXem_(d.tu, d.den);
+    }
+    return { ok: false, loi: 'Lệnh không hợp lệ.' };
+  } catch (err) {
+    console.error(err);
+    return { ok: false, loi: 'Lỗi máy chủ: ' + String(err).slice(0, 160) };
+  }
+}
+
+function coKhoa_(fn) {
+  var lock = LockService.getScriptLock();
+  try { lock.waitLock(20000); } catch (x) { return { ok: false, loi: 'Hệ thống đang bận, thử lại sau vài giây.' }; }
+  try { var kq = fn(); SpreadsheetApp.flush(); return kq; } finally { lock.releaseLock(); }
+}
+
+// đọc cả tab thành danh sách object theo tên cột; ngày giờ đổi sang chuỗi ISO cho trình duyệt
+function bang_(ten) {
+  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ten);
+  if (!sh || sh.getLastRow() < 2) return [];
+  var v = sh.getRange(1, 1, sh.getLastRow(), sh.getLastColumn()).getValues(), hd = v.shift().map(String);
+  return v.filter(function (r) { return r[0] !== ''; }).map(function (r) {
+    var o = {};
+    hd.forEach(function (h, i) { if (h) o[h] = r[i] instanceof Date ? r[i].toISOString() : r[i]; });
+    return o;
+  });
+}
+
+function timDong_(sh, cotMa, ma) {
+  if (!ma) return 0;
+  var hd = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0].map(String), c = hd.indexOf(cotMa) + 1;
+  if (!c || sh.getLastRow() < 2) return 0;
+  var o = sh.getRange(2, c, sh.getLastRow() - 1, 1).createTextFinder(String(ma)).matchEntireCell(true).findNext();
+  return o ? o.getRow() : 0;
+}
+
+function suaDong_(d) {
+  var k = d.tab === 'LH' ? 'LH' : 'DON', sh = tab_(TAB[k]);
+  var r = timDong_(sh, k === 'DON' ? 'Mã đơn' : 'Mã', d.ma);
+  if (!r) return { ok: false, loi: 'Không tìm thấy ' + d.ma + '.' };
+  var t = d.truong || {}, ds = k === 'DON' ? TT_DON : TT_LH;
+  if ('Trạng thái' in t) {
+    if (ds.indexOf(t['Trạng thái']) < 0) return { ok: false, loi: 'Trạng thái không hợp lệ.' };
+    datO_(sh, r, 'Trạng thái', t['Trạng thái']);
+  }
+  if ('Ghi chú nội bộ' in t) datO_(sh, r, 'Ghi chú nội bộ', chu_(t['Ghi chú nội bộ'], 2000));
+  return { ok: true };
+}
+
+/* ---------- Bài viết ---------- */
+function duongDan_(s) {
+  return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd')
+    .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80);
+}
+
+function luuBai_(b) {
+  var sh = tab_(TAB.BV), now = new Date();
+  var tieuDe = chu_(b.tieuDe, 200);
+  if (!tieuDe) return { ok: false, loi: 'Bài viết cần có tiêu đề.' };
+  var dd = duongDan_(b.duongDan || tieuDe);
+  if (!dd) return { ok: false, loi: 'Đường dẫn không hợp lệ.' };
+  var noiDung = String(b.noiDung || '');
+  if (noiDung.length > 45000) return { ok: false, loi: 'Nội dung quá dài (tối đa 45.000 ký tự).' };
+  var anh = chu_(b.anhBia, 500);
+  if (anh && !/^https:\/\//i.test(anh) && !/^img\//.test(anh)) return { ok: false, loi: 'Ảnh bìa phải là đường link https://' };
+  var tt = b.trangThai === 'Xuất bản' ? 'Xuất bản' : 'Nháp';
+  var xb = b.xuatBanLuc ? new Date(b.xuatBanLuc) : now;
+  if (isNaN(xb.getTime())) return { ok: false, loi: 'Thời gian xuất bản không hợp lệ.' };
+  var cu = bang_(TAB.BV).filter(function (x) { return x['Đường dẫn'] === dd && x['Mã'] !== b.ma; });
+  if (cu.length) return { ok: false, loi: 'Đường dẫn "' + dd + '" đã có ở bài ' + cu[0]['Mã'] + '. Hãy đổi đường dẫn khác.' };
+  var o = { 'Tiêu đề': tieuDe, 'Đường dẫn': dd, 'Tóm tắt': chu_(b.tomTat, 400), 'Ảnh bìa': anh, 'Nội dung': noiDung,
+    'Trạng thái': tt, 'Xuất bản lúc': xb, 'Cập nhật lúc': now };
+  var r = timDong_(sh, 'Mã', b.ma), ma = b.ma;
+  if (r) {
+    Object.keys(o).forEach(function (h) { datO_(sh, r, h, o[h]); });
+  } else {
+    ma = maMoi_('BV', 'BV-');
+    o['Mã'] = ma; o['Tạo lúc'] = now;
+    ghi_(sh, [o]);
+  }
+  CacheService.getScriptCache().remove('bai_cong_khai');
+  return { ok: true, ma: ma, duongDan: dd };
+}
+
+function xoaBai_(ma) {
+  var sh = tab_(TAB.BV), r = timDong_(sh, 'Mã', ma);
+  if (!r) return { ok: false, loi: 'Không tìm thấy bài ' + ma + '.' };
+  sh.deleteRow(r);
+  CacheService.getScriptCache().remove('bai_cong_khai');
+  return { ok: true };
+}
+
+// bài "Xuất bản" có giờ xuất bản đã tới; lọc giờ ở mỗi lần gọi nên bài hẹn giờ tự hiện đúng lúc
+function baiCongKhai_() {
+  var cache = CacheService.getScriptCache(), c = cache.get('bai_cong_khai'), ds;
+  if (c) ds = JSON.parse(c);
+  else {
+    ds = bang_(TAB.BV).filter(function (x) { return x['Trạng thái'] === 'Xuất bản'; }).map(function (x) {
+      return { ma: x['Mã'], tieuDe: x['Tiêu đề'], duongDan: x['Đường dẫn'], tomTat: x['Tóm tắt'], anhBia: x['Ảnh bìa'],
+        noiDung: x['Nội dung'], xuatBanLuc: x['Xuất bản lúc'] };
+    });
+    try { cache.put('bai_cong_khai', JSON.stringify(ds), 300); } catch (x) { /* quá 100KB thì bỏ qua cache */ }
+  }
+  var now = Date.now();
+  return ds.filter(function (x) { return new Date(x.xuatBanLuc).getTime() <= now; })
+    .sort(function (a, b) { return new Date(b.xuatBanLuc) - new Date(a.xuatBanLuc); });
+}
+
+/* ---------- Lượt truy cập ----------
+ * Mỗi lượt xem trang = 1 dòng ở tab "👁 Lượt xem" (ẩn), giữ vĩnh viễn để xem lại bất kỳ khoảng ngày nào.
+ * Khách = mã ngẫu nhiên lưu ở trình duyệt; Phiên = hết hạn sau 30 phút không hoạt động. Không lưu IP hay tên.
+ */
+function ghiLuotXem_(d) {
+  var khach = chu_(d.khach, 40), phien = chu_(d.phien, 40);
+  if (!/^[a-z0-9-]{8,40}$/i.test(khach) || !/^[a-z0-9-]{8,40}$/i.test(phien)) return { ok: false };
+  var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(TAB.XEM) || tab_(TAB.XEM), now = new Date();
+  var ngay = Utilities.formatDate(now, ss.getSpreadsheetTimeZone(), 'yyyy-MM-dd');
+  // appendRow là thao tác nguyên tử nên không cần khoá; giữ đúng thứ tự COT.XEM
+  sh.appendRow([now, "'" + ngay, khach, phien, an_(chu_(d.trang, 120)), an_(chu_(d.nguon, 120)), an_(chu_(d.thietBi, 20))]);
+  return { ok: true };
+}
+
+function thongKeXem_(tu, den) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(TAB.XEM), tz = ss.getSpreadsheetTimeZone();
+  var hom = Utilities.formatDate(new Date(), tz, 'yyyy-MM-dd');
+  tu = /^\d{4}-\d{2}-\d{2}$/.test(tu || '') ? tu : '0000-00-00';
+  den = /^\d{4}-\d{2}-\d{2}$/.test(den || '') ? den : hom;
+  var kq = { ok: true, tu: tu, den: den, ngay: {}, trang: {}, nguon: {}, thietBi: {}, tong: { xem: 0, khach: 0, phien: 0, thoat: 0 }, dauTien: '' };
+  if (!sh || sh.getLastRow() < 2) return kq;
+  var v = sh.getRange(2, 1, sh.getLastRow() - 1, 7).getValues();
+  var khach = {}, phien = {}, ngayKhach = {}, ngayPhien = {};
+  v.forEach(function (r) {
+    var n = r[1] instanceof Date ? Utilities.formatDate(r[1], tz, 'yyyy-MM-dd') : String(r[1]);
+    if (!kq.dauTien || n < kq.dauTien) kq.dauTien = n;
+    if (n < tu || n > den) return;
+    var g = kq.ngay[n] || (kq.ngay[n] = { xem: 0, khach: 0, phien: 0, thoat: 0 });
+    g.xem++; kq.tong.xem++;
+    var kk = n + '|' + r[2];
+    if (!ngayKhach[kk]) { ngayKhach[kk] = 1; g.khach++; }
+    if (!khach[r[2]]) { khach[r[2]] = 1; kq.tong.khach++; }
+    var p = phien[r[3]] || (phien[r[3]] = { n: 0, ngay: n });
+    p.n++;
+    if (p.n === 1) { g.phien++; kq.tong.phien++; }
+    var t = String(r[4] || '#/'); kq.trang[t] = (kq.trang[t] || 0) + 1;
+    if (p.n === 1) { var ng = String(r[5] || 'Trực tiếp'); kq.nguon[ng] = (kq.nguon[ng] || 0) + 1;
+      var tb = String(r[6] || 'Khác'); kq.thietBi[tb] = (kq.thietBi[tb] || 0) + 1; }
+  });
+  // phiên thoát = phiên chỉ xem đúng 1 trang (tính vào ngày bắt đầu phiên)
+  Object.keys(phien).forEach(function (k) { if (phien[k].n === 1) { kq.tong.thoat++; kq.ngay[phien[k].ngay].thoat++; } });
+  return kq;
 }

@@ -651,6 +651,37 @@ input:user-invalid::placeholder{color:#B3261E}
 .hart .arch i{display:none}
 .hart{margin-bottom:-12%}
 }
+
+/* ---------- TẠP CHÍ (bài viết do trang quản trị đăng) ---------- */
+.tcw{padding:10px 28px 110px}
+.tcg{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:44px 32px;max-width:1240px;margin:0 auto}
+.tcc{display:flex;flex-direction:column;color:var(--ink);text-decoration:none}
+.tcc .bia{aspect-ratio:4/3;border-radius:999px 999px 18px 18px;overflow:hidden;background:var(--be-d) center/cover no-repeat;margin-bottom:22px;transition:transform .8s var(--ease)}
+.tcc:hover .bia{transform:translateY(-6px)}
+.tcc .bia.trong{display:grid;place-items:center;font:800 44px/1 var(--sans);letter-spacing:-.06em;color:var(--be-l);background:var(--red)}
+.tcc time,.tcb time{font:600 11px/1 var(--sans);letter-spacing:.22em;text-transform:uppercase;color:var(--red)}
+.tcc h3{font-size:24px;line-height:1.2;letter-spacing:-.03em;margin:12px 0 10px}
+.tcc p{color:var(--nau);font-size:15.5px;line-height:1.6;margin:0 0 14px}
+.tcc .link{margin:auto 0 0;align-self:flex-start}
+.tcb{max-width:760px;margin:0 auto}
+.tcb>.link{margin:0}
+.tcb h1{font-size:clamp(36px,5.4vw,64px);line-height:1.06;letter-spacing:-.05em;margin:22px 0 18px}
+.tcb .tt{font-size:19px;color:var(--nau);font-style:italic;margin:0 0 32px}
+.tcb .bia{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:22px;margin:0 0 40px;display:block}
+.tcn{font-size:18px;line-height:1.75;color:var(--nau)}
+.tcn p{margin:0 0 22px}
+.tcn h3{font-size:28px;letter-spacing:-.03em;color:var(--ink);margin:44px 0 16px}
+.tcn h4{font-size:21px;color:var(--ink);margin:34px 0 12px}
+.tcn blockquote{margin:30px 0;padding:6px 0 6px 24px;border-left:3px solid var(--red);font-style:italic;color:var(--ink)}
+.tcn ul,.tcn ol{margin:0 0 22px;padding-left:24px}
+.tcn li{margin-bottom:8px}
+.tcn img{max-width:100%;border-radius:16px;margin:10px 0 26px;display:block}
+.tcn a{color:var(--red)}
+.tcm{text-align:center;color:var(--nau);padding:40px 0}
+.tcm.ske{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:32px;max-width:1240px;margin:0 auto}
+.tcm.ske i{display:block;height:360px;border-radius:999px 999px 18px 18px;background:linear-gradient(90deg,var(--be-d),var(--be-l),var(--be-d));background-size:200% 100%;animation:tcs 1.4s linear infinite;opacity:.6}
+@keyframes tcs{to{background-position:-200% 0}}
+@media (max-width:760px){.tcw{padding:0 18px 80px}.tcg{gap:40px}.tcb h1{margin-top:18px}.tcn{font-size:17px}}
 </style>
 </head>
 <body>
@@ -813,13 +844,14 @@ input:user-invalid::placeholder{color:#B3261E}
   </div></section>
 <section style="padding-top:0"><div class="in2"><h2>Trước khi nhắn</h2><div class="cols3"><div class="tile"><h3>Ý tưởng hoặc ảnh mẫu</h3>Ảnh guốc bạn thích, màu sắc hoặc phong cách bạn hướng tới.</div><div class="tile"><h3>Size chân</h3>Nếu chưa biết, xem cách đo ở trang Hỗ trợ.</div><div class="tile"><h3>Dịp sử dụng</h3>Đi làm, dạo phố, dự tiệc hay làm quà tặng.</div></div><p class="lead" style="margin:44px auto 0">Bạn ở nước ngoài? Lộc Cộc cũng phục vụ khách quốc tế, cứ nhắn để được tư vấn.</p></div></section>
 </div>
+<div class="pg" id="pg-tap-chi"><div class="ph-h"><h1>Tạp chí</h1><p>Câu chuyện, cách phối và bí quyết chọn guốc từ Lộc Cộc.</p></div><div class="tcw" id="tcw"></div></div>
 <div class="pg" id="pg-gen"></div>
 </main>
 <footer class="ft"><div class="in2"><p class="brd"><a href="#/">Lộc Cộc</a> › <span id="crumb">Trang chủ</span></p><p class="note">Đây là sản phẩm phục vụ cho môn học Truyền thông số - Sinh viên trường Đại học Văn Lang</p><div class="fcols">
 <div><h4>Sản phẩm</h4><a href="#/basic">Basic</a><a href="#/san-pham">Collection</a><a href="#/thiet-ke">Custom</a></div>
 <div><h4>Thiết kế riêng</h4><a href="#/thiet-ke">Cách đặt</a><a href="#/thiet-ke">Gửi yêu cầu</a><a href="#/phoi-do">Phối đồ</a></div>
 <div><h4>Hỗ trợ</h4><a href="#/ho-tro">Chọn size</a><a href="#/ho-tro">Bảo quản</a><a href="#/ho-tro">Đổi trả</a><a href="#/ho-tro">Câu hỏi thường gặp</a></div>
-<div><h4>Lộc Cộc</h4><a href="#/cau-chuyen">Câu chuyện</a><a href="#/danh-gia">Đánh giá</a><a href="#/lien-he">Liên hệ</a></div>
+<div><h4>Lộc Cộc</h4><a href="#/cau-chuyen">Câu chuyện</a><a href="#/tap-chi">Tạp chí</a><a href="#/danh-gia">Đánh giá</a><a href="#/lien-he">Liên hệ</a></div>
 <div><h4>Kết nối</h4><a href="#/lien-he">Zalo</a><a href="https://www.facebook.com/loccoc.com.vn" target="_blank" rel="noopener">Fanpage</a><a href="https://www.instagram.com/loccoc.com.vn/" target="_blank" rel="noopener">Instagram</a><a href="https://www.tiktok.com/@loccoc.com.vn" target="_blank" rel="noopener">TikTok</a></div></div>
 <div class="fine"><span>© 2026 Lộc Cộc. Bảo lưu mọi quyền.</span><span><a href="#/ho-tro">Chính sách bảo mật</a> | <a href="#/ho-tro">Điều khoản</a> | <a href="#/ho-tro">Đổi trả</a></span><span>Việt Nam</span></div></div></footer>
 
@@ -890,10 +922,73 @@ var h="";
 $("bprev").innerHTML=[0,2,5,9].map(bcard).join("");
 var io=new IntersectionObserver(function(e){e.forEach(function(i){if(i.isIntersecting)i.target.classList.add("on")})},{threshold:.6});
 document.querySelectorAll(".big").forEach(function(b){io.observe(b)});
+
+/* ---------- Tạp chí: đọc bài đã xuất bản từ Apps Script (?hanh=bai) ---------- */
+// md(): định dạng nội dung bài, GIỐNG HỆT bản trong trang quản trị (sửa một chỗ thì sửa cả hai).
+// Thoát HTML trước rồi mới dựng thẻ, link/ảnh chỉ nhận https:// nên nội dung bài không chèn được mã lạ.
+function md(t){
+ var il=function(x){return esc(x).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").replace(/\*(.+?)\*/g,"<i>$1</i>")
+  .replace(/\[([^\]]+)\]\((https:\/\/[^\s)]+|#\/[a-z0-9\/-]*)\)/g,function(_,a,u){return '<a href="'+u+'"'+(u[0]==="#"?"":' target="_blank" rel="noopener"')+">"+a+"</a>"})};
+ return String(t||"").replace(/\r/g,"").split(/\n{2,}/).map(function(b){b=b.trim();if(!b)return "";
+  var im=b.match(/^!\[([^\]]*)\]\((https:\/\/[^\s)]+)\)$/);if(im)return '<img src="'+esc(im[2])+'" alt="'+esc(im[1])+'" loading="lazy">';
+  if(/^### /.test(b))return "<h4>"+il(b.slice(4))+"</h4>";
+  if(/^## /.test(b))return "<h3>"+il(b.slice(3))+"</h3>";
+  if(/^> /.test(b))return "<blockquote>"+il(b.replace(/^> ?/gm,""))+"</blockquote>";
+  if(/^- /.test(b))return "<ul>"+b.split("\n").map(function(l){return "<li>"+il(l.replace(/^- /,""))+"</li>"}).join("")+"</ul>";
+  if(/^\d+\. /.test(b))return "<ol>"+b.split("\n").map(function(l){return "<li>"+il(l.replace(/^\d+\. /,""))+"</li>"}).join("")+"</ol>";
+  return "<p>"+il(b).replace(/\n/g,"<br>")+"</p>"}).join("")}
+var TC=null,TCcho=null;
+function layBai(){
+ if(TC)return Promise.resolve(TC);
+ try{var c=JSON.parse(sessionStorage.getItem("lc_tc")||"null");if(c&&Date.now()-c.t<300000){TC=c.bai;return Promise.resolve(TC)}}catch(x){}
+ if(!TCcho)TCcho=fetch(SHEET_URL+"?hanh=bai").then(function(r){return r.json()}).then(function(j){if(!j.ok)throw 0;TC=j.bai||[];
+  try{sessionStorage.setItem("lc_tc",JSON.stringify({t:Date.now(),bai:TC}))}catch(x){}return TC}).catch(function(e){TCcho=null;throw e});
+ return TCcho}
+function ngayVN(s){var d=new Date(s);return isNaN(d)?"":d.toLocaleDateString("vi-VN",{day:"2-digit",month:"2-digit",year:"numeric"})}
+function biaURL(u){return /^(https:\/\/|img\/)/.test(u||"")?String(u).replace(/['()\s]/g,encodeURIComponent):""}
+function tapChi(dd){
+ var w=$("pg-tap-chi"),hd=w.querySelector(".ph-h"),box=$("tcw");
+ hd.style.display=dd?"none":"";
+ box.innerHTML=dd?'<p class="tcm">Đang tải bài viết…</p>':'<div class="tcm ske"><i></i><i></i><i></i></div>';
+ layBai().then(function(ds){
+  if(location.hash.replace(/^#\/?/,"")!=="tap-chi"+(dd?"/"+dd:""))return; // khách đã chuyển trang khác
+  if(!dd){
+   box.innerHTML=ds.length?'<div class="tcg">'+ds.map(function(b){var u=biaURL(b.anhBia);
+    return '<a class="tcc" href="#/tap-chi/'+esc(b.duongDan)+'"><span class="bia'+(u?"":" trong")+'"'+(u?' style="background-image:url(\''+esc(u)+'\')"':"")+'>'+(u?"":"lộc cộc")+'</span><time>'+ngayVN(b.xuatBanLuc)+'</time><h3>'+esc(b.tieuDe)+'</h3>'+(b.tomTat?'<p>'+esc(b.tomTat)+'</p>':"")+'<span class="link">Đọc tiếp ›</span></a>'}).join("")+'</div>'
+    :'<p class="tcm">Lộc Cộc đang viết những bài đầu tiên. Bạn quay lại sau nhé.</p>';
+   return}
+  var b=ds.filter(function(x){return x.duongDan===dd})[0];
+  if(!b){box.innerHTML='<div class="tcb"><a class="link" href="#/tap-chi">‹ Tạp chí</a><h1>Không tìm thấy bài viết</h1><p class="tt">Bài này chưa xuất bản hoặc đã được gỡ.</p></div>';return}
+  var u=biaURL(b.anhBia);
+  box.innerHTML='<article class="tcb"><a class="link" href="#/tap-chi">‹ Tạp chí</a><h1>'+esc(b.tieuDe)+'</h1><time>'+ngayVN(b.xuatBanLuc)+'</time>'+(b.tomTat?'<p class="tt" style="margin-top:18px">'+esc(b.tomTat)+'</p>':'<div style="height:28px"></div>')+(u?'<img class="bia" src="'+esc(u)+'" alt="">':"")+'<div class="tcn">'+md(b.noiDung)+'</div></article>';
+  document.title=b.tieuDe+" | Tạp chí | Lộc Cộc";$("crumb").textContent=b.tieuDe;
+ }).catch(function(){box.innerHTML='<p class="tcm">Chưa tải được bài viết. Kiểm tra mạng rồi tải lại trang nhé.</p>'})}
+
+/* ---------- Đếm lượt truy cập (ẩn danh) → tab "👁 Lượt xem" ----------
+   khách: mã ngẫu nhiên giữ ở trình duyệt; phiên: hết hạn sau 30 phút không hoạt động. Chỉ đếm trên tên miền thật. */
+(function(){
+ if(!/(^|\.)loccoc\.com\.vn$/.test(location.hostname))return;
+ function ma(){return (crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,12))}
+ var khach;try{khach=localStorage.getItem("lc_khach")||"";if(!khach){khach=ma();localStorage.setItem("lc_khach",khach)}}catch(x){khach=ma()}
+ var trc="";
+ function gui(){
+  var t=(location.hash||"#/").split("?")[0];if(t===trc)return;trc=t;
+  var p=null,now=Date.now(),moi=false;try{p=JSON.parse(sessionStorage.getItem("lc_phien")||"null")}catch(x){}
+  if(!p||now-p.t>1800000){p={id:ma()};moi=true}p.t=now;try{sessionStorage.setItem("lc_phien",JSON.stringify(p))}catch(x){}
+  var ng="";if(moi&&document.referrer){try{var h=new URL(document.referrer).hostname.replace(/^www\./,"");if(!/loccoc\.com\.vn$/.test(h))ng=h}catch(x){}}
+  var w=innerWidth,tb=w<=760?"Điện thoại":w<=1100?"Máy tính bảng":"Máy tính";
+  var body=JSON.stringify({hanh:"xem",khach:khach,phien:p.id,trang:t,nguon:ng,thietBi:tb});
+  try{if(navigator.sendBeacon&&navigator.sendBeacon(SHEET_URL,new Blob([body],{type:"text/plain"})))return}catch(x){}
+  fetch(SHEET_URL,{method:"POST",mode:"no-cors",keepalive:true,headers:{"Content-Type":"text/plain"},body:body}).catch(function(){})}
+ gui();addEventListener("hashchange",gui);
+})();
+
 function route(){
  var r=location.hash.replace(/^#\/?/,"")||"trang-chu",m=null,mb=r.match(/^basic-(\d+)$/);if(mb&&!B[mb[1]])mb=null;var id=(m||mb)?"mau":r;
+ var mt=r.match(/^tap-chi(?:\/([a-z0-9-]+))?$/);if(mt)id="tap-chi";
  var al={"cua-hang":"san-pham","customize":"thiet-ke","goi-y-phoi-do":"phoi-do","cau-chuyen-thuong-hieu":"cau-chuyen","cau-hoi-thuong-gap":"ho-tro"};if(al[id])id=al[id];if(!$("pg-"+id)){if(typeof G!=="undefined"&&G[id]){gen(id);id="gen"}else{id="trang-chu";r=id}}
  document.querySelectorAll(".pg").forEach(function(p){p.classList.toggle("on",p.id==="pg-"+id)});
+ if(mt)tapChi(mt[1]);
  if(mb){var bi=+mb[1],y=B[bi];$("det").innerHTML='<a class="link" style="margin:0" href="#/basic">‹ Dòng Basic</a>'+gal(bi)+'<span class="kick" style="margin-top:30px">Basic · Guốc gỗ hằng ngày</span><h1 style="margin-top:14px">'+y[0]+'</h1><p class="price">'+PRICE+'</p><p>'+y[2]+'</p><dl class="spec"><dt>Quai</dt><dd>'+y[3]+'</dd><dt>Gỗ & đế</dt><dd>'+y[4]+'</dd><dt>Hợp với</dt><dd>'+y[5]+'</dd></dl><div class="add"><label>Size<select id="sz">'+[35,36,37,38,39,40,41].map(function(s){return "<option>"+s+"</option>"}).join("")+'</select></label><input id="nm" maxlength="10" placeholder="Khắc tên (không bắt buộc)" aria-label="Khắc tên"><button class="pill" id="addb" type="button">Thêm vào giỏ hàng · '+PRICE+'</button></div><a class="link" style="margin:0" href="#/lien-he">Hoặc nhắn Lộc Cộc về mẫu này ›</a>';bindAdd("b"+bi);bindGal(bi);document.title=y[0]+" | Basic | Lộc Cộc"}
  else document.title=(id==="trang-chu"?"Lộc Cộc Việt Nam":$("pg-"+id).querySelector("h1").textContent+" | Lộc Cộc");
   $("crumb").textContent=mb?B[mb[1]][0]:(id==="trang-chu"?"Trang chủ":$("pg-"+id).querySelector("h1").textContent);window.scrollTo(0,0);
@@ -906,6 +1001,7 @@ var M=[["Cửa hàng","cua-hang",[["Mua hàng",[["Basic","basic"],["Collection",
 ["Collection","collection",[[0,[["Xuân Hạ Thu Đông 2026","xuan-ha-thu-dong-2026"],["Lễ hội","le-hoi"],["Sản phẩm giới hạn","san-pham-gioi-han"],["Phụ kiện giới hạn","phu-kien-gioi-han"]]]]],
 ["Customize","customize",[[0,[["Thiết kế có sẵn","thiet-ke-co-san"]]],["Thiết kế đặc biệt",[["Tư vấn 1:1","tu-van-1-1"],["Chăm sóc đặc biệt","cham-soc-dac-biet"]]]]],
 ["Membership","membership",[[0,[["Lộc Cộc Family","loc-coc-family"],["Lộc Cộc Buddy","loc-coc-buddy"]]]]],
+["Tạp chí","tap-chi",0],
 ["Về chúng tôi","cau-chuyen",[[0,[["Đội ngũ","doi-ngu"],["Câu chuyện thương hiệu","cau-chuyen-thuong-hieu"],["Mục tiêu","muc-tieu"],["Sứ mệnh","su-menh"],["Giá trị cốt lõi","gia-tri-cot-loi"]]]]],
 ["Hỗ trợ","ho-tro",[["Về sản phẩm",[["Chính sách đổi trả - bảo hành","chinh-sach-doi-tra-bao-hanh"],["Câu hỏi thường gặp","cau-hoi-thuong-gap"]]],["Về dịch vụ",[["Membership","membership"],["Chăm sóc đặc biệt","cham-soc-dac-biet"],["Hỗ trợ đơn hàng","ho-tro-don-hang"]]],["Trợ giúp",[["Cộng đồng","cong-dong"],["Liên hệ","lien-he"]]]]]];
 var nv=$("nav"),mh="";

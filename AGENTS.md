@@ -71,6 +71,22 @@ Lộc Cộc tại loccoc.com.vn. Không phục vụ mục đích thương mại:
 - Biểu đồ Sheets: KHÔNG đặt fontName/chartArea (font ngoài danh sách là biểu đồ ra khung trắng).
 - Gmail cá nhân gửi tối đa khoảng 100 email/ngày; mỗi địa chỉ tối đa 3 email/giờ (chống lạm dụng).
 
+## Quản trị website (Apps Script v4)
+
+- Trang quản trị: `qt-lvcl4du5avhf/index.html` → https://www.loccoc.com.vn/qt-lvcl4du5avhf/ (không gắn link ở đâu,
+  có `noindex`). Repo GitHub công khai nên đường dẫn KHÔNG bí mật thật: bảo vệ là đăng nhập phía Apps Script.
+- Tài khoản: Sheet → menu Lộc Cộc → "Đặt tài khoản quản trị…" (lưu tên + bản băm SHA-256 có muối trong Script
+  Properties, không lưu mật khẩu). Sai 8 lần → khoá 15 phút. Token phiên 6 giờ trong CacheService, gia hạn khi dùng;
+  đổi mật khẩu là mọi phiên cũ mất hiệu lực. Không bao giờ ghi mật khẩu vào code hay repo.
+- doPost có `hanh`: `xem` (đếm lượt xem, không cần đăng nhập) | `dangNhap` | các lệnh cần token: `tongQuan`,
+  `suaDong` (chỉ Trạng thái + Ghi chú nội bộ), `dsBai`, `luuBai`, `xoaBai`, `luotXem`. Không có `hanh` = form đơn hàng/liên hệ như cũ.
+  doGet `?hanh=bai` = bài đã xuất bản (cache 5 phút, lọc giờ xuất bản ở mỗi lần gọi nên bài hẹn giờ tự hiện).
+- Tab mới: 📰 Bài viết (hiện), 👁 Lượt xem (ẩn, mỗi lượt xem 1 dòng, giữ vĩnh viễn). Đơn hàng/Liên hệ có thêm cột
+  "Trạng thái" ở CUỐI (L_ tính vị trí cột theo COT nên chỉ thêm cột vào cuối mảng).
+- Web: trang `#/tap-chi` và `#/tap-chi/<đường-dẫn>`; hàm `md()` định dạng nội dung bài có 2 bản giống hệt nhau
+  (index.html và trang quản trị): sửa một chỗ thì sửa cả hai. Đếm lượt xem chỉ chạy trên tên miền loccoc.com.vn.
+- Kiểm thử Code.gs không cần Google: script Node giả lập SpreadsheetApp/CacheService/Utilities (đã dùng khi viết v4).
+
 ## Mạng xã hội
 
 - Facebook https://www.facebook.com/loccoc.com.vn · Instagram https://www.instagram.com/loccoc.com.vn/
