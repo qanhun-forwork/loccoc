@@ -23,7 +23,7 @@
  * ───────────────────────────────────────────────────────────────────────────
  */
 
-var PHIEN_BAN = '4.2';
+var PHIEN_BAN = '4.3';
 var TEN_GUI = 'Lộc Cộc';            // tên người gửi trong email
 var GIA_BASIC = 350000;             // giá dòng Basic (tính lại ở máy chủ, không tin giá từ trình duyệt)
 var GIOI_HAN_MOI_GIO = 3;           // tối đa email gửi tới cùng 1 địa chỉ trong 1 giờ
@@ -31,7 +31,7 @@ var CHO_GUI = 'Chờ gửi';            // trạng thái cột "Email xác nhậ
 var HANG_CHO = 'thu_';              // tiền tố Script Properties của email chờ gửi
 
 var TAB = { BC: '📊 Báo cáo', DON: '🛒 Đơn hàng', CT: '📦 Chi tiết đơn', LH: '💬 Liên hệ', SL: '⚙ Số liệu',
-  BV: '📰 Bài viết', XEM: '👁 Lượt xem', NK: '🕘 Nhật ký' };
+  BV: '📰 Bài viết', XEM: '👁 Lượt xem', NK: '🕘 Nhật ký', VC: '▲ Vercel' };
 var COT = {
   DON: ['Mã đơn', 'Thời gian', 'Ngày', 'Giờ', 'Tên khách', 'Số điện thoại', 'Email', 'Sản phẩm', 'Số đôi',
     'Tạm tính (đ)', 'Ghi chú của khách', 'Email xác nhận', 'Ghi chú nội bộ', 'Trạng thái'],
@@ -41,7 +41,8 @@ var COT = {
   BV: ['Mã', 'Tiêu đề', 'Đường dẫn', 'Tóm tắt', 'Ảnh bìa', 'Nội dung', 'Trạng thái', 'Xuất bản lúc', 'Tạo lúc', 'Cập nhật lúc',
     'Tạo bởi', 'Cập nhật bởi'],
   XEM: ['Thời gian', 'Ngày', 'Khách', 'Phiên', 'Trang', 'Nguồn', 'Thiết bị'],
-  NK: ['Thời gian', 'Tài khoản', 'Vai trò', 'Hành động', 'Chi tiết']
+  NK: ['Thời gian', 'Tài khoản', 'Vai trò', 'Hành động', 'Chi tiết'],
+  VC: ['Ngày', 'Loại', 'Giá trị', 'Lượt xem', 'Khách', 'Cập nhật lúc']
 };
 // các form trên website (tên = tiêu đề trang chứa form)
 var NGUON = ['Liên hệ', 'Yêu cầu thiết kế riêng', 'Tư vấn 1:1', 'Chăm sóc đặc biệt', 'Tình trạng đơn hàng',
@@ -290,6 +291,7 @@ function onOpen() {
     .addItem('Gửi email thử cho tôi', 'guiEmailThu')
     .addItem('Bật gửi email nền (chạy 1 lần)', 'batEmailNen')
     .addItem('Đặt tài khoản quản trị…', 'datTaiKhoanQuanTri')
+    .addItem('Kết nối Vercel Analytics…', 'ketNoiVercel')
     .addSeparator()
     .addItem('Xoá hết dữ liệu và cài đặt lại…', 'xoaHetVaCaiDatLai')
     .addToUi();
@@ -700,7 +702,7 @@ function sapXepTab_() {
   if (bc) ss.setActiveSheet(bc);
   // Chi tiết đơn chỉ để Số liệu/Báo cáo đọc: ẩn đi, xem đơn ở tab Đơn hàng (cột Sản phẩm liệt kê từng đôi).
   // Ẩn sau cùng vì setActiveSheet ở trên sẽ hiện lại tab đang ẩn.
-  [TAB.CT, TAB.XEM].forEach(function (t) { var x = ss.getSheetByName(t); if (x) x.hideSheet(); });
+  [TAB.CT, TAB.XEM, TAB.VC].forEach(function (t) { var x = ss.getSheetByName(t); if (x) x.hideSheet(); });
 }
 
 // dấu ngăn đối số trong công thức của Sheet: "," (định dạng Mỹ) hoặc ";" (định dạng Việt Nam…)
@@ -857,6 +859,7 @@ function ghiNK_(ten, vaiTro, hanhDong, chiTiet) {
 
 // lệnh → quyền cần có (admin chính có tất cả; "chinh" = chỉ admin chính)
 var LENH = { tongQuan: ['ban', 'don'], suaDong: ['don'], dsBai: ['bai'], luuBai: ['bai'], xoaBai: ['bai'], luotXem: ['xem'],
+  vercel: ['xem'], dongBoVercel: ['xem'],
   dsTaiKhoan: 'chinh', taoTaiKhoan: 'chinh', suaTaiKhoan: 'chinh', xoaTaiKhoan: 'chinh', nhatKy: 'chinh' };
 
 function quanTri_(d) {
@@ -884,6 +887,8 @@ function quanTri_(d) {
         return r; });
       case 'xoaBai': return coKhoa_(function () { var r = xoaBai_(d.ma); if (r.ok) nk('Xoá bài viết', d.ma + (r.tieuDe ? ' · "' + r.tieuDe + '"' : '')); return r; });
       case 'luotXem': return thongKeXem_(d.tu, d.den);
+      case 'vercel': return thongKeVercel_(d.tu, d.den);
+      case 'dongBoVercel': return coKhoa_(function () { var r = dongBoVercel_(31); if (r.ok) nk('Đồng bộ Vercel', r.soNgay + ' ngày'); return r; });
       case 'dsTaiKhoan': return { ok: true, tk: dsTaiKhoan_(), quyen: QUYEN };
       case 'taoTaiKhoan': return coKhoa_(function () { return taoTaiKhoan_(d, tk, nk); });
       case 'suaTaiKhoan': return coKhoa_(function () { return suaTaiKhoan_(d, nk); });
@@ -1095,5 +1100,101 @@ function thongKeXem_(tu, den) {
   });
   // phiên thoát = phiên chỉ xem đúng 1 trang (tính vào ngày bắt đầu phiên)
   Object.keys(phien).forEach(function (k) { if (phien[k].n === 1) { kq.tong.thoat++; kq.ngay[phien[k].ngay].thoat++; } });
+  return kq;
+}
+
+/* ═════════════════════════ 9. VERCEL WEB ANALYTICS ═════════════════════════
+ * Lấy lượt xem + khách truy cập từ Vercel Web Analytics API (https://vercel.com/docs/analytics/web-analytics-api)
+ * về tab "▲ Vercel" (ẩn). Gói Hobby của Vercel chỉ giữ dữ liệu 1 tháng, nên trigger chạy mỗi ngày chép về Sheet
+ * để lưu lâu dài. API không có tỉ lệ thoát: tỉ lệ thoát lấy từ bộ đếm riêng (tab 👁 Lượt xem).
+ * Ngày theo giờ UTC của Vercel (lệch 7 tiếng so với giờ Việt Nam).
+ */
+var VC_LOAI = { requestPath: 'Trang', referrerHostname: 'Nguồn', deviceType: 'Thiết bị', country: 'Quốc gia' };
+
+function ketNoiVercel() {
+  var ui = SpreadsheetApp.getUi(), p = PropertiesService.getScriptProperties();
+  var a = ui.prompt('Kết nối Vercel (1/3)', 'Dán Access Token tạo ở vercel.com/account/settings/tokens (nên chọn đúng team và đặt hạn dùng).\nMã chỉ lưu trong Script Properties của file này.', ui.ButtonSet.OK_CANCEL);
+  if (a.getSelectedButton() !== ui.Button.OK) return;
+  var b = ui.prompt('Kết nối Vercel (2/3)', 'Tên hoặc ID project trên Vercel:', ui.ButtonSet.OK_CANCEL);
+  if (b.getSelectedButton() !== ui.Button.OK) return;
+  var c = ui.prompt('Kết nối Vercel (3/3)', 'Slug của team trên Vercel (phần sau vercel.com/ trong link dashboard).\nĐể trống nếu project nằm ở tài khoản cá nhân.', ui.ButtonSet.OK_CANCEL);
+  if (c.getSelectedButton() !== ui.Button.OK) return;
+  p.setProperties({ vc_token: a.getResponseText().trim(), vc_du_an: b.getResponseText().trim() || 'loccoc-website', vc_nhom: c.getResponseText().trim() });
+  var r = dongBoVercel_(31);
+  if (!r.ok) { ui.alert('Chưa lấy được dữ liệu Vercel:\n' + r.loi); return; }
+  ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getHandlerFunction() === 'dongBoVercel') ScriptApp.deleteTrigger(t); });
+  ScriptApp.newTrigger('dongBoVercel').timeBased().everyDays(1).atHour(3).create();
+  ghiNK_(p.getProperty('qt_ten') || 'chủ Sheet', 'chinh', 'Kết nối Vercel', 'Project ' + p.getProperty('vc_du_an'));
+  ui.alert('Đã kết nối Vercel và chép ' + r.soNgay + ' ngày dữ liệu về tab "▲ Vercel". Từ giờ Sheet tự đồng bộ mỗi ngày lúc 3 giờ sáng.');
+}
+
+// ★ trigger mỗi ngày: chép lại 3 ngày gần nhất (Vercel cập nhật số của hôm qua muộn vài tiếng)
+function dongBoVercel() { var r = dongBoVercel_(3); if (!r.ok) console.error(r.loi); }
+
+function goiVercel_(by, tu, den) {
+  var p = PropertiesService.getScriptProperties().getProperties();
+  var q = ['projectId=' + encodeURIComponent(p.vc_du_an), 'since=' + tu, 'until=' + den, 'limit=100']
+    .concat(by.map(function (x) { return 'by=' + x; }));
+  if (p.vc_nhom) q.push((/^team_/.test(p.vc_nhom) ? 'teamId=' : 'slug=') + encodeURIComponent(p.vc_nhom));
+  var res = UrlFetchApp.fetch('https://api.vercel.com/v1/query/web-analytics/visits/aggregate?' + q.join('&'),
+    { headers: { Authorization: 'Bearer ' + p.vc_token }, muteHttpExceptions: true });
+  var code = res.getResponseCode(), body = res.getContentText();
+  if (code !== 200) {
+    var m = ''; try { m = JSON.parse(body).error.message; } catch (e) { m = body.slice(0, 160); }
+    throw new Error('Vercel trả lỗi ' + code + (code === 401 || code === 403 ? ' (token sai, hết hạn hoặc không thuộc team này)' : code === 404 ? ' (không thấy project/team)' : '') + ': ' + m);
+  }
+  return JSON.parse(body).data || [];
+}
+
+function dongBoVercel_(soNgay) {
+  var p = PropertiesService.getScriptProperties();
+  if (!p.getProperty('vc_token')) return { ok: false, loi: 'Chưa kết nối. Mở Sheet → menu Lộc Cộc → Kết nối Vercel Analytics…' };
+  var den = new Date(), tu = new Date(den.getTime() - (soNgay - 1) * 864e5);
+  var d1 = tu.toISOString().slice(0, 10), d2 = den.toISOString().slice(0, 10), now = new Date();
+  try {
+    var moi = goiVercel_(['day'], d1, d2).map(function (r) { return [String(r.timestamp).slice(0, 10), 'Tổng', '', r.pageviews || 0, r.visitors || 0, now]; });
+    Object.keys(VC_LOAI).forEach(function (k) {
+      goiVercel_(['day', k], d1, d2).forEach(function (r) {
+        moi.push([String(r.timestamp).slice(0, 10), VC_LOAI[k], an_(String(r[k] == null || r[k] === '' ? '(không rõ)' : r[k])), r.pageviews || 0, r.visitors || 0, now]);
+      });
+    });
+  } catch (err) {
+    p.setProperty('vc_loi', String(err.message || err).slice(0, 300));
+    return { ok: false, loi: String(err.message || err) };
+  }
+  // thay số của các ngày vừa lấy, giữ nguyên các ngày cũ hơn (đã quá thời hạn lưu của Vercel)
+  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(TAB.VC) || tab_(TAB.VC);
+  var cu = sh.getLastRow() > 1 ? sh.getRange(2, 1, sh.getLastRow() - 1, 6).getValues() : [];
+  var giu = cu.filter(function (r) { var n = ngayVC_(r[0]); return n && (n < d1 || n > d2); });
+  var tat = giu.concat(moi.map(function (r) { r[0] = "'" + r[0]; return r; }));
+  if (cu.length) sh.getRange(2, 1, cu.length, 6).clearContent();
+  if (tat.length) sh.getRange(2, 1, tat.length, 6).setValues(tat);
+  p.setProperties({ vc_luc: now.toISOString(), vc_loi: '' });
+  return { ok: true, soNgay: soNgay, soDong: moi.length };
+}
+
+function ngayVC_(v) { return v instanceof Date ? Utilities.formatDate(v, 'UTC', 'yyyy-MM-dd') : String(v || '').replace(/^'/, ''); }
+
+function thongKeVercel_(tu, den) {
+  var p = PropertiesService.getScriptProperties().getProperties();
+  var kq = { ok: true, coKetNoi: !!p.vc_token, capNhat: p.vc_luc || '', loi: p.vc_loi || '', dauTien: '',
+    ngay: {}, tong: { xem: 0, khach: 0 }, Trang: {}, 'Nguồn': {}, 'Thiết bị': {}, 'Quốc gia': {} };
+  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(TAB.VC);
+  if (!sh || sh.getLastRow() < 2) return kq;
+  tu = /^\d{4}-\d{2}-\d{2}$/.test(tu || '') ? tu : '0000-00-00';
+  den = /^\d{4}-\d{2}-\d{2}$/.test(den || '') ? den : '9999-12-31';
+  sh.getRange(2, 1, sh.getLastRow() - 1, 5).getValues().forEach(function (r) {
+    var n = ngayVC_(r[0]);
+    if (!n) return;
+    if (r[1] === 'Tổng' && (!kq.dauTien || n < kq.dauTien)) kq.dauTien = n;
+    if (n < tu || n > den) return;
+    if (r[1] === 'Tổng') {
+      kq.ngay[n] = { xem: Number(r[3]) || 0, khach: Number(r[4]) || 0 };
+      kq.tong.xem += Number(r[3]) || 0; kq.tong.khach += Number(r[4]) || 0;
+    } else if (kq[r[1]]) {
+      var m = kq[r[1]], k = String(r[2]);
+      m[k] = m[k] || { xem: 0, khach: 0 }; m[k].xem += Number(r[3]) || 0; m[k].khach += Number(r[4]) || 0;
+    }
+  });
   return kq;
 }

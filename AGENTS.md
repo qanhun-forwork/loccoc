@@ -88,6 +88,11 @@ Lộc Cộc tại loccoc.com.vn. Không phục vụ mục đích thương mại:
   doGet `?hanh=bai` = bài đã xuất bản (cache 5 phút, lọc giờ xuất bản ở mỗi lần gọi nên bài hẹn giờ tự hiện).
 - Tab mới: 📰 Bài viết (hiện), 👁 Lượt xem (ẩn, mỗi lượt xem 1 dòng, giữ vĩnh viễn). Đơn hàng/Liên hệ có thêm cột
   "Trạng thái" ở CUỐI (L_ tính vị trí cột theo COT nên chỉ thêm cột vào cuối mảng).
+- Vercel Web Analytics (v4.3): menu Sheet "Kết nối Vercel Analytics…" lưu token/project/team slug vào Script
+  Properties (vc_token, vc_du_an, vc_nhom; KHÔNG để token trong code/repo), chép 31 ngày rồi tạo trigger
+  `dongBoVercel` mỗi ngày 3h (chép lại 3 ngày gần nhất) vào tab "▲ Vercel" (ẩn). Gói Hobby chỉ giữ 1 tháng nên
+  dữ liệu cũ hơn chỉ còn ở Sheet. API chỉ có pageviews + visitors (không có bounce rate); ngày theo UTC.
+- Đếm lượt xem dùng `fetch` với `credentials:"omit"`, KHÔNG dùng sendBeacon (luôn kèm cookie Google → mất lượt).
 - Web: trang `#/tap-chi` và `#/tap-chi/<đường-dẫn>`; hàm `md()` định dạng nội dung bài có 2 bản giống hệt nhau
   (index.html và trang quản trị): sửa một chỗ thì sửa cả hai. Đếm lượt xem chỉ chạy trên tên miền loccoc.com.vn.
 - Kiểm thử Code.gs không cần Google: script Node giả lập SpreadsheetApp/CacheService/Utilities (đã dùng khi viết v4).

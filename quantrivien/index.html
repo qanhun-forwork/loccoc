@@ -419,14 +419,20 @@ function soan(b){
 /* ═════════ 4. LƯỢT TRUY CẬP ═════════ */
 var TEN_TRANG={"#/":"Trang chủ","#/basic":"Dòng Basic","#/san-pham":"Sản phẩm","#/thiet-ke":"Thiết kế riêng","#/phoi-do":"Phối đồ","#/lien-he":"Liên hệ","#/tap-chi":"Tạp chí","#/ho-tro":"Hỗ trợ","#/cau-chuyen":"Câu chuyện","#/danh-gia":"Đánh giá","#/collection":"Collection","#/customize":"Customize","#/cua-hang":"Cửa hàng","#/membership":"Membership"};
 function tenTrang(t){return TEN_TRANG[t]||(/^#\/basic-\d+$/.test(t)?"Mẫu Basic "+(+t.split("-")[1]+1):/^#\/tap-chi\//.test(t)?"Bài: "+t.slice(10):t)}
+var NGX="lc";
 function vXem(){
- $("vung").innerHTML='<div id="v-xem"><div class="dau"><div><h1>Lượt truy cập</h1><p id="xem-mo">Khách truy cập, lượt xem trang và tỉ lệ thoát trên loccoc.com.vn. Dữ liệu được giữ lại vĩnh viễn.</p></div><div class="cong">'+chonKhoang("v-xem",30,vXemTai)+NUT_BC+'</div></div><div id="xem-nd" class="dang-tai">Đang tải số liệu…</div></div>';
+ $("vung").innerHTML='<div id="v-xem"><div class="dau"><div><h1>Lượt truy cập</h1><p id="xem-mo"></p></div><div class="cong">'+chonKhoang("v-xem",30,vXemTai)+NUT_BC+'</div></div>'+
+  '<div class="tabs" role="tablist" aria-label="Nguồn số liệu"><button type="button" role="tab" data-n="lc">Bộ đếm Lộc Cộc</button><button type="button" role="tab" data-n="vc">Vercel Analytics</button></div><div id="xem-nd" class="dang-tai">Đang tải số liệu…</div></div>';
+ document.querySelectorAll("#v-xem .tabs button").forEach(function(b){b.onclick=function(){NGX=b.dataset.n;vXemTai()}});
  vXemTai()}
 function vXemTai(){
  var k=khoang("v-xem"),kt=kyTruoc(k),nd=$("xem-nd");if(!nd)return;nd.className="dang-tai";nd.innerHTML="Đang tải số liệu…";
- Promise.all([goi("luotXem",k),kt?goi("luotXem",kt):Promise.resolve(null)]).then(function(r){vXemVe(r[0],r[1],k)}).catch(loiTai)}
+ document.querySelectorAll("#v-xem .tabs button").forEach(function(b){b.setAttribute("aria-selected",b.dataset.n===NGX)});
+ var h=NGX==="vc"?"vercel":"luotXem";
+ Promise.all([goi(h,k),kt?goi(h,kt):Promise.resolve(null)]).then(function(r){(NGX==="vc"?vVcVe:vXemVe)(r[0],r[1],k)}).catch(loiTai)}
 function vXemVe(j,jt,k){
  var nd=$("xem-nd");if(!nd)return;var T=j.tong,TT=jt&&jt.tong;
+ $("xem-mo").textContent="Khách truy cập, lượt xem trang và tỉ lệ thoát do bộ đếm riêng của web ghi lại, giữ vĩnh viễn.";
  if(j.dauTien)$("xem-mo").textContent="Khách truy cập, lượt xem trang và tỉ lệ thoát trên loccoc.com.vn. Dữ liệu lưu từ "+nhan(j.dauTien)+"/"+j.dauTien.slice(0,4)+" và được giữ lại vĩnh viễn.";
  var tl=function(t){return t&&t.phien?t.thoat/t.phien:0};
  var tu=k.tu||j.dauTien||k.den,ns=cacNgay(tu,k.den),g=function(n,f){return (j.ngay[n]||{})[f]||0};
@@ -447,6 +453,28 @@ function vXemVe(j,jt,k){
   options:{plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return " "+c.parsed.y+"%"}}}},scales:{y:{beginAtZero:true,max:100,ticks:{callback:function(v){return v+"%"}}},x:{grid:{display:false},ticks:{maxTicksLimit:10}}}}});
  var tbx=xep(j.thietBi,5);ve("c-tb",banh(tbx.map(function(x){return x[0]}),tbx.map(function(x){return x[1]})));
  nutBoCuc(boCuc("xem",nd))}
+/* nguồn Vercel: tab "▲ Vercel" do Apps Script chép từ Vercel Web Analytics API mỗi ngày */
+function vVcVe(j,jt,k){
+ var nd=$("xem-nd");if(!nd)return;
+ $("xem-mo").innerHTML="Số liệu Vercel Web Analytics, Apps Script chép về Google Sheet mỗi ngày để lưu lâu dài (gói Hobby của Vercel chỉ giữ 1 tháng)."+(j.capNhat?" Đồng bộ lần cuối: "+esc(gioVN(j.capNhat))+".":"");
+ if(!j.coKetNoi){nd.className="";nd.innerHTML='<section class="the"><h2>Chưa kết nối Vercel</h2><p>Chủ Google Sheet làm một lần:</p><ol><li>Vào <b>vercel.com/account/settings/tokens</b>, tạo token mới: chọn đúng team chứa project, đặt hạn dùng (vd 1 năm), rồi chép token.</li><li>Mở Google Sheet "LỘC CỘC - ĐƠN HÀNG" → menu <b>Lộc Cộc → Kết nối Vercel Analytics…</b>, dán token, tên project (loccoc-website) và slug team.</li><li>Quay lại đây bấm <b>Đồng bộ ngay</b>.</li></ol></section>';return}
+ var tm=function(m){return Object.keys(m).map(function(x){return [x,m[x].xem,m[x].khach]}).sort(function(a,b){return b[1]-a[1]}).slice(0,12)};
+ var T=j.tong,TT=jt&&jt.tong,tu=k.tu||j.dauTien||k.den,ns=cacNgay(tu,k.den),g=function(n,f){return (j.ngay[n]||{})[f]||0};
+ nd.className="the-luoi";nd.innerHTML=(j.loi?'<section class="the" data-k="vloi"><h2 style="color:var(--red)">Lần đồng bộ gần nhất bị lỗi</h2><p>'+esc(j.loi)+'</p></section>':"")+
+  '<section class="the w4" data-k="vkh"><h2>Khách truy cập</h2><div class="so">'+so(T.khach)+'</div><div class="ph">'+(soSanh(T.khach,TT&&TT.khach)||"Cộng số khách của từng ngày")+'</div></section>'+
+  '<section class="the w4" data-k="vxem"><h2>Lượt xem trang</h2><div class="so">'+so(T.xem)+'</div><div class="ph">'+soSanh(T.xem,TT&&TT.xem)+'</div></section>'+
+  '<section class="the w4" data-k="vdb"><h2>Đồng bộ</h2><div class="ph" style="margin:0 0 14px">Tỉ lệ thoát: Vercel không cung cấp qua API, xem ở tab Bộ đếm Lộc Cộc.</div><button class="btn nh" type="button" id="vc-db">Đồng bộ ngay</button></section>'+
+  '<section class="the" data-k="vbd"><h2>Khách truy cập &amp; lượt xem theo ngày (giờ UTC)</h2><div class="bd cao"><canvas id="c-vc"></canvas></div></section>'+
+  '<section class="the w6" data-k="vtrang"><h2>Trang</h2><div class="bc">'+bangVc(tm(j.Trang),"Trang",T.xem)+'</div></section>'+
+  '<section class="the w6" data-k="vnguon"><h2>Nguồn truy cập</h2><div class="bc">'+bangVc(tm(j["Nguồn"]),"Nguồn",T.xem)+'</div></section>'+
+  '<section class="the w6" data-k="vtb"><h2>Thiết bị</h2><div class="bd"><canvas id="c-vtb"></canvas></div></section>'+
+  '<section class="the w6" data-k="vqg"><h2>Quốc gia</h2><div class="bc">'+bangVc(tm(j["Quốc gia"]),"Quốc gia",T.xem)+'</div></section>';
+ ve("c-vc",duong(ns.map(nhan),[["Lượt xem trang",ns.map(function(n){return g(n,"xem")})],["Khách truy cập",ns.map(function(n){return g(n,"khach")})]]));
+ var tb2=tm(j["Thiết bị"]);ve("c-vtb",banh(tb2.map(function(x){return ({desktop:"Máy tính",mobile:"Điện thoại",tablet:"Máy tính bảng"})[x[0]]||x[0]}),tb2.map(function(x){return x[2]})));
+ $("vc-db").onclick=function(e){e.target.disabled=true;e.target.textContent="Đang đồng bộ…";goi("dongBoVercel").then(function(){tb("Đã đồng bộ Vercel");vXemTai()}).catch(function(er){tb(er.message);e.target.disabled=false;e.target.textContent="Đồng bộ ngay"})};
+ nutBoCuc(boCuc("vercel",nd))}
+function bangVc(ds,ten,tong){if(!ds.length)return '<p class="trong">Chưa có dữ liệu trong khoảng này.</p>';
+ return '<table class="bg"><thead><tr><th>'+ten+'</th><th class="so-p">Lượt xem</th><th class="so-p">Khách</th><th class="so-p">Tỉ trọng</th></tr></thead><tbody>'+ds.map(function(x){return '<tr><td>'+esc(x[0])+'</td><td class="so-p">'+so(x[1])+'</td><td class="so-p">'+so(x[2])+'</td><td class="so-p">'+(tong?pt(x[1]/tong):"–")+'</td></tr>'}).join("")+'</tbody></table>'}
 function bangXep(ds,ten,tong,fn){if(!ds.length)return '<p class="trong">Chưa có dữ liệu trong khoảng này.</p>';
  return '<table class="bg"><thead><tr><th>'+ten+'</th><th class="so-p">Lượt</th><th class="so-p">Tỉ trọng</th></tr></thead><tbody>'+ds.map(function(x){return '<tr><td>'+esc(fn?fn(x[0]):x[0])+(fn&&fn(x[0])!==x[0]?'<br><span class="mo">'+esc(x[0])+'</span>':"")+'</td><td class="so-p">'+so(x[1])+'</td><td class="so-p">'+(tong?pt(x[1]/tong):"–")+'</td></tr>'}).join("")+'</tbody></table>'}
 
