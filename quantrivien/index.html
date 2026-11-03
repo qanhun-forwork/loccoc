@@ -222,6 +222,8 @@ main{padding:0 clamp(18px,3vw,44px) 80px}
 .tabs{background:rgba(250,246,239,.7);padding:5px;border-radius:999px;display:inline-flex;box-shadow:inset 0 0 0 1px rgba(90,62,50,.07)}
 .tabs button{background:transparent;transition:background .3s,color .3s}
 .tabs button[aria-selected=true]{background:transparent;box-shadow:none}
+.tabs button{white-space:nowrap}
+@media(max-width:600px){#v-xem .tabs .dai{display:none}#v-xem .tabs button{padding:10px 14px}}
 .bg tbody tr{transition:background .2s}
 .bg tbody tr:hover{background:rgba(232,220,200,.35)}
 .bg th{position:sticky;top:0;background:#FAF6EF}
@@ -584,14 +586,14 @@ function tenTrang(t){return TEN_TRANG[t]||(/^#\/basic-\d+$/.test(t)?"Mẫu Basic
 var NGX="lc";
 function vXem(){
  $("vung").innerHTML='<div id="v-xem"><div class="dau"><div><h1>Lượt truy cập</h1><p id="xem-mo"></p></div><div class="cong">'+chonKhoang("v-xem",30,vXemTai)+NUT_BC+'</div></div>'+
-  '<div class="tabs" role="tablist" aria-label="Nguồn số liệu"><span class="tab-nen" aria-hidden="true"></span><button type="button" role="tab" data-n="lc">Bộ đếm Lộc Cộc</button><button type="button" role="tab" data-n="vc">Vercel Analytics</button></div><div id="xem-nd" class="dang-tai">Đang tải số liệu…</div></div>';
+  '<div class="tabs" role="tablist" aria-label="Nguồn số liệu"><span class="tab-nen" aria-hidden="true"></span><button type="button" role="tab" data-n="lc">Bộ đếm<span class="dai"> Lộc Cộc</span></button><button type="button" role="tab" data-n="vc">Vercel<span class="dai"> Analytics</span></button><button type="button" role="tab" data-n="mx">Mạng xã hội</button></div><div id="xem-nd" class="dang-tai">Đang tải số liệu…</div></div>';
  document.querySelectorAll("#v-xem .tabs button").forEach(function(b){b.onclick=function(){NGX=b.dataset.n;vXemTai()}});
  vXemTai()}
 function vXemTai(){
  var k=khoang("v-xem"),kt=kyTruoc(k),nd=$("xem-nd");if(!nd)return;nd.className="dang-tai";nd.innerHTML="Đang tải số liệu…";
  document.querySelectorAll("#v-xem .tabs button").forEach(function(b){b.setAttribute("aria-selected",b.dataset.n===NGX)});truot(document.querySelector("#v-xem .tab-nen"),document.querySelector('#v-xem .tabs [aria-selected="true"]'));
- var h=NGX==="vc"?"vercel":"luotXem";
- Promise.all([goi(h,k),kt?goi(h,kt):Promise.resolve(null)]).then(function(r){(NGX==="vc"?vVcVe:vXemVe)(r[0],r[1],k)}).catch(loiTai)}
+ var h=NGX==="vc"?"vercel":NGX==="mx"?"mangXaHoi":"luotXem";
+ Promise.all([goi(h,k),kt?goi(h,kt):Promise.resolve(null)]).then(function(r){(NGX==="vc"?vVcVe:NGX==="mx"?vMxVe:vXemVe)(r[0],r[1],k)}).catch(loiTai)}
 function vXemVe(j,jt,k){
  var nd=$("xem-nd");if(!nd)return;var T=j.tong,TT=jt&&jt.tong;
  $("xem-mo").textContent="Khách truy cập, lượt xem trang và tỉ lệ thoát do bộ đếm riêng của web ghi lại, giữ vĩnh viễn.";
@@ -637,6 +639,34 @@ function vVcVe(j,jt,k){
  var tb2=tm(j["Thiết bị"]);ve("c-vtb",banh(tb2.map(function(x){return ({desktop:"Máy tính",mobile:"Điện thoại",tablet:"Máy tính bảng"})[x[0]]||x[0]}),tb2.map(function(x){return x[2]})));
  $("vc-db").onclick=function(e){e.target.disabled=true;e.target.textContent="Đang đồng bộ…";goi("dongBoVercel").then(function(){tb("Đã đồng bộ Vercel");vXemTai()}).catch(function(er){tb(er.message);e.target.disabled=false;e.target.textContent="Đồng bộ ngay"})};
  nutBoCuc(boCuc("vercel",nd))}
+/* nguồn mạng xã hội: tab "📘 Facebook", "📸 Instagram", "🎵 TikTok" (mỗi ngày 1 dòng, cập nhật hằng ngày lúc 14:30) */
+var MXH=[["fb","Facebook","Tương tác"],["ig","Instagram","Tương tác"],["tt","TikTok","Lượt thích"]];
+function vMxVe(j,jt,k){
+ var nd=$("xem-nd");if(!nd)return;
+ var cuoi=MXH.map(function(p){return j[p[0]].cuoi?p[1]+" đến "+nhan(j[p[0]].cuoi):""}).filter(Boolean).join(" · ");
+ var cn=MXH.map(function(p){return j[p[0]].capNhat}).filter(Boolean).sort().pop();
+ $("xem-mo").textContent="Số liệu Facebook, Instagram (Meta Business Suite) và TikTok (TikTok Studio), chép về Google Sheet mỗi ngày lúc 14:30 và giữ lâu dài."+(cuoi?" Có số: "+cuoi+".":"")+(cn?" Cập nhật lần cuối: "+cn+".":"");
+ if(!MXH.some(function(p){return j[p[0]].coTab})){nd.className="";nd.innerHTML='<section class="the"><h2>Chưa có dữ liệu mạng xã hội</h2><p>Chưa thấy tab 📘 Facebook, 📸 Instagram, 🎵 TikTok trong Google Sheet "LỘC CỘC - ĐƠN HÀNG".</p></section>';return}
+ var dau=MXH.map(function(p){return j[p[0]].dauTien}).filter(Boolean).sort()[0];
+ var tu=k.tu||dau||k.den,ns=cacNgay(tu,k.den);
+ var g=function(x,p,n,f){return ((x&&x[p].ngay[n])||{})[f]||0};
+ var tg=function(x,p,f){if(!x)return null;var m=x[p].ngay;return Object.keys(m).reduce(function(s,n){return s+(m[n][f]||0)},0)};
+ var ttTong=function(x){if(!x)return null;var m=x.tt.ngay,ds=Object.keys(m).sort(),v=0;ds.forEach(function(n){if(m[n].tong)v=m[n].tong});return v};
+ var the=function(p){var a=p[0],xem=tg(j,a,"xem"),tt=tg(j,a,"tt"),moi=tg(j,a,"moi");
+  return '<section class="the w4" data-k="m'+a+'"><h2>'+p[1]+' · lượt xem</h2><div class="so">'+so(xem)+'</div><div class="ph">'+(soSanh(xem,tg(jt,a,"xem"))||"Cộng lượt xem của từng ngày")+'</div>'+
+   '<table class="bg" style="margin-top:12px"><tbody><tr><td>'+p[2]+'</td><td class="so-p">'+so(tt)+'</td></tr><tr><td>Tỉ lệ '+p[2].toLowerCase()+' / lượt xem</td><td class="so-p">'+(xem?pt(tt/xem):"–")+'</td></tr>'+
+   '<tr><td>Người theo dõi mới</td><td class="so-p">'+so(moi)+'</td></tr>'+(a==="tt"?'<tr><td>Tổng người theo dõi</td><td class="so-p">'+so(ttTong(j))+'</td></tr>':"")+'</tbody></table></section>'};
+ var bang=ns.slice().reverse().filter(function(n){return MXH.some(function(p){return j[p[0]].ngay[n]})}).map(function(n){
+  return '<tr><td>'+nhan(n)+'/'+n.slice(0,4)+'</td>'+MXH.map(function(p){var a=p[0],o=j[a].ngay[n];return o?'<td class="so-p">'+so(o.xem)+'</td><td class="so-p">'+so(o.tt)+'</td><td class="so-p">'+so(o.moi)+'</td>':'<td class="so-p mo">–</td><td class="so-p mo">–</td><td class="so-p mo">–</td>'}).join("")+'</tr>'}).join("");
+ nd.className="the-luoi";nd.innerHTML=MXH.map(the).join("")+
+  '<section class="the" data-k="mbd"><h2>Lượt xem theo ngày</h2><div class="bd cao"><canvas id="c-mx"></canvas></div></section>'+
+  '<section class="the w6" data-k="mtac"><h2>Tương tác / lượt thích theo ngày</h2><div class="bd"><canvas id="c-mtt"></canvas></div></section>'+
+  '<section class="the w6" data-k="mmoi"><h2>Người theo dõi mới theo ngày</h2><div class="bd"><canvas id="c-mmoi"></canvas></div></section>'+
+  '<section class="the" data-k="mbang"><h2>Số theo ngày</h2><div class="bc">'+(bang?'<table class="bg"><thead><tr><th>Ngày</th>'+MXH.map(function(p){return '<th class="so-p">'+p[1]+' xem</th><th class="so-p">'+p[2]+'</th><th class="so-p">Theo dõi mới</th>'}).join("")+'</tr></thead><tbody>'+bang+'</tbody></table>':'<p class="trong">Chưa có dữ liệu trong khoảng này.</p>')+'</div></section>';
+ var cs=function(f){return MXH.map(function(p){return [p[1],ns.map(function(n){return g(j,p[0],n,f)})]})};
+ nangThe(nd,{mfb:ns.map(function(n){return g(j,"fb",n,"xem")}),mig:ns.map(function(n){return g(j,"ig",n,"xem")}),mtt:ns.map(function(n){return g(j,"tt",n,"xem")})});
+ ve("c-mx",duong(ns.map(nhan),cs("xem")));ve("c-mtt",duong(ns.map(nhan),cs("tt")));ve("c-mmoi",duong(ns.map(nhan),cs("moi")));
+ nutBoCuc(boCuc("mxh",nd))}
 function bangVc(ds,ten,tong){if(!ds.length)return '<p class="trong">Chưa có dữ liệu trong khoảng này.</p>';
  return '<table class="bg"><thead><tr><th>'+ten+'</th><th class="so-p">Lượt xem</th><th class="so-p">Khách</th><th class="so-p">Tỉ trọng</th></tr></thead><tbody>'+ds.map(function(x){return '<tr><td>'+esc(x[0])+'</td><td class="so-p">'+so(x[1])+'</td><td class="so-p">'+so(x[2])+'</td><td class="so-p">'+(tong?pt(x[1]/tong):"–")+'</td></tr>'}).join("")+'</tbody></table>'}
 function bangXep(ds,ten,tong,fn){if(!ds.length)return '<p class="trong">Chưa có dữ liệu trong khoảng này.</p>';

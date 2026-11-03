@@ -92,6 +92,9 @@ Lộc Cộc tại loccoc.com.vn. Không phục vụ mục đích thương mại:
   Properties (vc_token, vc_du_an, vc_nhom; KHÔNG để token trong code/repo), chép 31 ngày rồi tạo trigger
   `dongBoVercel` mỗi ngày 3h (chép lại 3 ngày gần nhất) vào tab "▲ Vercel" (ẩn). Gói Hobby chỉ giữ 1 tháng nên
   dữ liệu cũ hơn chỉ còn ở Sheet. API chỉ có pageviews + visitors (không có bounce rate); ngày theo UTC.
+- Mạng xã hội (v4.4): tab "📘 Facebook", "📸 Instagram", "🎵 TikTok" (hiện), mỗi ngày 1 dòng, đọc THEO TÊN CỘT dòng 1
+  (`MXH_COT` trong Code.gs). Claude chép số từ Meta Business Suite và TikTok Studio mỗi ngày 14:30 qua trình duyệt.
+  Lệnh `mangXaHoi` (quyền xem) → trang quản trị: Lượt truy cập → tab "Mạng xã hội". Đổi tên cột thì sửa cả `MXH_COT`.
 - Đếm lượt xem dùng `fetch` với `credentials:"omit"`, KHÔNG dùng sendBeacon (luôn kèm cookie Google → mất lượt).
 - Web: trang `#/tap-chi` và `#/tap-chi/<đường-dẫn>`; hàm `md()` định dạng nội dung bài có 2 bản giống hệt nhau
   (index.html và trang quản trị): sửa một chỗ thì sửa cả hai. Đếm lượt xem chỉ chạy trên tên miền loccoc.com.vn.

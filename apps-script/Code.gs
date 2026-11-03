@@ -23,7 +23,7 @@
  * ───────────────────────────────────────────────────────────────────────────
  */
 
-var PHIEN_BAN = '4.3';
+var PHIEN_BAN = '4.4';
 var TEN_GUI = 'Lộc Cộc';            // tên người gửi trong email
 var GIA_BASIC = 350000;             // giá dòng Basic (tính lại ở máy chủ, không tin giá từ trình duyệt)
 var GIOI_HAN_MOI_GIO = 3;           // tối đa email gửi tới cùng 1 địa chỉ trong 1 giờ
@@ -31,7 +31,8 @@ var CHO_GUI = 'Chờ gửi';            // trạng thái cột "Email xác nhậ
 var HANG_CHO = 'thu_';              // tiền tố Script Properties của email chờ gửi
 
 var TAB = { BC: '📊 Báo cáo', DON: '🛒 Đơn hàng', CT: '📦 Chi tiết đơn', LH: '💬 Liên hệ', SL: '⚙ Số liệu',
-  BV: '📰 Bài viết', XEM: '👁 Lượt xem', NK: '🕘 Nhật ký', VC: '▲ Vercel' };
+  BV: '📰 Bài viết', XEM: '👁 Lượt xem', NK: '🕘 Nhật ký', VC: '▲ Vercel',
+  FB: '📘 Facebook', IG: '📸 Instagram', TT: '🎵 TikTok' };
 var COT = {
   DON: ['Mã đơn', 'Thời gian', 'Ngày', 'Giờ', 'Tên khách', 'Số điện thoại', 'Email', 'Sản phẩm', 'Số đôi',
     'Tạm tính (đ)', 'Ghi chú của khách', 'Email xác nhận', 'Ghi chú nội bộ', 'Trạng thái'],
@@ -859,7 +860,7 @@ function ghiNK_(ten, vaiTro, hanhDong, chiTiet) {
 
 // lệnh → quyền cần có (admin chính có tất cả; "chinh" = chỉ admin chính)
 var LENH = { tongQuan: ['ban', 'don'], suaDong: ['don'], dsBai: ['bai'], luuBai: ['bai'], xoaBai: ['bai'], luotXem: ['xem'],
-  vercel: ['xem'], dongBoVercel: ['xem'],
+  vercel: ['xem'], dongBoVercel: ['xem'], mangXaHoi: ['xem'],
   dsTaiKhoan: 'chinh', taoTaiKhoan: 'chinh', suaTaiKhoan: 'chinh', xoaTaiKhoan: 'chinh', nhatKy: 'chinh' };
 
 function quanTri_(d) {
@@ -888,6 +889,7 @@ function quanTri_(d) {
       case 'xoaBai': return coKhoa_(function () { var r = xoaBai_(d.ma); if (r.ok) nk('Xoá bài viết', d.ma + (r.tieuDe ? ' · "' + r.tieuDe + '"' : '')); return r; });
       case 'luotXem': return thongKeXem_(d.tu, d.den);
       case 'vercel': return thongKeVercel_(d.tu, d.den);
+      case 'mangXaHoi': return thongKeMXH_(d.tu, d.den);
       case 'dongBoVercel': return coKhoa_(function () { var r = dongBoVercel_(31); if (r.ok) nk('Đồng bộ Vercel', r.soNgay + ' ngày'); return r; });
       case 'dsTaiKhoan': return { ok: true, tk: dsTaiKhoan_(), quyen: QUYEN };
       case 'taoTaiKhoan': return coKhoa_(function () { return taoTaiKhoan_(d, tk, nk); });
@@ -1198,3 +1200,45 @@ function thongKeVercel_(tu, den) {
   });
   return kq;
 }
+
+/* ═══════════ MẠNG XÃ HỘI (v4.4) ═══════════
+ * Tab "📘 Facebook", "📸 Instagram", "🎵 TikTok": mỗi ngày 1 dòng, Claude chép từ Meta Business Suite và TikTok Studio
+ * mỗi ngày lúc 14:30 (ghi số trọn ngày hôm qua, tự bù ngày còn thiếu). Đọc THEO TÊN CỘT ở dòng 1.
+ */
+var MXH_COT = {
+  fb: [['xem', 'Lượt xem'], ['nguoi', 'Người xem'], ['tt', 'Tương tác'], ['moi', 'Người theo dõi mới']],
+  ig: [['xem', 'Lượt xem'], ['nguoi', 'Số người tiếp cận'], ['tt', 'Tương tác'], ['moi', 'Người theo dõi mới']],
+  tt: [['xem', 'Lượt xem'], ['tt', 'Lượt thích'], ['tong', 'Tổng người theo dõi'], ['moi', 'Người theo dõi mới']]
+};
+
+function thongKeMXH_(tu, den) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet(), tz = ss.getSpreadsheetTimeZone();
+  tu = /^\d{4}-\d{2}-\d{2}$/.test(tu || '') ? tu : '0000-00-00';
+  den = /^\d{4}-\d{2}-\d{2}$/.test(den || '') ? den : '9999-12-31';
+  var doc = function (ten, cot) {
+    var kq = { coTab: false, ngay: {}, dauTien: '', cuoi: '', capNhat: '' };
+    var sh = ss.getSheetByName(ten);
+    if (!sh || sh.getLastRow() < 2) return kq;
+    kq.coTab = true;
+    var v = sh.getRange(1, 1, sh.getLastRow(), sh.getLastColumn()).getValues();
+    var dau = v[0].map(function (x) { return String(x).trim(); }), iCn = dau.indexOf('Cập nhật lúc');
+    var idx = cot.map(function (c) { return dau.indexOf(c[1]); });
+    v.slice(1).forEach(function (r) {
+      var n = laNgay_(r[0]) ? Utilities.formatDate(r[0], tz, 'yyyy-MM-dd') : String(r[0] || '').replace(/^'/, '').trim();
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(n)) return;
+      if (!kq.dauTien || n < kq.dauTien) kq.dauTien = n;
+      if (!kq.cuoi || n > kq.cuoi) {
+        kq.cuoi = n;
+        if (iCn > -1 && r[iCn] !== '') kq.capNhat = laNgay_(r[iCn]) ? Utilities.formatDate(r[iCn], tz, 'dd/MM/yyyy') : String(r[iCn]);
+      }
+      if (n < tu || n > den) return;
+      var o = {};
+      cot.forEach(function (c, i) { o[c[0]] = idx[i] > -1 ? Number(r[idx[i]]) || 0 : 0; });
+      kq.ngay[n] = o;
+    });
+    return kq;
+  };
+  return { ok: true, fb: doc(TAB.FB, MXH_COT.fb), ig: doc(TAB.IG, MXH_COT.ig), tt: doc(TAB.TT, MXH_COT.tt) };
+}
+
+function laNgay_(v) { return Object.prototype.toString.call(v) === '[object Date]' && !isNaN(v); }
