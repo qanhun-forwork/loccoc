@@ -23,7 +23,7 @@
  * ───────────────────────────────────────────────────────────────────────────
  */
 
-var PHIEN_BAN = '4.6';
+var PHIEN_BAN = '4.7';
 var TEN_GUI = 'Lộc Cộc';            // tên người gửi trong email
 var GIA_BASIC = 350000;             // giá dòng Basic (tính lại ở máy chủ, không tin giá từ trình duyệt)
 var GIOI_HAN_MOI_GIO = 3;           // tối đa email gửi tới cùng 1 địa chỉ trong 1 giờ
@@ -32,7 +32,7 @@ var HANG_CHO = 'thu_';              // tiền tố Script Properties của email
 
 var TAB = { BC: '📊 Báo cáo', DON: '🛒 Đơn hàng', CT: '📦 Chi tiết đơn', LH: '💬 Liên hệ', SL: '⚙ Số liệu',
   BV: '📰 Bài viết', XEM: '👁 Lượt xem', NK: '🕘 Nhật ký', VC: '▲ Vercel',
-  FB: '📘 Facebook', IG: '📸 Instagram', TT: '🎵 TikTok', TTA: '🎵 TikTok API', TTV: '🎵 TikTok video' };
+  FB: '📘 Facebook', IG: '📸 Instagram', TT: '🎵 TikTok', TTA: '🎵 TikTok API', TTV: '🎵 TikTok video', QC: '📣 Quảng cáo IG' };
 var COT = {
   DON: ['Mã đơn', 'Thời gian', 'Ngày', 'Giờ', 'Tên khách', 'Số điện thoại', 'Email', 'Sản phẩm', 'Số đôi',
     'Tạm tính (đ)', 'Ghi chú của khách', 'Email xác nhận', 'Ghi chú nội bộ', 'Trạng thái'],
@@ -1251,7 +1251,20 @@ function thongKeMXH_(tu, den) {
     return { ngay: laNgay_(r[1]) ? Utilities.formatDate(r[1], tz, 'yyyy-MM-dd') : String(r[1]), tieuDe: String(r[2]), xem: Number(r[3]) || 0, thich: Number(r[4]) || 0,
       binhLuan: Number(r[5]) || 0, chiaSe: Number(r[6]) || 0, link: String(r[7]) };
   });
-  return { ok: true, fb: doc(TAB.FB, MXH_COT.fb), ig: doc(TAB.IG, MXH_COT.ig), tt: doc(TAB.TT, MXH_COT.tt), ttApi: api,
+  var qc = [], sq = ss.getSheetByName(TAB.QC);
+  if (sq && sq.getLastRow() > 1) {
+    var vq = sq.getRange(1, 1, sq.getLastRow(), sq.getLastColumn()).getValues(), hq = vq[0].map(function (x) { return String(x).trim(); });
+    var Q = { ten: 'Bài quảng cáo', tu: 'Ngày bắt đầu', den: 'Ngày kết thúc', chi: 'Số tiền đã chi (đ)', ht: 'Lượt hiển thị', xem: 'Lượt xem từ quảng cáo',
+      tc: 'Người tiếp cận từ quảng cáo', clk: 'Click liên kết', tt: 'Tương tác từ quảng cáo', moi: 'Theo dõi từ quảng cáo', gc: 'Ghi chú' };
+    vq.slice(1).forEach(function (r) {
+      if (!r.join('')) return;
+      var o = {};
+      Object.keys(Q).forEach(function (k) { var i = hq.indexOf(Q[k]), v = i > -1 ? r[i] : '';
+        o[k] = laNgay_(v) ? Utilities.formatDate(v, tz, 'yyyy-MM-dd') : (k === 'ten' || k === 'gc' || k === 'tu' || k === 'den') ? String(v) : (v === '' ? null : Number(v) || 0); });
+      qc.push(o);
+    });
+  }
+  return { ok: true, qcIg: qc, fb: doc(TAB.FB, MXH_COT.fb), ig: doc(TAB.IG, MXH_COT.ig), tt: doc(TAB.TT, MXH_COT.tt), ttApi: api,
     vc: { coKetNoi: !!pp.vc_token, luc: pp.vc_luc || '', loi: pp.vc_loi || '' } };
 }
 
@@ -1307,9 +1320,20 @@ function ttKetNoi_(code, state, quayVe) {
   CacheService.getScriptCache().remove('tt_st_' + state);
   try {
     ttToken_({ code: String(code || ''), grant_type: 'authorization_code', redirect_uri: quayVe });
+    datTriggerTikTok_();
     var r = dongBoTikTok_();
     return { ok: true, ten: PropertiesService.getScriptProperties().getProperty('tt_ten') || '', dongBo: r };
   } catch (err) { return { ok: false, loi: String(err.message || err) }; }
+}
+
+// ★ trigger mỗi ngày khoảng 23:15–23:45: chụp số TikTok cuối ngày để lượt xem theo ngày sát với ngày thật
+function datTriggerTikTok_() {
+  ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getHandlerFunction() === 'dongBoTikTok') ScriptApp.deleteTrigger(t); });
+  ScriptApp.newTrigger('dongBoTikTok').timeBased().everyDays(1).atHour(23).nearMinute(30).create();
+}
+function dongBoTikTok() {
+  var k = LockService.getScriptLock(); if (!k.tryLock(30000)) return;
+  try { var r = dongBoTikTok_(); if (!r.ok) console.error(r.loi); } finally { k.releaseLock(); }
 }
 
 function ttAt_() {

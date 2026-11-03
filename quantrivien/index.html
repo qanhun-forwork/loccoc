@@ -305,6 +305,7 @@ aside.sb{background:linear-gradient(180deg,rgba(52,35,28,.78),rgba(36,24,19,.82)
 .nt-tt .chu-loi{color:#FF6B85}
 .hang-nut{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 10px}
 .luoi-nho{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.luoi-nho.luoi-4{grid-template-columns:repeat(4,minmax(0,1fr))}@media(max-width:900px){.luoi-nho.luoi-4{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .luoi-nho div{padding:14px 16px;border-radius:16px;background:rgba(255,255,255,.3);border:1px solid rgba(255,255,255,.45)}
 .luoi-nho b{display:block;font-size:26px;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
 .luoi-nho span{font-size:12.5px;color:var(--mute)}
@@ -532,7 +533,7 @@ function duong(nhanX,ds){return {type:"line",data:{labels:nhanX,datasets:ds.map(
 function cot(nhanX,ds,ngang,chong){return {type:"bar",data:{labels:nhanX,datasets:ds.map(function(d,i){return {label:d[0],data:d[1],backgroundColor:MAU[i],hoverBackgroundColor:MAU[i]+"CC",borderRadius:8,borderSkipped:false,maxBarThickness:30}})},
  options:{indexAxis:ngang?"y":"x",plugins:{legend:{display:ds.length>1,position:"top",align:"end"}},scales:{x:{stacked:chong,grid:{display:!ngang?false:true},beginAtZero:true,ticks:{precision:0}},y:{stacked:chong,beginAtZero:true,grid:{display:ngang?false:true},ticks:{precision:0}}}}}}
 function banh(nhanX,v){return {type:"doughnut",data:{labels:nhanX,datasets:[{data:v,backgroundColor:MAU,borderWidth:2,borderColor:"#FAF6EF"}]},options:{cutout:"70%",interaction:{mode:"nearest"},plugins:{legend:{position:"right",align:"center",labels:{usePointStyle:true,boxWidth:8,padding:14}}}}}}
-var IC_K={mxxem:"xem",mxnguoi:"tv",mxtt:"lh",mxer:"ban",mxclk:"tro",mxctr:"ban",mxtc:"phien",mxmoi:"tv",mxthich:"tim",mxbl:"lh",mxcs:"chia",mxhs:"phien",mxdb:"dong",mxht:"tt",kdon:"don",kdoi:"doi",ktien:"tien",klh:"lh",bem:"email",kkh:"tv",kxem:"xem",kthoat:"thoat",kphien:"phien",vkh:"tv",vxem:"xem",vdb:"dong"};
+var IC_K={mxxem:"xem",mxnguoi:"tv",mxtt:"lh",mxer:"ban",mxclk:"tro",mxctr:"ban",mxtc:"phien",mxmoi:"tv",mxthich:"tim",mxbl:"lh",mxcs:"chia",mxhs:"phien",mxdb:"dong",mxht:"tt",mxqc:"tien",kdon:"don",kdoi:"doi",ktien:"tien",klh:"lh",bem:"email",kkh:"tv",kxem:"xem",kthoat:"thoat",kphien:"phien",vkh:"tv",vxem:"xem",vdb:"dong"};
 function nangThe(luoi,chuoi){chuoi=chuoi||{};
  [].forEach.call(luoi.children,function(c,i){c.style.setProperty("--i",i);var k=c.dataset.k,h=c.querySelector("h2");
   if(IC_K[k]&&h&&!h.querySelector(".ic"))h.insertAdjacentHTML("afterbegin",'<span class="chip">'+svg(IC_K[k])+'</span>');
@@ -808,6 +809,18 @@ function vMxVe(p,j,jt,k){
    '<div class="hang-nut"><button class="btn nh" type="button" id="mx-db">Đồng bộ ngay</button>'+(laChinh&&A.coKey?'<button class="btn ph nh" type="button" id="mx-kn">'+(A.daKetNoi?"Kết nối lại TikTok":"Kết nối TikTok")+'</button>':"")+'</div>'+
    '<div class="ph">Số từ 26/09 đến 01/11 chép từ TikTok Studio. Sau đó, lượt xem theo ngày là chênh lệch tổng giữa các lần đồng bộ.</div></section>'+
    '<section class="the w6" data-k="mxht"><h2>Tài khoản lúc này</h2>'+(H2?'<div class="luoi-nho"><div><b>'+so(H2.fol)+'</b><span>Người theo dõi</span></div><div><b>'+so(H2.thichTk)+'</b><span>Lượt thích tài khoản</span></div><div><b>'+so(H2.soVideo)+'</b><span>Video</span></div><div><b>'+so(H2.xem)+'</b><span>Tổng lượt xem video</span></div></div>':'<p class="trong">Chưa đồng bộ TikTok lần nào.</p>')+'</section>'+h}
+ // Instagram: quảng cáo (tab "📣 Quảng cáo IG", nhập tay từ app Instagram)
+ if(p==="ig"&&(j.qcIg||[]).length){var Q=j.qcIg,sum=function(f){return Q.reduce(function(s,x){return s+(x[f]||0)},0)},co=function(f){return Q.some(function(x){return x[f]!=null&&x[f]!==0})};
+  var chi=sum("chi"),ht=sum("ht"),xq=sum("xem"),clk=sum("clk"),moiQ=sum("moi"),mau=co("ht")?ht:xq;
+  var tien=function(n){return n?so(Math.round(n))+"đ":"–"};
+  h+='<section class="the" data-k="mxqc"><h2>Quảng cáo Instagram</h2><div class="luoi-nho luoi-4">'+
+   '<div><b>'+(mau?pt(clk/mau):"–")+'</b><span>CTR (click liên kết ÷ '+(co("ht")?"lượt hiển thị":"lượt xem từ quảng cáo")+')</span></div>'+
+   '<div><b>'+(chi&&clk?tien(chi/clk):"–")+'</b><span>CPC (chi phí / click)</span></div>'+
+   '<div><b>'+(chi&&co("ht")?tien(chi/ht*1000):"–")+'</b><span>CPM (chi phí / 1.000 hiển thị)</span></div>'+
+   '<div><b>'+(chi?tien(chi):"–")+'</b><span>Đã chi · '+so(moiQ)+' người theo dõi từ quảng cáo</span></div></div>'+
+   '<div class="bc" style="margin-top:16px"><table class="bg"><thead><tr><th>Bài</th><th>Thời gian</th><th class="so-p">Đã chi</th><th class="so-p">Hiển thị</th><th class="so-p">Xem từ QC</th><th class="so-p">Tiếp cận</th><th class="so-p">Click</th><th class="so-p">CTR</th><th class="so-p">Tương tác</th><th class="so-p">Theo dõi</th></tr></thead><tbody>'+
+   Q.map(function(x){var m=x.ht||x.xem;return '<tr><td>'+esc(x.ten)+(x.gc?'<br><span class="mo">'+esc(x.gc)+'</span>':"")+'</td><td>'+(x.tu?nhan(x.tu):"")+(x.den&&x.den!==x.tu?"–"+nhan(x.den):"")+'</td><td class="so-p">'+tien(x.chi)+'</td><td class="so-p">'+(x.ht?so(x.ht):"–")+'</td><td class="so-p">'+so(x.xem)+'</td><td class="so-p">'+so(x.tc)+'</td><td class="so-p">'+so(x.clk)+'</td><td class="so-p">'+(m&&x.clk!=null?pt(x.clk/m):"–")+'</td><td class="so-p">'+so(x.tt)+'</td><td class="so-p">'+so(x.moi)+'</td></tr>'}).join("")+'</tbody></table></div>'+
+   (!chi||!co("ht")?'<div class="ph">Thiếu số tiền đã chi hoặc lượt hiển thị: điền trong tab 📣 Quảng cáo IG của Google Sheet để có CTR chuẩn, CPC, CPM.</div>':"")+'</section>'}
  // biểu đồ
  h+='<section class="the" data-k="mxbd"><h2>Lượt xem &amp; '+PT_NHAN[p][1].toLowerCase()+' theo ngày</h2><div class="bd cao"><canvas id="c-mx1"></canvas></div></section>'+
   '<section class="the w6" data-k="mxbder"><h2>Engagement rate theo ngày</h2><div class="bd"><canvas id="c-mx2"></canvas></div></section>'+

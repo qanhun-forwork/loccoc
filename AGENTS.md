@@ -106,6 +106,9 @@ Lộc Cộc tại loccoc.com.vn. Không phục vụ mục đích thương mại:
   data-v fb/ig/tt, quyền xem). `datNen(v)` gắn lớp body nt-fb / nt-ig / nt-tt (TikTok nền tối) và đổi bảng màu biểu đồ `MAU`.
   Chỉ số: FB/IG có ER = tương tác ÷ người xem (tiếp cận), CTR = click liên kết ÷ lượt xem, chuyển đổi follow = theo dõi mới ÷
   lượt truy cập; TikTok có ER = (thích + bình luận + chia sẻ) ÷ lượt xem, tỉ lệ xem hồ sơ, chuyển đổi từ hồ sơ.
+- v4.7: tab "📣 Quảng cáo IG" (nhập tay từ app Instagram, đọc theo tên cột) → khối Quảng cáo ở trang Instagram
+  (CTR = click liên kết ÷ lượt hiển thị, chưa có hiển thị thì ÷ lượt xem từ quảng cáo; CPC, CPM cần số tiền đã chi).
+  TikTok: trigger `dongBoTikTok` mỗi ngày ~23:15–23:45, tự tạo khi bấm Kết nối TikTok thành công.
 - Đếm lượt xem dùng `fetch` với `credentials:"omit"`, KHÔNG dùng sendBeacon (luôn kèm cookie Google → mất lượt).
 - Web: trang `#/tap-chi` và `#/tap-chi/<đường-dẫn>`; hàm `md()` định dạng nội dung bài có 2 bản giống hệt nhau
   (index.html và trang quản trị): sửa một chỗ thì sửa cả hai. Đếm lượt xem chỉ chạy trên tên miền loccoc.com.vn.
