@@ -335,6 +335,22 @@ aside.sb{background:linear-gradient(180deg,rgba(52,35,28,.78),rgba(36,24,19,.82)
 .nt-tt .dang-tai{background:linear-gradient(100deg,rgba(255,255,255,.03) 30%,rgba(255,255,255,.1) 50%,rgba(255,255,255,.03) 70%) 0 0/200% 100%}
 .nt-tt .tc label{background:#1c1c24}
 @media (prefers-reduced-motion:reduce){.nen-loang i{animation:none}}
+/* độ tương phản: nút + khối chọn dùng màu đậm (chữ trắng đủ rõ), tiêu đề dùng dải màu đậm, thanh bên tối theo nền tảng */
+:root{--btn-grad:var(--ac-grad);--h1-grad:var(--ac-grad);--sb-bg:linear-gradient(180deg,rgba(52,35,28,.9),rgba(36,24,19,.93))}
+.nt-fb{--btn-grad:linear-gradient(135deg,#1877F2,#0B5FCC);--h1-grad:linear-gradient(120deg,#1877F2,#0A3D91);--sb-bg:linear-gradient(180deg,rgba(9,30,66,.93),rgba(5,19,45,.95))}
+.nt-ig{--btn-grad:linear-gradient(120deg,#D62E6E,#A3268F 60%,#6A3BC8);--h1-grad:linear-gradient(120deg,#E1306C,#C13584 45%,#833AB4);--sb-bg:linear-gradient(180deg,rgba(54,16,46,.93),rgba(32,10,34,.95))}
+.nt-tt{--btn-grad:linear-gradient(135deg,#FE2C55,#D0103F);--h1-grad:linear-gradient(120deg,#25F4EE,#FE2C55 70%);--sb-bg:linear-gradient(180deg,rgba(18,18,24,.94),rgba(10,10,14,.96))}
+aside.sb{background:var(--sb-bg);transition:background .6s}
+.btn,.kh-nen,.sb-nen,.btn.ph:hover{background:var(--btn-grad)}
+.btn:hover{background:var(--btn-grad)}
+.nt .tab-nen{background:var(--btn-grad)}
+.nt .dau h1{background:var(--h1-grad);-webkit-background-clip:text;background-clip:text}
+.sb [data-v=fb] .ic{color:#8EC0FF}.sb [data-v=ig] .ic{color:#FF9CC8}.sb [data-v=tt] .ic{color:#5FF7F2}
+.sb button{color:rgba(255,255,255,.8)}
+.sb [aria-current=page] .ic{color:#fff}
+.nt-nhan .ic{width:18px;height:18px;padding:3px;border-radius:7px;box-sizing:content-box;background:var(--btn-grad);color:#fff!important;box-shadow:0 4px 10px -4px var(--ac-bong)}
+.chip{color:var(--ac);background:rgba(255,255,255,.75)}
+.nt-tt .chip{color:#FF5C7C}
 </style>
 </head>
 <body>
