@@ -23,7 +23,7 @@
  * ───────────────────────────────────────────────────────────────────────────
  */
 
-var PHIEN_BAN = '4.4';
+var PHIEN_BAN = '4.5';
 var TEN_GUI = 'Lộc Cộc';            // tên người gửi trong email
 var GIA_BASIC = 350000;             // giá dòng Basic (tính lại ở máy chủ, không tin giá từ trình duyệt)
 var GIOI_HAN_MOI_GIO = 3;           // tối đa email gửi tới cùng 1 địa chỉ trong 1 giờ
@@ -32,7 +32,7 @@ var HANG_CHO = 'thu_';              // tiền tố Script Properties của email
 
 var TAB = { BC: '📊 Báo cáo', DON: '🛒 Đơn hàng', CT: '📦 Chi tiết đơn', LH: '💬 Liên hệ', SL: '⚙ Số liệu',
   BV: '📰 Bài viết', XEM: '👁 Lượt xem', NK: '🕘 Nhật ký', VC: '▲ Vercel',
-  FB: '📘 Facebook', IG: '📸 Instagram', TT: '🎵 TikTok' };
+  FB: '📘 Facebook', IG: '📸 Instagram', TT: '🎵 TikTok', TTA: '🎵 TikTok API', TTV: '🎵 TikTok video' };
 var COT = {
   DON: ['Mã đơn', 'Thời gian', 'Ngày', 'Giờ', 'Tên khách', 'Số điện thoại', 'Email', 'Sản phẩm', 'Số đôi',
     'Tạm tính (đ)', 'Ghi chú của khách', 'Email xác nhận', 'Ghi chú nội bộ', 'Trạng thái'],
@@ -293,6 +293,7 @@ function onOpen() {
     .addItem('Bật gửi email nền (chạy 1 lần)', 'batEmailNen')
     .addItem('Đặt tài khoản quản trị…', 'datTaiKhoanQuanTri')
     .addItem('Kết nối Vercel Analytics…', 'ketNoiVercel')
+    .addItem('Kết nối TikTok…', 'ketNoiTikTok')
     .addSeparator()
     .addItem('Xoá hết dữ liệu và cài đặt lại…', 'xoaHetVaCaiDatLai')
     .addToUi();
@@ -860,7 +861,7 @@ function ghiNK_(ten, vaiTro, hanhDong, chiTiet) {
 
 // lệnh → quyền cần có (admin chính có tất cả; "chinh" = chỉ admin chính)
 var LENH = { tongQuan: ['ban', 'don'], suaDong: ['don'], dsBai: ['bai'], luuBai: ['bai'], xoaBai: ['bai'], luotXem: ['xem'],
-  vercel: ['xem'], dongBoVercel: ['xem'], mangXaHoi: ['xem'],
+  vercel: ['xem'], dongBoVercel: ['xem'], mangXaHoi: ['xem'], dongBoTikTok: ['xem'], ttUrl: 'chinh', ttKetNoi: 'chinh',
   dsTaiKhoan: 'chinh', taoTaiKhoan: 'chinh', suaTaiKhoan: 'chinh', xoaTaiKhoan: 'chinh', nhatKy: 'chinh' };
 
 function quanTri_(d) {
@@ -890,6 +891,9 @@ function quanTri_(d) {
       case 'luotXem': return thongKeXem_(d.tu, d.den);
       case 'vercel': return thongKeVercel_(d.tu, d.den);
       case 'mangXaHoi': return thongKeMXH_(d.tu, d.den);
+      case 'dongBoTikTok': return coKhoa_(function () { var r = dongBoTikTok_(); if (r.ok) nk('Đồng bộ TikTok', r.soVideo + ' video'); return r; });
+      case 'ttUrl': return ttUrl_(d.quayVe);
+      case 'ttKetNoi': return coKhoa_(function () { var r = ttKetNoi_(d.code, d.state, d.quayVe); if (r.ok) nk('Kết nối TikTok', r.ten || ''); return r; });
       case 'dongBoVercel': return coKhoa_(function () { var r = dongBoVercel_(31); if (r.ok) nk('Đồng bộ Vercel', r.soNgay + ' ngày'); return r; });
       case 'dsTaiKhoan': return { ok: true, tk: dsTaiKhoan_(), quyen: QUYEN };
       case 'taoTaiKhoan': return coKhoa_(function () { return taoTaiKhoan_(d, tk, nk); });
@@ -1238,7 +1242,158 @@ function thongKeMXH_(tu, den) {
     });
     return kq;
   };
-  return { ok: true, fb: doc(TAB.FB, MXH_COT.fb), ig: doc(TAB.IG, MXH_COT.ig), tt: doc(TAB.TT, MXH_COT.tt) };
+  var pp = PropertiesService.getScriptProperties().getProperties();
+  var api = { coKey: !!(pp.tt_key && pp.tt_secret), daKetNoi: !!pp.tt_rt, luc: pp.tt_luc || '', loi: pp.tt_loi || '', ten: pp.tt_ten || '',
+    hienTai: pp.tt_hien ? JSON.parse(pp.tt_hien) : null, video: [] };
+  var sv = ss.getSheetByName(TAB.TTV);
+  if (sv && sv.getLastRow() > 1) api.video = sv.getRange(2, 1, sv.getLastRow() - 1, 8).getValues().map(function (r) {
+    return { ngay: laNgay_(r[1]) ? Utilities.formatDate(r[1], tz, 'yyyy-MM-dd') : String(r[1]), tieuDe: String(r[2]), xem: Number(r[3]) || 0, thich: Number(r[4]) || 0,
+      binhLuan: Number(r[5]) || 0, chiaSe: Number(r[6]) || 0, link: String(r[7]) };
+  });
+  return { ok: true, fb: doc(TAB.FB, MXH_COT.fb), ig: doc(TAB.IG, MXH_COT.ig), tt: doc(TAB.TT, MXH_COT.tt), ttApi: api,
+    vc: { coKetNoi: !!pp.vc_token, luc: pp.vc_luc || '', loi: pp.vc_loi || '' } };
 }
 
 function laNgay_(v) { return Object.prototype.toString.call(v) === '[object Date]' && !isNaN(v); }
+
+/* ═══════════ TIKTOK API (v4.5) ═══════════
+ * App "Lộc Cộc Tracking" ở chế độ Sandbox trên developers.tiktok.com (Login Kit, scope user.info.basic,
+ * user.info.stats, video.list; tài khoản @loccoc.com.vn là Target user). Client key + secret dán bằng menu
+ * Lộc Cộc → Kết nối TikTok… (lưu Script Properties tt_key, tt_secret; KHÔNG để trong code/repo).
+ * Trang quản trị → Mạng xã hội → "Kết nối TikTok": đăng nhập TikTok, quay về /quantrivien/ kèm ?code=… → lệnh ttKetNoi
+ * đổi code lấy access token (24 giờ) + refresh token (365 ngày).
+ * Mỗi lần đồng bộ: lưu 1 dòng chụp số tổng vào tab "🎵 TikTok API" (ẩn), ghi lại danh sách video vào "🎵 TikTok video",
+ * và điền tab "🎵 TikTok": lượt xem/thích theo ngày = chênh lệch tổng giữa lần chụp cuối của ngày đó và ngày có số trước đó.
+ * Dòng đã có trong "🎵 TikTok" mà không phải nguồn API (số chép từ TikTok Studio) thì giữ nguyên, chỉ cập nhật người theo dõi.
+ */
+var TT_SCOPE = 'user.info.basic,user.info.stats,video.list';
+
+function ketNoiTikTok() {
+  var ui = SpreadsheetApp.getUi(), p = PropertiesService.getScriptProperties();
+  var a = ui.prompt('Kết nối TikTok (1/2)', 'Dán Client key của app (tab Sandbox trên developers.tiktok.com):', ui.ButtonSet.OK_CANCEL);
+  if (a.getSelectedButton() !== ui.Button.OK || !a.getResponseText().trim()) return;
+  var b = ui.prompt('Kết nối TikTok (2/2)', 'Dán Client secret. Mã chỉ lưu trong Script Properties của file này.', ui.ButtonSet.OK_CANCEL);
+  if (b.getSelectedButton() !== ui.Button.OK || !b.getResponseText().trim()) return;
+  p.setProperties({ tt_key: a.getResponseText().trim(), tt_secret: b.getResponseText().trim() });
+  ['tt_at', 'tt_at_het', 'tt_rt', 'tt_loi'].forEach(function (k) { p.deleteProperty(k); });
+  ghiNK_(p.getProperty('qt_ten') || 'chủ Sheet', 'chinh', 'Lưu key TikTok', '');
+  ui.alert('Đã lưu key TikTok. Mở trang quản trị → Lượt truy cập → Mạng xã hội → bấm "Kết nối TikTok" để đăng nhập @loccoc.com.vn một lần.');
+}
+
+function ttUrl_(quayVe) {
+  var p = PropertiesService.getScriptProperties();
+  if (!p.getProperty('tt_key')) return { ok: false, loi: 'Chưa có key TikTok. Mở Google Sheet → menu Lộc Cộc → Kết nối TikTok…' };
+  var st = Utilities.getUuid().replace(/-/g, '');
+  CacheService.getScriptCache().put('tt_st_' + st, '1', 900);
+  return { ok: true, url: 'https://www.tiktok.com/v2/auth/authorize/?client_key=' + encodeURIComponent(p.getProperty('tt_key')) +
+    '&scope=' + encodeURIComponent(TT_SCOPE) + '&response_type=code&redirect_uri=' + encodeURIComponent(quayVe) + '&state=' + st };
+}
+
+function ttToken_(du) {
+  var p = PropertiesService.getScriptProperties().getProperties();
+  var res = UrlFetchApp.fetch('https://open.tiktokapis.com/v2/oauth/token/', { method: 'post', muteHttpExceptions: true,
+    contentType: 'application/x-www-form-urlencoded', payload: Object.assign({ client_key: p.tt_key, client_secret: p.tt_secret }, du) });
+  var j = {}; try { j = JSON.parse(res.getContentText()); } catch (e) {}
+  if (!j.access_token) throw new Error('TikTok không cấp token: ' + (j.error_description || j.error || res.getContentText().slice(0, 160)));
+  var now = Date.now();
+  PropertiesService.getScriptProperties().setProperties({ tt_at: j.access_token, tt_at_het: String(now + (j.expires_in - 300) * 1000),
+    tt_rt: j.refresh_token, tt_rt_het: String(now + (j.refresh_expires_in || 0) * 1000), tt_open_id: j.open_id || '' });
+  return j.access_token;
+}
+
+function ttKetNoi_(code, state, quayVe) {
+  if (!state || !CacheService.getScriptCache().get('tt_st_' + state)) return { ok: false, loi: 'Phiên kết nối TikTok đã hết hạn, vui lòng bấm "Kết nối TikTok" lại.' };
+  CacheService.getScriptCache().remove('tt_st_' + state);
+  try {
+    ttToken_({ code: String(code || ''), grant_type: 'authorization_code', redirect_uri: quayVe });
+    var r = dongBoTikTok_();
+    return { ok: true, ten: PropertiesService.getScriptProperties().getProperty('tt_ten') || '', dongBo: r };
+  } catch (err) { return { ok: false, loi: String(err.message || err) }; }
+}
+
+function ttAt_() {
+  var p = PropertiesService.getScriptProperties().getProperties();
+  if (p.tt_at && Number(p.tt_at_het) > Date.now()) return p.tt_at;
+  if (!p.tt_rt) throw new Error('Chưa kết nối TikTok. Vào trang quản trị → Mạng xã hội → Kết nối TikTok.');
+  return ttToken_({ grant_type: 'refresh_token', refresh_token: p.tt_rt });
+}
+
+function ttGoi_(url, body) {
+  var o = { headers: { Authorization: 'Bearer ' + ttAt_() }, muteHttpExceptions: true };
+  if (body) { o.method = 'post'; o.contentType = 'application/json'; o.payload = JSON.stringify(body); }
+  var res = UrlFetchApp.fetch(url, o), j = {};
+  try { j = JSON.parse(res.getContentText()); } catch (e) {}
+  if (!j.error || j.error.code !== 'ok') throw new Error('TikTok trả lỗi ' + res.getResponseCode() + ': ' + ((j.error && (j.error.message || j.error.code)) || res.getContentText().slice(0, 160)));
+  return j.data || {};
+}
+
+function dongBoTikTok_() {
+  var p = PropertiesService.getScriptProperties();
+  try {
+    var u = ttGoi_('https://open.tiktokapis.com/v2/user/info/?fields=open_id,display_name,username,follower_count,following_count,likes_count,video_count').user || {};
+    var vids = [], cur = 0, lan = 0;
+    do {
+      var v = ttGoi_('https://open.tiktokapis.com/v2/video/list/?fields=id,title,video_description,create_time,share_url,view_count,like_count,comment_count,share_count',
+        cur ? { max_count: 20, cursor: cur } : { max_count: 20 });
+      vids = vids.concat(v.videos || []); cur = v.cursor; lan++;
+    } while (v.has_more && lan < 15);
+  } catch (err) {
+    p.setProperty('tt_loi', String(err.message || err).slice(0, 300));
+    return { ok: false, loi: String(err.message || err) };
+  }
+  var ss = SpreadsheetApp.getActiveSpreadsheet(), tz = ss.getSpreadsheetTimeZone(), now = new Date();
+  var hom = Utilities.formatDate(now, tz, 'yyyy-MM-dd');
+  var tongXem = vids.reduce(function (s, x) { return s + (x.view_count || 0); }, 0);
+  var tongThich = vids.reduce(function (s, x) { return s + (x.like_count || 0); }, 0);
+  // 1) chụp số tổng
+  var sa = ss.getSheetByName(TAB.TTA);
+  if (!sa) { sa = ss.insertSheet(TAB.TTA); sa.appendRow(['Thời điểm', 'Ngày', 'Tổng lượt xem video', 'Tổng lượt thích video', 'Người theo dõi', 'Số video', 'Lượt thích tài khoản']); sa.setFrozenRows(1); sa.hideSheet(); }
+  sa.appendRow([now, "'" + hom, tongXem, tongThich, u.follower_count || 0, u.video_count || vids.length, u.likes_count || 0]);
+  // 2) danh sách video (ghi lại toàn bộ)
+  var sv = ss.getSheetByName(TAB.TTV);
+  if (!sv) { sv = ss.insertSheet(TAB.TTV); sv.setFrozenRows(1); }
+  sv.clearContents();
+  var hang = [['Mã video', 'Ngày đăng', 'Tiêu đề', 'Lượt xem', 'Lượt thích', 'Bình luận', 'Chia sẻ', 'Link', 'Cập nhật lúc']].concat(vids.map(function (x) {
+    return [String(x.id), new Date((x.create_time || 0) * 1000), an_(String(x.title || x.video_description || '').slice(0, 150)), x.view_count || 0,
+      x.like_count || 0, x.comment_count || 0, x.share_count || 0, x.share_url || '', now];
+  }));
+  sv.getRange(1, 1, hang.length, 9).setValues(hang);
+  // 3) điền tab "🎵 TikTok" theo ngày
+  var chup = {};
+  sa.getRange(2, 1, sa.getLastRow() - 1, 5).getValues().forEach(function (r) {
+    var n = String(r[1]).replace(/^'/, ''); if (laNgay_(r[1])) n = Utilities.formatDate(r[1], tz, 'yyyy-MM-dd');
+    if (/^\d{4}-\d{2}-\d{2}$/.test(n)) chup[n] = { xem: Number(r[2]) || 0, thich: Number(r[3]) || 0, fol: Number(r[4]) || 0 };
+  });
+  var ngays = Object.keys(chup).sort();
+  var st = ss.getSheetByName(TAB.TT) || tab_(TAB.TT);
+  if (st.getLastRow() < 1) st.appendRow(['Ngày', 'Lượt xem', 'Lượt thích', 'Tổng người theo dõi', 'Người theo dõi mới', 'Cập nhật lúc']);
+  var dau = st.getRange(1, 1, 1, Math.max(st.getLastColumn(), 7)).getValues()[0].map(function (x) { return String(x).trim(); });
+  if (dau.indexOf('Nguồn') < 0) { st.getRange(1, dau.filter(String).length + 1).setValue('Nguồn'); dau = st.getRange(1, 1, 1, st.getLastColumn()).getValues()[0].map(String); }
+  var c = function (t) { return dau.indexOf(t); }, iNg = c('Nguồn');
+  var bang = st.getLastRow() > 1 ? st.getRange(2, 1, st.getLastRow() - 1, dau.length).getValues() : [];
+  var dong = {}; bang.forEach(function (r, i) { var n = laNgay_(r[0]) ? Utilities.formatDate(r[0], tz, 'yyyy-MM-dd') : String(r[0]).replace(/^'/, ''); dong[n] = i; });
+  var folTruoc = function (n) { var v = 0; bang.forEach(function (r) { var m = laNgay_(r[0]) ? Utilities.formatDate(r[0], tz, 'yyyy-MM-dd') : String(r[0]).replace(/^'/, ''); if (m < n && Number(r[c('Tổng người theo dõi')])) v = Number(r[c('Tổng người theo dõi')]); }); return v; };
+  ngays.forEach(function (n, k) {
+    var s0 = k ? chup[ngays[k - 1]] : null, s1 = chup[n], i = dong[n];
+    if (i == null) {
+      var r = dau.map(function () { return ''; });
+      r[0] = "'" + n; bang.push(r); i = bang.length - 1; dong[n] = i; r[iNg] = 'API';
+    }
+    var row = bang[i];
+    row[c('Tổng người theo dõi')] = s1.fol;
+    if (row[iNg] === 'API') {
+      var ft = folTruoc(n);
+      row[c('Người theo dõi mới')] = ft ? s1.fol - ft : '';
+      row[c('Lượt xem')] = s0 ? Math.max(0, s1.xem - s0.xem) : '';
+      row[c('Lượt thích')] = s0 ? Math.max(0, s1.thich - s0.thich) : '';
+    }
+    row[c('Cập nhật lúc')] = Utilities.formatDate(now, tz, 'dd/MM/yyyy HH:mm');
+  });
+  var khoa = function (v) { return laNgay_(v) ? Utilities.formatDate(v, tz, 'yyyy-MM-dd') : String(v).replace(/^'/, ''); };
+  bang.forEach(function (r) { r[0] = "'" + khoa(r[0]); });
+  bang.sort(function (a, b) { return a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0; });
+  if (bang.length) st.getRange(2, 1, bang.length, dau.length).setValues(bang);
+  p.setProperties({ tt_luc: now.toISOString(), tt_loi: '', tt_ten: u.username ? '@' + u.username : (u.display_name || ''),
+    tt_hien: JSON.stringify({ fol: u.follower_count || 0, thichTk: u.likes_count || 0, soVideo: u.video_count || vids.length, xem: tongXem, thich: tongThich }) });
+  return { ok: true, soVideo: vids.length, tongXem: tongXem, nguoiTheoDoi: u.follower_count || 0 };
+}

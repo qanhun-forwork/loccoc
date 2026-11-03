@@ -95,6 +95,12 @@ Lộc Cộc tại loccoc.com.vn. Không phục vụ mục đích thương mại:
 - Mạng xã hội (v4.4): tab "📘 Facebook", "📸 Instagram", "🎵 TikTok" (hiện), mỗi ngày 1 dòng, đọc THEO TÊN CỘT dòng 1
   (`MXH_COT` trong Code.gs). Claude chép số từ Meta Business Suite và TikTok Studio mỗi ngày 14:30 qua trình duyệt.
   Lệnh `mangXaHoi` (quyền xem) → trang quản trị: Lượt truy cập → tab "Mạng xã hội". Đổi tên cột thì sửa cả `MXH_COT`.
+- TikTok API (v4.5): app "Lộc Cộc Tracking" chế độ Sandbox (Login Kit; scope user.info.basic, user.info.stats, video.list;
+  @loccoc.com.vn là Target user; Redirect URI https://www.loccoc.com.vn/quantrivien/). Key/secret dán bằng menu Sheet
+  "Kết nối TikTok…" (Script Properties tt_key, tt_secret, tt_at, tt_rt…; KHÔNG để trong code/repo). Trang quản trị nhận
+  ?code=&state= → lệnh `ttKetNoi`; nút "Đồng bộ ngay" ở tab Mạng xã hội gọi `dongBoVercel` + `dongBoTikTok`.
+  Mỗi lần đồng bộ chụp số tổng vào tab "🎵 TikTok API" (ẩn), ghi lại "🎵 TikTok video", điền "🎵 TikTok" với cột Nguồn = API
+  (lượt xem theo ngày = chênh lệch tổng giữa các lần chụp). Dòng không có Nguồn (chép từ TikTok Studio) giữ nguyên số xem/thích.
 - Đếm lượt xem dùng `fetch` với `credentials:"omit"`, KHÔNG dùng sendBeacon (luôn kèm cookie Google → mất lượt).
 - Web: trang `#/tap-chi` và `#/tap-chi/<đường-dẫn>`; hàm `md()` định dạng nội dung bài có 2 bản giống hệt nhau
   (index.html và trang quản trị): sửa một chỗ thì sửa cả hai. Đếm lượt xem chỉ chạy trên tên miền loccoc.com.vn.

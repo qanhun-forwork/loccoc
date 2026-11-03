@@ -352,6 +352,7 @@ function vao(j){TOI=j;$("dn").classList.add("an");$("app").classList.remove("an"
  document.querySelectorAll(".sb [data-v]").forEach(function(b){b.classList.toggle("an",!duocXem(b.dataset.v))});
  // ẩn tên nhóm khi cả nhóm không còn mục nào được xem
  document.querySelectorAll(".sb-nhom").forEach(function(p){var c=p.nextElementSibling,co=false;while(c&&c.tagName==="BUTTON"){if(!c.classList.contains("an"))co=true;c=c.nextElementSibling}p.classList.toggle("an",!co)});
+ if(veTuTikTok())return;
  mo(location.hash.slice(1))}
 function thoat(){token="";DL=null;BAI=null;try{sessionStorage.removeItem("qt_tk")}catch(x){}$("app").classList.add("an");$("dn").classList.remove("an");$("dn-ten").focus()}
 $("dx").onclick=function(){goi("dangXuat").catch(function(){});thoat()};
@@ -645,7 +646,7 @@ function vMxVe(j,jt,k){
  var nd=$("xem-nd");if(!nd)return;
  var cuoi=MXH.map(function(p){return j[p[0]].cuoi?p[1]+" đến "+nhan(j[p[0]].cuoi):""}).filter(Boolean).join(" · ");
  var cn=MXH.map(function(p){return j[p[0]].capNhat}).filter(Boolean).sort().pop();
- $("xem-mo").textContent="Số liệu Facebook, Instagram (Meta Business Suite) và TikTok (TikTok Studio), chép về Google Sheet mỗi ngày lúc 14:30 và giữ lâu dài."+(cuoi?" Có số: "+cuoi+".":"")+(cn?" Cập nhật lần cuối: "+cn+".":"");
+ $("xem-mo").textContent="Số liệu Facebook, Instagram (Meta Business Suite) và TikTok lưu lâu dài trong Google Sheet. Vercel và TikTok đồng bộ bằng nút Đồng bộ ngay."+(cuoi?" Có số: "+cuoi+".":"")+(cn?" Cập nhật lần cuối: "+cn+".":"");
  if(!MXH.some(function(p){return j[p[0]].coTab})){nd.className="";nd.innerHTML='<section class="the"><h2>Chưa có dữ liệu mạng xã hội</h2><p>Chưa thấy tab 📘 Facebook, 📸 Instagram, 🎵 TikTok trong Google Sheet "LỘC CỘC - ĐƠN HÀNG".</p></section>';return}
  var dau=MXH.map(function(p){return j[p[0]].dauTien}).filter(Boolean).sort()[0];
  var tu=k.tu||dau||k.den,ns=cacNgay(tu,k.den);
@@ -658,7 +659,18 @@ function vMxVe(j,jt,k){
    '<tr><td>Người theo dõi mới</td><td class="so-p">'+so(moi)+'</td></tr>'+(a==="tt"?'<tr><td>Tổng người theo dõi</td><td class="so-p">'+so(ttTong(j))+'</td></tr>':"")+'</tbody></table></section>'};
  var bang=ns.slice().reverse().filter(function(n){return MXH.some(function(p){return j[p[0]].ngay[n]})}).map(function(n){
   return '<tr><td>'+nhan(n)+'/'+n.slice(0,4)+'</td>'+MXH.map(function(p){var a=p[0],o=j[a].ngay[n];return o?'<td class="so-p">'+so(o.xem)+'</td><td class="so-p">'+so(o.tt)+'</td><td class="so-p">'+so(o.moi)+'</td>':'<td class="so-p mo">–</td><td class="so-p mo">–</td><td class="so-p mo">–</td>'}).join("")+'</tr>'}).join("");
- nd.className="the-luoi";nd.innerHTML=MXH.map(the).join("")+
+ var A=j.ttApi||{},H=A.hienTai,VC=j.vc||{},laChinh=TOI.vaiTro==="chinh";
+ var dongBo='<section class="the w6" data-k="mdb"><h2>Đồng bộ Vercel &amp; TikTok</h2>'+
+  '<table class="bg"><tbody><tr><td>Vercel</td><td>'+(VC.coKetNoi?(VC.loi?'<span style="color:var(--red)">Lỗi: '+esc(VC.loi)+'</span>':"Lần cuối: "+esc(gioVN(VC.luc)||"chưa có")):"Chưa kết nối")+'</td></tr>'+
+  '<tr><td>TikTok</td><td>'+(A.daKetNoi?(A.loi?'<span style="color:var(--red)">Lỗi: '+esc(A.loi)+'</span>':esc(A.ten||"")+" · lần cuối: "+esc(gioVN(A.luc)||"chưa có")):A.coKey?"Chưa đăng nhập TikTok":"Chưa có key (menu Sheet: Lộc Cộc → Kết nối TikTok…)")+'</td></tr></tbody></table>'+
+  '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px"><button class="btn nh" type="button" id="mx-db">Đồng bộ ngay</button>'+
+  (laChinh&&A.coKey?'<button class="btn" type="button" id="mx-kn">'+(A.daKetNoi?"Kết nối lại TikTok":"Kết nối TikTok")+'</button>':"")+'</div>'+
+  '<div class="ph" style="margin-top:10px">TikTok API cho số tổng hiện tại; lượt xem theo ngày = chênh lệch giữa các lần đồng bộ (số đến 01/11 chép từ TikTok Studio).</div></section>'+
+  '<section class="the w6" data-k="mtthn"><h2>TikTok hiện tại</h2>'+(H?'<table class="bg"><tbody><tr><td>Người theo dõi</td><td class="so-p">'+so(H.fol)+'</td></tr><tr><td>Lượt thích tài khoản</td><td class="so-p">'+so(H.thichTk)+'</td></tr><tr><td>Số video</td><td class="so-p">'+so(H.soVideo)+'</td></tr><tr><td>Tổng lượt xem các video</td><td class="so-p">'+so(H.xem)+'</td></tr></tbody></table>':'<p class="trong">Chưa đồng bộ TikTok lần nào.</p>')+'</section>';
+ var vids=(A.video||[]).slice().sort(function(a,b){return b.xem-a.xem}).slice(0,10);
+ var bangVid=vids.length?'<section class="the" data-k="mvid"><h2>Video TikTok nhiều lượt xem nhất</h2><div class="bc"><table class="bg"><thead><tr><th>Video</th><th>Ngày đăng</th><th class="so-p">Lượt xem</th><th class="so-p">Thích</th><th class="so-p">Bình luận</th><th class="so-p">Chia sẻ</th></tr></thead><tbody>'+
+  vids.map(function(v){return '<tr><td>'+(/^https:\/\/www\.tiktok\.com\//.test(v.link)?'<a href="'+esc(v.link)+'" target="_blank" rel="noopener">'+esc(v.tieuDe||"(không tiêu đề)")+'</a>':esc(v.tieuDe||"(không tiêu đề)"))+'</td><td>'+(v.ngay?nhan(v.ngay)+"/"+v.ngay.slice(0,4):"")+'</td><td class="so-p">'+so(v.xem)+'</td><td class="so-p">'+so(v.thich)+'</td><td class="so-p">'+so(v.binhLuan)+'</td><td class="so-p">'+so(v.chiaSe)+'</td></tr>'}).join("")+'</tbody></table></div></section>':"";
+ nd.className="the-luoi";nd.innerHTML=dongBo+MXH.map(the).join("")+
   '<section class="the" data-k="mbd"><h2>Lượt xem theo ngày</h2><div class="bd cao"><canvas id="c-mx"></canvas></div></section>'+
   '<section class="the w6" data-k="mtac"><h2>Tương tác / lượt thích theo ngày</h2><div class="bd"><canvas id="c-mtt"></canvas></div></section>'+
   '<section class="the w6" data-k="mmoi"><h2>Người theo dõi mới theo ngày</h2><div class="bd"><canvas id="c-mmoi"></canvas></div></section>'+
@@ -666,7 +678,18 @@ function vMxVe(j,jt,k){
  var cs=function(f){return MXH.map(function(p){return [p[1],ns.map(function(n){return g(j,p[0],n,f)})]})};
  nangThe(nd,{mfb:ns.map(function(n){return g(j,"fb",n,"xem")}),mig:ns.map(function(n){return g(j,"ig",n,"xem")}),mtt:ns.map(function(n){return g(j,"tt",n,"xem")})});
  ve("c-mx",duong(ns.map(nhan),cs("xem")));ve("c-mtt",duong(ns.map(nhan),cs("tt")));ve("c-mmoi",duong(ns.map(nhan),cs("moi")));
+ nd.insertAdjacentHTML("beforeend",bangVid);
+ $("mx-db").onclick=function(e){var b=e.target;b.disabled=true;b.textContent="Đang đồng bộ…";
+  var vi=function(h){return goi(h).then(function(){return h==="dongBoVercel"?"Vercel ✓":"TikTok ✓"},function(er){return (h==="dongBoVercel"?"Vercel: ":"TikTok: ")+er.message})};
+  Promise.all([VC.coKetNoi?vi("dongBoVercel"):"Vercel: chưa kết nối",A.daKetNoi?vi("dongBoTikTok"):"TikTok: chưa kết nối"]).then(function(kq){tb(kq.join(" · "));vXemTai()})};
+ if($("mx-kn"))$("mx-kn").onclick=function(e){e.target.disabled=true;goi("ttUrl",{quayVe:TT_QUAY_VE}).then(function(j){location.href=j.url}).catch(function(er){tb(er.message);e.target.disabled=false})};
  nutBoCuc(boCuc("mxh",nd))}
+/* TikTok quay về /quantrivien/?code=…&state=… sau khi đăng nhập: gửi code cho Apps Script đổi lấy token */
+var TT_QUAY_VE="https://www.loccoc.com.vn/quantrivien/";
+function veTuTikTok(){var q=new URLSearchParams(location.search);if(!q.get("state")||!(q.get("code")||q.get("error")))return false;
+ history.replaceState(null,"",location.pathname+"#xem");NGX="mx";mo("xem");
+ if(q.get("error")){tb("TikTok: "+(q.get("error_description")||q.get("error")));return true}
+ tb("Đang kết nối TikTok…");goi("ttKetNoi",{code:q.get("code"),state:q.get("state"),quayVe:TT_QUAY_VE}).then(function(j){tb("Đã kết nối TikTok "+(j.ten||""));vXemTai()}).catch(function(er){tb(er.message)});return true}
 function bangVc(ds,ten,tong){if(!ds.length)return '<p class="trong">Chưa có dữ liệu trong khoảng này.</p>';
  return '<table class="bg"><thead><tr><th>'+ten+'</th><th class="so-p">Lượt xem</th><th class="so-p">Khách</th><th class="so-p">Tỉ trọng</th></tr></thead><tbody>'+ds.map(function(x){return '<tr><td>'+esc(x[0])+'</td><td class="so-p">'+so(x[1])+'</td><td class="so-p">'+so(x[2])+'</td><td class="so-p">'+(tong?pt(x[1]/tong):"–")+'</td></tr>'}).join("")+'</tbody></table>'}
 function bangXep(ds,ten,tong,fn){if(!ds.length)return '<p class="trong">Chưa có dữ liệu trong khoảng này.</p>';
