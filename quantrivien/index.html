@@ -749,8 +749,8 @@ function vVcVe(j,jt,k){
    Dữ liệu: tab "📘 Facebook", "📸 Instagram", "🎵 TikTok" (lệnh mangXaHoi). Mỗi ngày 1 dòng. */
 var MAU_GOC=MAU.slice();
 var NT={
- fb:{ten:"Facebook",nguon:"Meta Business Suite",mau:["#1877F2","#0A3D91","#6FA8FF","#42B72A","#F7B928","#7B8BA6"]},
- ig:{ten:"Instagram",nguon:"Meta Business Suite",mau:["#DD2A7B","#8134AF","#F58529","#515BD4","#FEDA77","#B2486F"]},
+ fb:{ten:"Facebook",nguon:"Meta (Business Suite và Graph API)",mau:["#1877F2","#0A3D91","#6FA8FF","#42B72A","#F7B928","#7B8BA6"]},
+ ig:{ten:"Instagram",nguon:"Meta (Business Suite và Graph API)",mau:["#DD2A7B","#8134AF","#F58529","#515BD4","#FEDA77","#B2486F"]},
  tt:{ten:"TikTok",nguon:"TikTok Studio và TikTok API",mau:["#FE2C55","#25F4EE","#F5F5F7","#8E8E9A","#FF8FA6","#7CF9F5"]}};
 // đổi màu toàn trang theo nền tảng đang xem (vào trang khác thì trả về màu Lộc Cộc)
 function datNen(v){var b=document.body;["nt","nt-fb","nt-ig","nt-tt"].forEach(function(c){b.classList.remove(c)});
@@ -809,6 +809,12 @@ function vMxVe(p,j,jt,k){
    '<div class="hang-nut"><button class="btn nh" type="button" id="mx-db">Đồng bộ ngay</button>'+(laChinh&&A.coKey?'<button class="btn ph nh" type="button" id="mx-kn">'+(A.daKetNoi?"Kết nối lại TikTok":"Kết nối TikTok")+'</button>':"")+'</div>'+
    '<div class="ph">Số từ 26/09 đến 01/11 chép từ TikTok Studio. Sau đó, lượt xem theo ngày là chênh lệch tổng giữa các lần đồng bộ.</div></section>'+
    '<section class="the w6" data-k="mxht"><h2>Tài khoản lúc này</h2>'+(H2?'<div class="luoi-nho"><div><b>'+so(H2.fol)+'</b><span>Người theo dõi</span></div><div><b>'+so(H2.thichTk)+'</b><span>Lượt thích tài khoản</span></div><div><b>'+so(H2.soVideo)+'</b><span>Video</span></div><div><b>'+so(H2.xem)+'</b><span>Tổng lượt xem video</span></div></div>':'<p class="trong">Chưa đồng bộ TikTok lần nào.</p>')+'</section>'+h}
+ // Facebook / Instagram: đồng bộ qua Meta Graph API
+ if(p!=="tt"){var M=j.meta||{};
+  h='<section class="the" data-k="mxdb"><h2>Đồng bộ Meta</h2><table class="bg"><tbody><tr><td>Kết nối</td><td>'+(M.coKetNoi?esc(M.trang||"Fanpage")+(M.ig?" · "+esc(M.ig):""):"Chưa kết nối (Sheet → Lộc Cộc → Kết nối Meta…)")+'</td></tr>'+
+   '<tr><td>Lần cuối</td><td>'+(M.loi?'<span class="chu-loi">Lỗi: '+esc(M.loi)+'</span>':esc(gioVN(M.luc)||"chưa có")+" · tự đồng bộ mỗi ngày lúc 4:00")+'</td></tr>'+
+   (M.canhBao?'<tr><td>API không trả</td><td>'+esc(M.canhBao)+' (giữ số cũ)</td></tr>':"")+'</tbody></table>'+
+   '<div class="hang-nut"><button class="btn nh" type="button" id="mx-db"'+(M.coKetNoi?"":" disabled")+'>Đồng bộ ngay</button></div></section>'+h}
  // Instagram: quảng cáo (tab "📣 Quảng cáo IG", nhập tay từ app Instagram)
  if(p==="ig"&&(j.qcIg||[]).length){var Q=j.qcIg,sum=function(f){return Q.reduce(function(s,x){return s+(x[f]||0)},0)},co=function(f){return Q.some(function(x){return x[f]!=null&&x[f]!==0})};
   var chi=sum("chi"),ht=sum("ht"),xq=sum("xem"),clk=sum("clk"),moiQ=sum("moi"),mau=co("ht")?ht:xq;
@@ -851,6 +857,7 @@ function vMxVe(p,j,jt,k){
   options:{plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return " "+c.parsed.y+"%"}}}},scales:pct}});
  if($("mx-db"))$("mx-db").onclick=function(e){var b=e.target;b.disabled=true;b.textContent="Đang đồng bộ…";
   var vi=function(h,ten){return goi(h).then(function(){return ten+" ✓"},function(er){return ten+": "+er.message})};
+  if(p!=="tt")return vi("dongBoMeta","Meta").then(function(kq){tb(kq);vMxTai(p)});
   Promise.all([A.daKetNoi?vi("dongBoTikTok","TikTok"):"TikTok: chưa kết nối",VC.coKetNoi?vi("dongBoVercel","Vercel"):"Vercel: chưa kết nối"]).then(function(kq){tb(kq.join(" · "));vMxTai(p)})};
  if($("mx-kn"))$("mx-kn").onclick=function(e){e.target.disabled=true;goi("ttUrl",{quayVe:TT_QUAY_VE}).then(function(j){location.href=j.url}).catch(function(er){tb(er.message);e.target.disabled=false})};
  nutBoCuc(boCuc("mx-"+p,nd))}

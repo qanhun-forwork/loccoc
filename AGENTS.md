@@ -109,6 +109,11 @@ Lộc Cộc tại loccoc.com.vn. Không phục vụ mục đích thương mại:
 - v4.7: tab "📣 Quảng cáo IG" (nhập tay từ app Instagram, đọc theo tên cột) → khối Quảng cáo ở trang Instagram
   (CTR = click liên kết ÷ lượt hiển thị, chưa có hiển thị thì ÷ lượt xem từ quảng cáo; CPC, CPM cần số tiền đã chi).
   TikTok: trigger `dongBoTikTok` mỗi ngày ~23:15–23:45, tự tạo khi bấm Kết nối TikTok thành công.
+- Meta Graph API (v4.8): app "Lộc Cộc Tracking" (Development). Page Access Token không hết hạn dán bằng menu Sheet
+  "Kết nối Meta…" (Script Properties mt_token, mt_page, mt_ig…; KHÔNG để trong code/repo). `dongBoMeta_` ghi lại N ngày gần nhất
+  vào tab FB/IG theo tên cột (`MT_FB`, `MT_IG_CHUOI`, `MT_IG_TONG` thử lần lượt tên chỉ số mới → cũ; chỉ số API không trả
+  thì giữ số cũ, ghi vào mt_canh). Ngày theo giờ Thái Bình Dương như Meta Business Suite. Trigger `dongBoMeta` mỗi ngày 4h.
+  FB "Lượt click liên kết" không có qua API Trang: giữ số chép tay.
 - Đếm lượt xem dùng `fetch` với `credentials:"omit"`, KHÔNG dùng sendBeacon (luôn kèm cookie Google → mất lượt).
 - Web: trang `#/tap-chi` và `#/tap-chi/<đường-dẫn>`; hàm `md()` định dạng nội dung bài có 2 bản giống hệt nhau
   (index.html và trang quản trị): sửa một chỗ thì sửa cả hai. Đếm lượt xem chỉ chạy trên tên miền loccoc.com.vn.

@@ -23,7 +23,7 @@
  * ───────────────────────────────────────────────────────────────────────────
  */
 
-var PHIEN_BAN = '4.7';
+var PHIEN_BAN = '4.8';
 var TEN_GUI = 'Lộc Cộc';            // tên người gửi trong email
 var GIA_BASIC = 350000;             // giá dòng Basic (tính lại ở máy chủ, không tin giá từ trình duyệt)
 var GIOI_HAN_MOI_GIO = 3;           // tối đa email gửi tới cùng 1 địa chỉ trong 1 giờ
@@ -294,6 +294,7 @@ function onOpen() {
     .addItem('Đặt tài khoản quản trị…', 'datTaiKhoanQuanTri')
     .addItem('Kết nối Vercel Analytics…', 'ketNoiVercel')
     .addItem('Kết nối TikTok…', 'ketNoiTikTok')
+    .addItem('Kết nối Meta (Facebook + Instagram)…', 'ketNoiMeta')
     .addSeparator()
     .addItem('Xoá hết dữ liệu và cài đặt lại…', 'xoaHetVaCaiDatLai')
     .addToUi();
@@ -861,7 +862,7 @@ function ghiNK_(ten, vaiTro, hanhDong, chiTiet) {
 
 // lệnh → quyền cần có (admin chính có tất cả; "chinh" = chỉ admin chính)
 var LENH = { tongQuan: ['ban', 'don'], suaDong: ['don'], dsBai: ['bai'], luuBai: ['bai'], xoaBai: ['bai'], luotXem: ['xem'],
-  vercel: ['xem'], dongBoVercel: ['xem'], mangXaHoi: ['xem'], dongBoTikTok: ['xem'], ttUrl: 'chinh', ttKetNoi: 'chinh',
+  vercel: ['xem'], dongBoVercel: ['xem'], mangXaHoi: ['xem'], dongBoTikTok: ['xem'], dongBoMeta: ['xem'], ttUrl: 'chinh', ttKetNoi: 'chinh',
   dsTaiKhoan: 'chinh', taoTaiKhoan: 'chinh', suaTaiKhoan: 'chinh', xoaTaiKhoan: 'chinh', nhatKy: 'chinh' };
 
 function quanTri_(d) {
@@ -892,6 +893,7 @@ function quanTri_(d) {
       case 'vercel': return thongKeVercel_(d.tu, d.den);
       case 'mangXaHoi': return thongKeMXH_(d.tu, d.den);
       case 'dongBoTikTok': return coKhoa_(function () { var r = dongBoTikTok_(); if (r.ok) nk('Đồng bộ TikTok', r.soVideo + ' video'); return r; });
+      case 'dongBoMeta': return coKhoa_(function () { var r = dongBoMeta_(10); if (r.ok) nk('Đồng bộ Meta', r.soNgay + ' ngày'); return r; });
       case 'ttUrl': return ttUrl_(d.quayVe);
       case 'ttKetNoi': return coKhoa_(function () { var r = ttKetNoi_(d.code, d.state, d.quayVe); if (r.ok) nk('Kết nối TikTok', r.ten || ''); return r; });
       case 'dongBoVercel': return coKhoa_(function () { var r = dongBoVercel_(31); if (r.ok) nk('Đồng bộ Vercel', r.soNgay + ' ngày'); return r; });
@@ -1265,7 +1267,8 @@ function thongKeMXH_(tu, den) {
     });
   }
   return { ok: true, qcIg: qc, fb: doc(TAB.FB, MXH_COT.fb), ig: doc(TAB.IG, MXH_COT.ig), tt: doc(TAB.TT, MXH_COT.tt), ttApi: api,
-    vc: { coKetNoi: !!pp.vc_token, luc: pp.vc_luc || '', loi: pp.vc_loi || '' } };
+    vc: { coKetNoi: !!pp.vc_token, luc: pp.vc_luc || '', loi: pp.vc_loi || '' },
+    meta: { coKetNoi: !!pp.mt_token, luc: pp.mt_luc || '', loi: pp.mt_loi || '', canhBao: pp.mt_canh || '', trang: pp.mt_ten || '', ig: pp.mt_ig_ten || '' } };
 }
 
 function laNgay_(v) { return Object.prototype.toString.call(v) === '[object Date]' && !isNaN(v); }
@@ -1425,4 +1428,139 @@ function dongBoTikTok_() {
   p.setProperties({ tt_luc: now.toISOString(), tt_loi: '', tt_ten: u.username ? '@' + u.username : (u.display_name || ''),
     tt_hien: JSON.stringify({ fol: u.follower_count || 0, thichTk: u.likes_count || 0, soVideo: u.video_count || vids.length, xem: tongXem, thich: tongThich, bl: tongBL, cs: tongCS }) });
   return { ok: true, soVideo: vids.length, tongXem: tongXem, nguoiTheoDoi: u.follower_count || 0 };
+}
+
+/* ═══════════ META GRAPH API (v4.8): Facebook Page + Instagram ═══════════
+ * App "Lộc Cộc Tracking" (developers.facebook.com, chế độ Development). Page Access Token không hết hạn dán bằng menu
+ * Lộc Cộc → Kết nối Meta… (Script Properties mt_token; KHÔNG để trong code/repo). Script tự tìm Page ID + Instagram ID.
+ * Mỗi lần đồng bộ ghi lại N ngày gần nhất vào "📘 Facebook" / "📸 Instagram" THEO TÊN CỘT; chỉ số nào API không trả
+ * (Meta bỏ dần chỉ số cũ) thì giữ nguyên số đang có và ghi vào cảnh báo. Ngày theo giờ Thái Bình Dương (giống Meta Business Suite).
+ */
+var MT_API = 'https://graph.facebook.com/v23.0/';
+var MT_TZ = 'America/Los_Angeles';
+// cột trong Sheet → danh sách tên chỉ số thử lần lượt (tên mới trước, tên cũ sau)
+var MT_FB = { 'Lượt xem': ['page_media_view', 'page_impressions'], 'Người xem': ['page_total_media_view_unique', 'page_impressions_unique'],
+  'Tương tác': ['page_post_engagements'], 'Lượt truy cập trang': ['page_views_total'], 'Người theo dõi mới': ['page_daily_follows_unique', 'page_fan_adds_unique'] };
+var MT_IG_CHUOI = { 'Số người tiếp cận': 'reach', 'Người theo dõi mới': 'follower_count' };   // trả theo từng ngày
+var MT_IG_TONG = { 'Lượt xem': ['views'], 'Tương tác': ['total_interactions'], 'Lượt truy cập trang cá nhân': ['profile_views'],
+  'Lượt click liên kết': ['profile_links_taps', 'website_clicks'] };                         // phải hỏi từng ngày (total_value)
+
+function ketNoiMeta() {
+  var ui = SpreadsheetApp.getUi(), p = PropertiesService.getScriptProperties();
+  var a = ui.prompt('Kết nối Meta', 'Dán Page Access Token của Fanpage Lộc Cộc (lấy ở Graph API Explorer: me/accounts → access_token).\nMã chỉ lưu trong Script Properties của file này.', ui.ButtonSet.OK_CANCEL);
+  if (a.getSelectedButton() !== ui.Button.OK || !a.getResponseText().trim()) return;
+  p.setProperty('mt_token', a.getResponseText().trim());
+  try {
+    var pg = mtGoi_('me', { fields: 'id,name,instagram_business_account{id,username}' });
+    var ig = pg.instagram_business_account || {};
+    p.setProperties({ mt_page: pg.id, mt_ten: pg.name || '', mt_ig: ig.id || '', mt_ig_ten: ig.username ? '@' + ig.username : '' });
+  } catch (err) { p.deleteProperty('mt_token'); ui.alert('Token không dùng được:\n' + (err.message || err)); return; }
+  var r = dongBoMeta_(10);
+  ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getHandlerFunction() === 'dongBoMeta') ScriptApp.deleteTrigger(t); });
+  ScriptApp.newTrigger('dongBoMeta').timeBased().everyDays(1).atHour(4).create();
+  ghiNK_(p.getProperty('qt_ten') || 'chủ Sheet', 'chinh', 'Kết nối Meta', p.getProperty('mt_ten') + ' ' + p.getProperty('mt_ig_ten'));
+  ui.alert('Đã kết nối ' + p.getProperty('mt_ten') + (p.getProperty('mt_ig_ten') ? ' và ' + p.getProperty('mt_ig_ten') : ' (CHƯA thấy Instagram liên kết với Trang)') +
+    '.\n' + (r.ok ? 'Đã chép ' + r.soNgay + ' ngày gần nhất.' : 'Lỗi khi chép số: ' + r.loi) + (r.canhBao ? '\nChỉ số API không trả: ' + r.canhBao : '') +
+    '\nTừ giờ Sheet tự đồng bộ mỗi ngày lúc 4 giờ sáng.');
+}
+
+function dongBoMeta() {
+  var k = LockService.getScriptLock(); if (!k.tryLock(30000)) return;
+  try { var r = dongBoMeta_(7); if (!r.ok) console.error(r.loi); } finally { k.releaseLock(); }
+}
+
+function mtGoi_(path, q) {
+  var tk = PropertiesService.getScriptProperties().getProperty('mt_token');
+  if (!tk) throw new Error('Chưa kết nối Meta. Mở Google Sheet → menu Lộc Cộc → Kết nối Meta…');
+  var qs = Object.keys(q || {}).map(function (k) { return k + '=' + encodeURIComponent(q[k]); }).concat(['access_token=' + encodeURIComponent(tk)]).join('&');
+  var res = UrlFetchApp.fetch(MT_API + path + '?' + qs, { muteHttpExceptions: true }), j = {};
+  try { j = JSON.parse(res.getContentText()); } catch (e) {}
+  if (j.error) throw new Error('Meta: ' + (j.error.message || j.error.type) + (j.error.code === 190 ? ' (token hết hạn hoặc bị thu hồi, hãy Kết nối Meta lại)' : ''));
+  if (res.getResponseCode() !== 200) throw new Error('Meta trả lỗi ' + res.getResponseCode());
+  return j;
+}
+
+function mtNgay_(soNgay) {   // các ngày (theo giờ Thái Bình Dương) từ hôm qua lùi về
+  var ds = [], hn = Utilities.formatDate(new Date(), MT_TZ, 'yyyy-MM-dd');
+  for (var i = soNgay; i >= 1; i--) {
+    var d = new Date(hn + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() - i);
+    ds.push(Utilities.formatDate(d, 'UTC', 'yyyy-MM-dd'));
+  }
+  return ds;
+}
+function mtGiay_(n) { // nửa đêm ngày n giờ Thái Bình Dương → giây Unix
+  var d = new Date(n + 'T00:00:00Z'), lech = Number(Utilities.formatDate(d, MT_TZ, 'Z').replace(/^([+-])(\d\d)(\d\d)$/, function (_, s, h, m) { return (s === '-' ? -1 : 1) * (h * 60 + +m); }));
+  return Math.floor(d.getTime() / 1000) - lech * 60;
+}
+function mtNgayCua_(endTime) { return Utilities.formatDate(new Date(new Date(endTime).getTime() - 1000), MT_TZ, 'yyyy-MM-dd'); }
+
+function dongBoMeta_(soNgay) {
+  var p = PropertiesService.getScriptProperties(), pp = p.getProperties();
+  if (!pp.mt_token) return { ok: false, loi: 'Chưa kết nối Meta. Mở Google Sheet → menu Lộc Cộc → Kết nối Meta…' };
+  var ds = mtNgay_(soNgay), tu = mtGiay_(ds[0]), den = mtGiay_(ds[ds.length - 1]) + 86400, thieu = [];
+  var fb = {}, ig = {};
+  ds.forEach(function (n) { fb[n] = {}; ig[n] = {}; });
+  try {
+    // Facebook: mỗi cột thử từng tên chỉ số, period=day trả số theo ngày
+    Object.keys(MT_FB).forEach(function (cot) {
+      var xong = MT_FB[cot].some(function (m) {
+        try {
+          var j = mtGoi_(pp.mt_page + '/insights', { metric: m, period: 'day', since: tu, until: den });
+          var v = ((j.data || [])[0] || {}).values || [];
+          v.forEach(function (x) { var n = mtNgayCua_(x.end_time); if (fb[n]) fb[n][cot] = Number(x.value) || 0; });
+          return true;
+        } catch (e) { if (/token/.test(e.message)) throw e; return false; }
+      });
+      if (!xong) thieu.push('FB ' + cot);
+    });
+    if (pp.mt_ig) {
+      Object.keys(MT_IG_CHUOI).forEach(function (cot) {
+        try {
+          var j = mtGoi_(pp.mt_ig + '/insights', { metric: MT_IG_CHUOI[cot], period: 'day', since: tu, until: den });
+          (((j.data || [])[0] || {}).values || []).forEach(function (x) { var n = mtNgayCua_(x.end_time); if (ig[n]) ig[n][cot] = Number(x.value) || 0; });
+        } catch (e) { if (/token/.test(e.message)) throw e; thieu.push('IG ' + cot); }
+      });
+      Object.keys(MT_IG_TONG).forEach(function (cot) {
+        var xong = MT_IG_TONG[cot].some(function (m) {
+          try {
+            ds.forEach(function (n) {
+              var a = mtGiay_(n), j = mtGoi_(pp.mt_ig + '/insights', { metric: m, period: 'day', metric_type: 'total_value', since: a, until: a + 86400 });
+              ig[n][cot] = Number((((j.data || [])[0] || {}).total_value || {}).value) || 0;
+            });
+            return true;
+          } catch (e) { if (/token/.test(e.message)) throw e; return false; }
+        });
+        if (!xong) thieu.push('IG ' + cot);
+      });
+    }
+  } catch (err) {
+    p.setProperty('mt_loi', String(err.message || err).slice(0, 300));
+    return { ok: false, loi: String(err.message || err) };
+  }
+  ghiTheoNgay_(TAB.FB, fb);
+  if (pp.mt_ig) ghiTheoNgay_(TAB.IG, ig);
+  p.setProperties({ mt_luc: new Date().toISOString(), mt_loi: '', mt_canh: thieu.join(', ') });
+  return { ok: true, soNgay: ds.length, canhBao: thieu.join(', ') };
+}
+
+// ghi số theo ngày vào tab (đọc theo tên cột dòng 1); chỉ thay các cột có trong dữ liệu mới, giữ nguyên cột khác
+function ghiTheoNgay_(ten, duLieu) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet(), tz = ss.getSpreadsheetTimeZone(), sh = ss.getSheetByName(ten);
+  if (!sh || sh.getLastRow() < 1) return;
+  var dau = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0].map(function (x) { return String(x).trim(); });
+  var iCn = dau.indexOf('Cập nhật lúc');
+  var khoa = function (v) { return laNgay_(v) ? Utilities.formatDate(v, tz, 'yyyy-MM-dd') : String(v).replace(/^'/, '').trim(); };
+  var bang = sh.getLastRow() > 1 ? sh.getRange(2, 1, sh.getLastRow() - 1, dau.length).getValues().filter(function (r) { return /^\d{4}-\d{2}-\d{2}$/.test(khoa(r[0])); }) : [];
+  var vt = {}; bang.forEach(function (r, i) { vt[khoa(r[0])] = i; });
+  var luc = Utilities.formatDate(new Date(), tz, 'dd/MM/yyyy HH:mm');
+  Object.keys(duLieu).forEach(function (n) {
+    var o = duLieu[n]; if (!Object.keys(o).length) return;
+    if (vt[n] == null) { var moi = dau.map(function () { return ''; }); moi[0] = n; bang.push(moi); vt[n] = bang.length - 1; }
+    var r = bang[vt[n]];
+    Object.keys(o).forEach(function (c) { var i = dau.indexOf(c); if (i > -1) r[i] = o[c]; });
+    if (iCn > -1) r[iCn] = luc;
+  });
+  bang.forEach(function (r) { r[0] = "'" + khoa(r[0]); });
+  bang.sort(function (a, b) { return a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0; });
+  if (bang.length) sh.getRange(2, 1, bang.length, dau.length).setValues(bang);
 }
