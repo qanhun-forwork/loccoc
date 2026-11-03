@@ -23,7 +23,7 @@
  * ───────────────────────────────────────────────────────────────────────────
  */
 
-var PHIEN_BAN = '4.8.2';
+var PHIEN_BAN = '4.8.3';
 var TEN_GUI = 'Lộc Cộc';            // tên người gửi trong email
 var GIA_BASIC = 350000;             // giá dòng Basic (tính lại ở máy chủ, không tin giá từ trình duyệt)
 var GIOI_HAN_MOI_GIO = 3;           // tối đa email gửi tới cùng 1 địa chỉ trong 1 giờ
@@ -1464,6 +1464,7 @@ function ketNoiMeta() {
       pg = mtGoi_('me', { fields: 'id,name,instagram_business_account{id,username}' });
     }
     var ig = pg.instagram_business_account || {};
+    if (!ig.id) { try { ig = mtGoi_(pg.id, { fields: 'instagram_business_account{id,username}' }).instagram_business_account || {}; } catch (e) {} }
     p.setProperties({ mt_page: pg.id, mt_ten: pg.name || '', mt_ig: ig.id || '', mt_ig_ten: ig.username ? '@' + ig.username : '' });
   } catch (err) { p.deleteProperty('mt_token'); ui.alert('Token không dùng được (Apps Script ' + PHIEN_BAN + '):\n' + (err.message || err)); return; }
   var r = dongBoMeta_(10);
@@ -1471,7 +1472,7 @@ function ketNoiMeta() {
   ScriptApp.newTrigger('dongBoMeta').timeBased().everyDays(1).atHour(4).create();
   ghiNK_(p.getProperty('qt_ten') || 'chủ Sheet', 'chinh', 'Kết nối Meta', p.getProperty('mt_ten') + ' ' + p.getProperty('mt_ig_ten'));
   ui.alert('Đã kết nối ' + p.getProperty('mt_ten') + (p.getProperty('mt_ig_ten') ? ' và ' + p.getProperty('mt_ig_ten') : ' (CHƯA thấy Instagram liên kết với Trang)') +
-    '.\n' + (r.ok ? 'Đã chép ' + r.soNgay + ' ngày gần nhất.' : 'Lỗi khi chép số: ' + r.loi) + (r.canhBao ? '\nChỉ số API không trả: ' + r.canhBao : '') +
+    '.\n' + (r.ok ? 'Đã chép ' + r.soNgay + ' ngày gần nhất.' : 'Lỗi khi chép số: ' + r.loi) + (r.canhBao ? '\nChỉ số API không trả: ' + r.canhBao : '') + (r.chiTiet ? '\n\nChi tiết:\n' + r.chiTiet : '') +
     '\nTừ giờ Sheet tự đồng bộ mỗi ngày lúc 4 giờ sáng.');
 }
 
@@ -1503,13 +1504,13 @@ function mtGiay_(n) { // nửa đêm ngày n giờ Thái Bình Dương → giây
   var d = new Date(n + 'T00:00:00Z'), lech = Number(Utilities.formatDate(d, MT_TZ, 'Z').replace(/^([+-])(\d\d)(\d\d)$/, function (_, s, h, m) { return (s === '-' ? -1 : 1) * (h * 60 + +m); }));
   return Math.floor(d.getTime() / 1000) - lech * 60;
 }
-function mtNgayCua_(endTime) { return Utilities.formatDate(new Date(new Date(endTime).getTime() - 1000), MT_TZ, 'yyyy-MM-dd'); }
+function mtNgayCua_(endTime) { var t = new Date(String(endTime).replace(/([+-]\d\d)(\d\d)$/, '$1:$2')).getTime(); return isNaN(t) ? '' : Utilities.formatDate(new Date(t - 1000), MT_TZ, 'yyyy-MM-dd'); }
 
 function dongBoMeta_(soNgay) {
   var p = PropertiesService.getScriptProperties(), pp = p.getProperties();
   if (!pp.mt_token) return { ok: false, loi: 'Chưa kết nối Meta. Mở Google Sheet → menu Lộc Cộc → Kết nối Meta…' };
   var ds = mtNgay_(soNgay), tu = mtGiay_(ds[0]), den = mtGiay_(ds[ds.length - 1]) + 86400, thieu = [];
-  var fb = {}, ig = {};
+  var fb = {}, ig = {}, chan = [];   // chan: nhật ký từng chỉ số (để kiểm tra khi API đổi tên)
   ds.forEach(function (n) { fb[n] = {}; ig[n] = {}; });
   try {
     // Facebook: mỗi cột thử từng tên chỉ số, period=day trả số theo ngày
@@ -1517,19 +1518,21 @@ function dongBoMeta_(soNgay) {
       var xong = MT_FB[cot].some(function (m) {
         try {
           var j = mtGoi_(pp.mt_page + '/insights', { metric: m, period: 'day', since: tu, until: den });
-          var v = ((j.data || [])[0] || {}).values || [];
-          v.forEach(function (x) { var n = mtNgayCua_(x.end_time); if (fb[n]) fb[n][cot] = Number(x.value) || 0; });
-          return true;
-        } catch (e) { if (/token/.test(e.message)) throw e; return false; }
+          var v = ((j.data || [])[0] || {}).values || [], dem = 0;
+          v.forEach(function (x) { var n = mtNgayCua_(x.end_time); if (fb[n]) { fb[n][cot] = Number(x.value) || 0; dem++; } });
+          chan.push('FB ' + m + ': ' + (dem ? dem + ' ngày' : 'rỗng (' + v.length + ' giá trị, ' + (v[0] ? v[0].end_time : '-') + ')'));
+          return dem > 0;
+        } catch (e) { if (/token/.test(e.message)) throw e; chan.push('FB ' + m + ': ' + String(e.message).slice(0, 90)); return false; }
       });
       if (!xong) thieu.push('FB ' + cot);
     });
     if (pp.mt_ig) {
       Object.keys(MT_IG_CHUOI).forEach(function (cot) {
         try {
-          var j = mtGoi_(pp.mt_ig + '/insights', { metric: MT_IG_CHUOI[cot], period: 'day', since: tu, until: den });
-          (((j.data || [])[0] || {}).values || []).forEach(function (x) { var n = mtNgayCua_(x.end_time); if (ig[n]) ig[n][cot] = Number(x.value) || 0; });
-        } catch (e) { if (/token/.test(e.message)) throw e; thieu.push('IG ' + cot); }
+          var j = mtGoi_(pp.mt_ig + '/insights', { metric: MT_IG_CHUOI[cot], period: 'day', since: tu, until: den }), dem = 0;
+          (((j.data || [])[0] || {}).values || []).forEach(function (x) { var n = mtNgayCua_(x.end_time); if (ig[n]) { ig[n][cot] = Number(x.value) || 0; dem++; } });
+          chan.push('IG ' + MT_IG_CHUOI[cot] + ': ' + dem + ' ngày'); if (!dem) thieu.push('IG ' + cot);
+        } catch (e) { if (/token/.test(e.message)) throw e; chan.push('IG ' + MT_IG_CHUOI[cot] + ': ' + String(e.message).slice(0, 90)); thieu.push('IG ' + cot); }
       });
       Object.keys(MT_IG_TONG).forEach(function (cot) {
         var xong = MT_IG_TONG[cot].some(function (m) {
@@ -1538,8 +1541,9 @@ function dongBoMeta_(soNgay) {
               var a = mtGiay_(n), j = mtGoi_(pp.mt_ig + '/insights', { metric: m, period: 'day', metric_type: 'total_value', since: a, until: a + 86400 });
               ig[n][cot] = Number((((j.data || [])[0] || {}).total_value || {}).value) || 0;
             });
+            chan.push('IG ' + m + ': ' + ds.length + ' ngày');
             return true;
-          } catch (e) { if (/token/.test(e.message)) throw e; return false; }
+          } catch (e) { if (/token/.test(e.message)) throw e; chan.push('IG ' + m + ': ' + String(e.message).slice(0, 90)); return false; }
         });
         if (!xong) thieu.push('IG ' + cot);
       });
@@ -1550,8 +1554,8 @@ function dongBoMeta_(soNgay) {
   }
   ghiTheoNgay_(TAB.FB, fb);
   if (pp.mt_ig) ghiTheoNgay_(TAB.IG, ig);
-  p.setProperties({ mt_luc: new Date().toISOString(), mt_loi: '', mt_canh: thieu.join(', ') });
-  return { ok: true, soNgay: ds.length, canhBao: thieu.join(', ') };
+  p.setProperties({ mt_luc: new Date().toISOString(), mt_loi: '', mt_canh: thieu.join(', '), mt_chan: chan.join('\n').slice(0, 8000) });
+  return { ok: true, soNgay: ds.length, canhBao: thieu.join(', '), chiTiet: chan.join('\n') };
 }
 
 // ghi số theo ngày vào tab (đọc theo tên cột dòng 1); chỉ thay các cột có trong dữ liệu mới, giữ nguyên cột khác
