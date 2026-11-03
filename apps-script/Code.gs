@@ -23,7 +23,7 @@
  * ───────────────────────────────────────────────────────────────────────────
  */
 
-var PHIEN_BAN = '4.8.3';
+var PHIEN_BAN = '4.8.4';
 var TEN_GUI = 'Lộc Cộc';            // tên người gửi trong email
 var GIA_BASIC = 350000;             // giá dòng Basic (tính lại ở máy chủ, không tin giá từ trình duyệt)
 var GIOI_HAN_MOI_GIO = 3;           // tối đa email gửi tới cùng 1 địa chỉ trong 1 giờ
@@ -1453,9 +1453,10 @@ function ketNoiMeta() {
   try {
     // nhận cả 2 loại token: token người dùng (me = người) → tự lấy Page Access Token của Fanpage qua me/accounts;
     // token Trang (me = Trang) → dùng luôn
-    var toi = mtGoi_('me', { fields: 'id,name,metadata{type}', metadata: 1 }), loai = ((toi.metadata || {}).type || '').toLowerCase(), pg;
-    if (loai === 'user') {
-      var ds = mtGoi_('me/accounts', { fields: 'id,name,access_token,instagram_business_account{id,username}' }).data || [];
+    // token Trang gọi me/accounts sẽ báo lỗi → dùng thẳng; token người dùng trả danh sách Trang (rỗng = chưa cấp quyền Trang)
+    var toi = mtGoi_('me', { fields: 'id,name' }), ds = null, pg;
+    try { ds = mtGoi_('me/accounts', { fields: 'id,name,access_token,instagram_business_account{id,username}' }).data || []; } catch (e) { if (/token/.test(e.message)) throw e; ds = null; }
+    if (ds) {
       if (!ds.length) throw new Error('Đây là token NGƯỜI DÙNG (' + toi.name + ') nhưng chưa được cấp quyền cho Fanpage nào. Ở Graph API Explorer bấm Generate Access Token lại, ' +
         'trong cửa sổ cấp quyền chọn "Chỉnh sửa quyền truy cập" và tick Fanpage Lộc Cộc + @loccoc.com.vn, có đủ quyền pages_show_list.');
       pg = ds.filter(function (x) { return /l[ộo]c\s*c[ộo]c/i.test(x.name || ''); })[0] || ds[0];
