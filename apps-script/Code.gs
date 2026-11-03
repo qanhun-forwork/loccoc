@@ -23,7 +23,7 @@
  * ───────────────────────────────────────────────────────────────────────────
  */
 
-var PHIEN_BAN = '4.8';
+var PHIEN_BAN = '4.8.1';
 var TEN_GUI = 'Lộc Cộc';            // tên người gửi trong email
 var GIA_BASIC = 350000;             // giá dòng Basic (tính lại ở máy chủ, không tin giá từ trình duyệt)
 var GIOI_HAN_MOI_GIO = 3;           // tối đa email gửi tới cùng 1 địa chỉ trong 1 giờ
@@ -1451,7 +1451,17 @@ function ketNoiMeta() {
   if (a.getSelectedButton() !== ui.Button.OK || !a.getResponseText().trim()) return;
   p.setProperty('mt_token', a.getResponseText().trim());
   try {
-    var pg = mtGoi_('me', { fields: 'id,name,instagram_business_account{id,username}' });
+    // nhận cả 2 loại token: token người dùng (me = người) → tự lấy Page Access Token của Fanpage qua me/accounts;
+    // token Trang (me = Trang) → dùng luôn
+    var ds = null;
+    try { ds = mtGoi_('me/accounts', { fields: 'id,name,access_token,instagram_business_account{id,username}' }).data || []; } catch (e) { ds = null; }
+    var pg;
+    if (ds && ds.length) {
+      pg = ds.filter(function (x) { return /l[ộo]c\s*c[ộo]c/i.test(x.name || ''); })[0] || ds[0];
+      p.setProperty('mt_token', pg.access_token);
+    } else {
+      pg = mtGoi_('me', { fields: 'id,name,instagram_business_account{id,username}' });
+    }
     var ig = pg.instagram_business_account || {};
     p.setProperties({ mt_page: pg.id, mt_ten: pg.name || '', mt_ig: ig.id || '', mt_ig_ten: ig.username ? '@' + ig.username : '' });
   } catch (err) { p.deleteProperty('mt_token'); ui.alert('Token không dùng được:\n' + (err.message || err)); return; }
