@@ -101,6 +101,11 @@ Lộc Cộc tại loccoc.com.vn. Không phục vụ mục đích thương mại:
   ?code=&state= → lệnh `ttKetNoi`; nút "Đồng bộ ngay" ở tab Mạng xã hội gọi `dongBoVercel` + `dongBoTikTok`.
   Mỗi lần đồng bộ chụp số tổng vào tab "🎵 TikTok API" (ẩn), ghi lại "🎵 TikTok video", điền "🎵 TikTok" với cột Nguồn = API
   (lượt xem theo ngày = chênh lệch tổng giữa các lần chụp). Dòng không có Nguồn (chép từ TikTok Studio) giữ nguyên số xem/thích.
+- Giao diện quản trị (v4.6): kính mờ (glass) toàn trang trên nền mảng màu loang `.nen-loang`; màu nhấn đọc từ biến CSS
+  (--ac, --ac-grad, --b1..3). Thanh bên: Website Analytics (Lượt truy cập) và Mạng xã hội (Facebook / Instagram / TikTok,
+  data-v fb/ig/tt, quyền xem). `datNen(v)` gắn lớp body nt-fb / nt-ig / nt-tt (TikTok nền tối) và đổi bảng màu biểu đồ `MAU`.
+  Chỉ số: FB/IG có ER = tương tác ÷ người xem (tiếp cận), CTR = click liên kết ÷ lượt xem, chuyển đổi follow = theo dõi mới ÷
+  lượt truy cập; TikTok có ER = (thích + bình luận + chia sẻ) ÷ lượt xem, tỉ lệ xem hồ sơ, chuyển đổi từ hồ sơ.
 - Đếm lượt xem dùng `fetch` với `credentials:"omit"`, KHÔNG dùng sendBeacon (luôn kèm cookie Google → mất lượt).
 - Web: trang `#/tap-chi` và `#/tap-chi/<đường-dẫn>`; hàm `md()` định dạng nội dung bài có 2 bản giống hệt nhau
   (index.html và trang quản trị): sửa một chỗ thì sửa cả hai. Đếm lượt xem chỉ chạy trên tên miền loccoc.com.vn.

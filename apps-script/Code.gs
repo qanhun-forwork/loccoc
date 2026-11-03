@@ -23,7 +23,7 @@
  * ───────────────────────────────────────────────────────────────────────────
  */
 
-var PHIEN_BAN = '4.5';
+var PHIEN_BAN = '4.6';
 var TEN_GUI = 'Lộc Cộc';            // tên người gửi trong email
 var GIA_BASIC = 350000;             // giá dòng Basic (tính lại ở máy chủ, không tin giá từ trình duyệt)
 var GIOI_HAN_MOI_GIO = 3;           // tối đa email gửi tới cùng 1 địa chỉ trong 1 giờ
@@ -1210,9 +1210,10 @@ function thongKeVercel_(tu, den) {
  * mỗi ngày lúc 14:30 (ghi số trọn ngày hôm qua, tự bù ngày còn thiếu). Đọc THEO TÊN CỘT ở dòng 1.
  */
 var MXH_COT = {
-  fb: [['xem', 'Lượt xem'], ['nguoi', 'Người xem'], ['tt', 'Tương tác'], ['moi', 'Người theo dõi mới']],
-  ig: [['xem', 'Lượt xem'], ['nguoi', 'Số người tiếp cận'], ['tt', 'Tương tác'], ['moi', 'Người theo dõi mới']],
-  tt: [['xem', 'Lượt xem'], ['tt', 'Lượt thích'], ['tong', 'Tổng người theo dõi'], ['moi', 'Người theo dõi mới']]
+  fb: [['xem', 'Lượt xem'], ['nguoi', 'Người xem'], ['tt', 'Tương tác'], ['clk', 'Lượt click liên kết'], ['tc', 'Lượt truy cập trang'], ['moi', 'Người theo dõi mới']],
+  ig: [['xem', 'Lượt xem'], ['nguoi', 'Số người tiếp cận'], ['tt', 'Tương tác'], ['clk', 'Lượt click liên kết'], ['tc', 'Lượt truy cập trang cá nhân'], ['moi', 'Người theo dõi mới']],
+  tt: [['xem', 'Lượt xem'], ['nguoi', 'Người xem tiếp cận'], ['thich', 'Lượt thích'], ['bl', 'Bình luận'], ['cs', 'Chia sẻ'], ['hs', 'Lượt xem hồ sơ'],
+    ['tong', 'Tổng người theo dõi'], ['moi', 'Người theo dõi mới']]
 };
 
 function thongKeMXH_(tu, den) {
@@ -1345,10 +1346,12 @@ function dongBoTikTok_() {
   var hom = Utilities.formatDate(now, tz, 'yyyy-MM-dd');
   var tongXem = vids.reduce(function (s, x) { return s + (x.view_count || 0); }, 0);
   var tongThich = vids.reduce(function (s, x) { return s + (x.like_count || 0); }, 0);
+  var tongBL = vids.reduce(function (s, x) { return s + (x.comment_count || 0); }, 0);
+  var tongCS = vids.reduce(function (s, x) { return s + (x.share_count || 0); }, 0);
   // 1) chụp số tổng
   var sa = ss.getSheetByName(TAB.TTA);
-  if (!sa) { sa = ss.insertSheet(TAB.TTA); sa.appendRow(['Thời điểm', 'Ngày', 'Tổng lượt xem video', 'Tổng lượt thích video', 'Người theo dõi', 'Số video', 'Lượt thích tài khoản']); sa.setFrozenRows(1); sa.hideSheet(); }
-  sa.appendRow([now, "'" + hom, tongXem, tongThich, u.follower_count || 0, u.video_count || vids.length, u.likes_count || 0]);
+  if (!sa) { sa = ss.insertSheet(TAB.TTA); sa.appendRow(['Thời điểm', 'Ngày', 'Tổng lượt xem video', 'Tổng lượt thích video', 'Người theo dõi', 'Số video', 'Lượt thích tài khoản', 'Tổng bình luận video', 'Tổng chia sẻ video']); sa.setFrozenRows(1); sa.hideSheet(); }
+  sa.appendRow([now, "'" + hom, tongXem, tongThich, u.follower_count || 0, u.video_count || vids.length, u.likes_count || 0, tongBL, tongCS]);
   // 2) danh sách video (ghi lại toàn bộ)
   var sv = ss.getSheetByName(TAB.TTV);
   if (!sv) { sv = ss.insertSheet(TAB.TTV); sv.setFrozenRows(1); }
@@ -1360,9 +1363,9 @@ function dongBoTikTok_() {
   sv.getRange(1, 1, hang.length, 9).setValues(hang);
   // 3) điền tab "🎵 TikTok" theo ngày
   var chup = {};
-  sa.getRange(2, 1, sa.getLastRow() - 1, 5).getValues().forEach(function (r) {
+  sa.getRange(2, 1, sa.getLastRow() - 1, 9).getValues().forEach(function (r) {
     var n = String(r[1]).replace(/^'/, ''); if (laNgay_(r[1])) n = Utilities.formatDate(r[1], tz, 'yyyy-MM-dd');
-    if (/^\d{4}-\d{2}-\d{2}$/.test(n)) chup[n] = { xem: Number(r[2]) || 0, thich: Number(r[3]) || 0, fol: Number(r[4]) || 0 };
+    if (/^\d{4}-\d{2}-\d{2}$/.test(n)) chup[n] = { xem: Number(r[2]) || 0, thich: Number(r[3]) || 0, fol: Number(r[4]) || 0, bl: Number(r[7]) || 0, cs: Number(r[8]) || 0 };
   });
   var ngays = Object.keys(chup).sort();
   var st = ss.getSheetByName(TAB.TT) || tab_(TAB.TT);
@@ -1386,6 +1389,8 @@ function dongBoTikTok_() {
       row[c('Người theo dõi mới')] = ft ? s1.fol - ft : '';
       row[c('Lượt xem')] = s0 ? Math.max(0, s1.xem - s0.xem) : '';
       row[c('Lượt thích')] = s0 ? Math.max(0, s1.thich - s0.thich) : '';
+      if (c('Bình luận') > -1) row[c('Bình luận')] = s0 ? Math.max(0, s1.bl - s0.bl) : '';
+      if (c('Chia sẻ') > -1) row[c('Chia sẻ')] = s0 ? Math.max(0, s1.cs - s0.cs) : '';
     }
     row[c('Cập nhật lúc')] = Utilities.formatDate(now, tz, 'dd/MM/yyyy HH:mm');
   });
@@ -1394,6 +1399,6 @@ function dongBoTikTok_() {
   bang.sort(function (a, b) { return a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0; });
   if (bang.length) st.getRange(2, 1, bang.length, dau.length).setValues(bang);
   p.setProperties({ tt_luc: now.toISOString(), tt_loi: '', tt_ten: u.username ? '@' + u.username : (u.display_name || ''),
-    tt_hien: JSON.stringify({ fol: u.follower_count || 0, thichTk: u.likes_count || 0, soVideo: u.video_count || vids.length, xem: tongXem, thich: tongThich }) });
+    tt_hien: JSON.stringify({ fol: u.follower_count || 0, thichTk: u.likes_count || 0, soVideo: u.video_count || vids.length, xem: tongXem, thich: tongThich, bl: tongBL, cs: tongCS }) });
   return { ok: true, soVideo: vids.length, tongXem: tongXem, nguoiTheoDoi: u.follower_count || 0 };
 }
