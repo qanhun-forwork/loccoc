@@ -23,7 +23,7 @@
  * ───────────────────────────────────────────────────────────────────────────
  */
 
-var PHIEN_BAN = '4.8.4';
+var PHIEN_BAN = '4.9.0';
 var TEN_GUI = 'Lộc Cộc';            // tên người gửi trong email
 var GIA_BASIC = 350000;             // giá dòng Basic (tính lại ở máy chủ, không tin giá từ trình duyệt)
 var GIOI_HAN_MOI_GIO = 3;           // tối đa email gửi tới cùng 1 địa chỉ trong 1 giờ
@@ -1268,7 +1268,7 @@ function thongKeMXH_(tu, den) {
   }
   return { ok: true, qcIg: qc, fb: doc(TAB.FB, MXH_COT.fb), ig: doc(TAB.IG, MXH_COT.ig), tt: doc(TAB.TT, MXH_COT.tt), ttApi: api,
     vc: { coKetNoi: !!pp.vc_token, luc: pp.vc_luc || '', loi: pp.vc_loi || '' },
-    meta: { coKetNoi: !!pp.mt_token, luc: pp.mt_luc || '', loi: pp.mt_loi || '', canhBao: pp.mt_canh || '', trang: pp.mt_ten || '', ig: pp.mt_ig_ten || '' } };
+    meta: { coKetNoi: !!pp.mt_token, luc: pp.mt_luc || '', loi: pp.mt_loi || '', canhBao: pp.mt_canh || '', hienTai: pp.mt_hien ? JSON.parse(pp.mt_hien) : null, trang: pp.mt_ten || '', ig: pp.mt_ig_ten || '' } };
 }
 
 function laNgay_(v) { return Object.prototype.toString.call(v) === '[object Date]' && !isNaN(v); }
@@ -1553,6 +1553,15 @@ function dongBoMeta_(soNgay) {
     p.setProperty('mt_loi', String(err.message || err).slice(0, 300));
     return { ok: false, loi: String(err.message || err) };
   }
+  // tổng người theo dõi hiện tại (không lỗi cũng không làm hỏng đồng bộ chính)
+  var hien = {};
+  try { var f = mtGoi_(pp.mt_page, { fields: 'followers_count,fan_count' }); hien.fb = Number(f.followers_count || f.fan_count) || 0; chan.push('FB followers_count: ' + hien.fb); }
+  catch (e) { chan.push('FB followers_count: ' + String(e.message).slice(0, 90)); }
+  if (pp.mt_ig) {
+    try { var g = mtGoi_(pp.mt_ig, { fields: 'followers_count,media_count' }); hien.ig = Number(g.followers_count) || 0; hien.igBai = Number(g.media_count) || 0; chan.push('IG followers_count: ' + hien.ig); }
+    catch (e) { chan.push('IG followers_count: ' + String(e.message).slice(0, 90)); }
+  }
+  if (hien.fb != null || hien.ig != null) { hien.luc = new Date().toISOString(); p.setProperty('mt_hien', JSON.stringify(hien)); }
   ghiTheoNgay_(TAB.FB, fb);
   if (pp.mt_ig) ghiTheoNgay_(TAB.IG, ig);
   p.setProperties({ mt_luc: new Date().toISOString(), mt_loi: '', mt_canh: thieu.join(', '), mt_chan: chan.join('\n').slice(0, 8000) });

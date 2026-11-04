@@ -114,6 +114,9 @@ Lộc Cộc tại loccoc.com.vn. Không phục vụ mục đích thương mại:
   vào tab FB/IG theo tên cột (`MT_FB`, `MT_IG_CHUOI`, `MT_IG_TONG` thử lần lượt tên chỉ số mới → cũ; chỉ số API không trả
   thì giữ số cũ, ghi vào mt_canh). Ngày theo giờ Thái Bình Dương như Meta Business Suite. Trigger `dongBoMeta` mỗi ngày 4h.
   FB "Lượt click liên kết" không có qua API Trang: giữ số chép tay.
+  v4.9: mỗi lần đồng bộ còn lấy tổng người theo dõi hiện tại (FB `followers_count`, IG `followers_count` + `media_count`)
+  lưu vào Script Property `mt_hien`; `mangXaHoi` trả `meta.hienTai`; trang FB/IG hiện khối "Tài khoản lúc này" và dòng tổng ở thẻ
+  "Người theo dõi mới". Không lưu lịch sử tổng theo ngày (API chỉ trả số hiện tại).
 - Đếm lượt xem dùng `fetch` với `credentials:"omit"`, KHÔNG dùng sendBeacon (luôn kèm cookie Google → mất lượt).
 - Web: trang `#/tap-chi` và `#/tap-chi/<đường-dẫn>`; hàm `md()` định dạng nội dung bài có 2 bản giống hệt nhau
   (index.html và trang quản trị): sửa một chỗ thì sửa cả hai. Đếm lượt xem chỉ chạy trên tên miền loccoc.com.vn.
