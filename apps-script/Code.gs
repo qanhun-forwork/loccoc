@@ -23,7 +23,7 @@
  * ───────────────────────────────────────────────────────────────────────────
  */
 
-var PHIEN_BAN = '4.9.0';
+var PHIEN_BAN = '4.9.1';
 var TEN_GUI = 'Lộc Cộc';            // tên người gửi trong email
 var GIA_BASIC = 350000;             // giá dòng Basic (tính lại ở máy chủ, không tin giá từ trình duyệt)
 var GIOI_HAN_MOI_GIO = 3;           // tối đa email gửi tới cùng 1 địa chỉ trong 1 giờ
@@ -1351,14 +1351,14 @@ function ttGoi_(url, body) {
   if (body) { o.method = 'post'; o.contentType = 'application/json'; o.payload = JSON.stringify(body); }
   var res = UrlFetchApp.fetch(url, o), j = {};
   try { j = JSON.parse(res.getContentText()); } catch (e) {}
-  if (!j.error || j.error.code !== 'ok') throw new Error('TikTok trả lỗi ' + res.getResponseCode() + ': ' + ((j.error && (j.error.message || j.error.code)) || res.getContentText().slice(0, 160)));
+  if (!j.error || j.error.code !== 'ok') throw new Error('TikTok (' + url.split('/v2/')[1].split('?')[0] + ') trả lỗi ' + res.getResponseCode() + ': ' + ((j.error && (j.error.message || j.error.code)) || res.getContentText().slice(0, 160)));
   return j.data || {};
 }
 
 function dongBoTikTok_() {
   var p = PropertiesService.getScriptProperties();
   try {
-    var u = ttGoi_('https://open.tiktokapis.com/v2/user/info/?fields=open_id,display_name,username,follower_count,following_count,likes_count,video_count').user || {};
+    var u = ttGoi_('https://open.tiktokapis.com/v2/user/info/?fields=open_id,display_name,follower_count,following_count,likes_count,video_count').user || {};
     var vids = [], cur = 0, lan = 0;
     do {
       var v = ttGoi_('https://open.tiktokapis.com/v2/video/list/?fields=id,title,video_description,create_time,share_url,view_count,like_count,comment_count,share_count',
