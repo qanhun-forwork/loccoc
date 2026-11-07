@@ -808,7 +808,7 @@ function vMxVe(p,j,jt,k){
    '<table class="bg"><tbody><tr><td>TikTok</td><td>'+(A.daKetNoi?(A.loi?'<span class="chu-loi">Lỗi: '+esc(A.loi)+'</span>':esc(A.ten||"")+" · lần cuối "+esc(gioVN(A.luc)||"chưa có")):A.coKey?"Chưa đăng nhập TikTok":"Chưa có key (Sheet → Lộc Cộc → Kết nối TikTok…)")+'</td></tr>'+
    '<tr><td>Vercel</td><td>'+(VC.coKetNoi?(VC.loi?'<span class="chu-loi">Lỗi: '+esc(VC.loi)+'</span>':"Lần cuối "+esc(gioVN(VC.luc)||"chưa có")):"Chưa kết nối")+'</td></tr></tbody></table>'+
    '<div class="hang-nut"><button class="btn nh" type="button" id="mx-db">Đồng bộ ngay</button>'+(laChinh&&A.coKey?'<button class="btn ph nh" type="button" id="mx-kn">'+(A.daKetNoi?"Kết nối lại TikTok":"Kết nối TikTok")+'</button>':"")+'</div>'+
-   '<div class="ph">Số từ 26/09 đến 01/11 chép từ TikTok Studio. Sau đó, lượt xem theo ngày là chênh lệch tổng giữa các lần đồng bộ.</div></section>'+
+   '<div class="ph">Ngày có số TikTok Studio giữ nguyên. Ngày đồng bộ bằng API lấy tổng trọn đời trừ các ngày trước, nên cộng tất cả các ngày luôn bằng tổng lượt xem từ API.</div></section>'+
    '<section class="the w6" data-k="mxht"><h2>Tài khoản lúc này</h2>'+(H2?'<div class="luoi-nho"><div><b>'+so(H2.fol)+'</b><span>Người theo dõi</span></div><div><b>'+so(H2.thichTk)+'</b><span>Lượt thích tài khoản</span></div><div><b>'+so(H2.soVideo)+'</b><span>Video</span></div><div><b>'+so(H2.xem)+'</b><span>Tổng lượt xem video</span></div></div>':'<p class="trong">Chưa đồng bộ TikTok lần nào.</p>')+'</section>'+h}
  // Facebook / Instagram: đồng bộ qua Meta Graph API
  if(p!=="tt"){var M=j.meta||{};

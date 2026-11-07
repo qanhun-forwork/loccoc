@@ -23,7 +23,7 @@
  * ───────────────────────────────────────────────────────────────────────────
  */
 
-var PHIEN_BAN = '4.9.1';
+var PHIEN_BAN = '4.9.2';
 var TEN_GUI = 'Lộc Cộc';            // tên người gửi trong email
 var GIA_BASIC = 350000;             // giá dòng Basic (tính lại ở máy chủ, không tin giá từ trình duyệt)
 var GIOI_HAN_MOI_GIO = 3;           // tối đa email gửi tới cùng 1 địa chỉ trong 1 giờ
@@ -1280,7 +1280,7 @@ function laNgay_(v) { return Object.prototype.toString.call(v) === '[object Date
  * Trang quản trị → Mạng xã hội → "Kết nối TikTok": đăng nhập TikTok, quay về /quantrivien/ kèm ?code=… → lệnh ttKetNoi
  * đổi code lấy access token (24 giờ) + refresh token (365 ngày).
  * Mỗi lần đồng bộ: lưu 1 dòng chụp số tổng vào tab "🎵 TikTok API" (ẩn), ghi lại danh sách video vào "🎵 TikTok video",
- * và điền tab "🎵 TikTok": lượt xem/thích theo ngày = chênh lệch tổng giữa lần chụp cuối của ngày đó và ngày có số trước đó.
+ * và điền tab "🎵 TikTok": lượt xem/thích của ngày API = tổng lúc chụp cuối ngày đó trừ tổng các dòng trước (v4.9.2), nên cộng mọi ngày = tổng API.
  * Dòng đã có trong "🎵 TikTok" mà không phải nguồn API (số chép từ TikTok Studio) thì giữ nguyên, chỉ cập nhật người theo dõi.
  */
 var TT_SCOPE = 'user.info.basic,user.info.stats,video.list';
@@ -1403,8 +1403,10 @@ function dongBoTikTok_() {
   var bang = st.getLastRow() > 1 ? st.getRange(2, 1, st.getLastRow() - 1, dau.length).getValues() : [];
   var dong = {}; bang.forEach(function (r, i) { var n = laNgay_(r[0]) ? Utilities.formatDate(r[0], tz, 'yyyy-MM-dd') : String(r[0]).replace(/^'/, ''); dong[n] = i; });
   var folTruoc = function (n) { var v = 0; bang.forEach(function (r) { var m = laNgay_(r[0]) ? Utilities.formatDate(r[0], tz, 'yyyy-MM-dd') : String(r[0]).replace(/^'/, ''); if (m < n && Number(r[c('Tổng người theo dõi')])) v = Number(r[c('Tổng người theo dõi')]); }); return v; };
-  ngays.forEach(function (n, k) {
-    var s0 = k ? chup[ngays[k - 1]] : null, s1 = chup[n], i = dong[n];
+  // tổng của cột qua mọi dòng trước ngày n (cả dòng Studio lẫn API)
+  var truoc = function (n, t) { var v = 0; bang.forEach(function (r) { var m = laNgay_(r[0]) ? Utilities.formatDate(r[0], tz, 'yyyy-MM-dd') : String(r[0]).replace(/^'/, ''); if (m < n) v += Number(r[c(t)]) || 0; }); return v; };
+  ngays.forEach(function (n) {
+    var s1 = chup[n], i = dong[n];
     if (i == null) {
       var r = dau.map(function () { return ''; });
       r[0] = "'" + n; bang.push(r); i = bang.length - 1; dong[n] = i; r[iNg] = 'API';
@@ -1414,10 +1416,11 @@ function dongBoTikTok_() {
     if (row[iNg] === 'API') {
       var ft = folTruoc(n);
       row[c('Người theo dõi mới')] = ft ? s1.fol - ft : '';
-      row[c('Lượt xem')] = s0 ? Math.max(0, s1.xem - s0.xem) : '';
-      row[c('Lượt thích')] = s0 ? Math.max(0, s1.thich - s0.thich) : '';
-      if (c('Bình luận') > -1) row[c('Bình luận')] = s0 ? Math.max(0, s1.bl - s0.bl) : '';
-      if (c('Chia sẻ') > -1) row[c('Chia sẻ')] = s0 ? Math.max(0, s1.cs - s0.cs) : '';
+      // ngày API = tổng trọn đời trừ các ngày trước → cộng mọi ngày luôn bằng tổng API, ngày thiếu dồn vào đây
+      row[c('Lượt xem')] = Math.max(0, s1.xem - truoc(n, 'Lượt xem'));
+      row[c('Lượt thích')] = Math.max(0, s1.thich - truoc(n, 'Lượt thích'));
+      if (c('Bình luận') > -1) row[c('Bình luận')] = Math.max(0, s1.bl - truoc(n, 'Bình luận'));
+      if (c('Chia sẻ') > -1) row[c('Chia sẻ')] = Math.max(0, s1.cs - truoc(n, 'Chia sẻ'));
     }
     row[c('Cập nhật lúc')] = Utilities.formatDate(now, tz, 'dd/MM/yyyy HH:mm');
   });

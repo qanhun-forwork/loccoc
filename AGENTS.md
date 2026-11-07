@@ -100,7 +100,7 @@ Lộc Cộc tại loccoc.com.vn. Không phục vụ mục đích thương mại:
   "Kết nối TikTok…" (Script Properties tt_key, tt_secret, tt_at, tt_rt…; KHÔNG để trong code/repo). Trang quản trị nhận
   ?code=&state= → lệnh `ttKetNoi`; nút "Đồng bộ ngay" ở tab Mạng xã hội gọi `dongBoVercel` + `dongBoTikTok`.
   Mỗi lần đồng bộ chụp số tổng vào tab "🎵 TikTok API" (ẩn), ghi lại "🎵 TikTok video", điền "🎵 TikTok" với cột Nguồn = API
-  (lượt xem theo ngày = chênh lệch tổng giữa các lần chụp). Dòng không có Nguồn (chép từ TikTok Studio) giữ nguyên số xem/thích.
+  (v4.9.2: lượt xem/thích/bình luận/chia sẻ của ngày API = tổng API trừ tổng các dòng trước, nên cộng mọi ngày = tổng API; ngày thiếu dồn vào ngày API kế tiếp). Dòng không có Nguồn (chép từ TikTok Studio) giữ nguyên số xem/thích.
   Không xin trường `username` ở user/info: trường đó cần scope user.info.profile, thiếu là TikTok trả 401 (v4.9.1).
 - Giao diện quản trị (v4.6): kính mờ (glass) toàn trang trên nền mảng màu loang `.nen-loang`; màu nhấn đọc từ biến CSS
   (--ac, --ac-grad, --b1..3). Thanh bên: Website Analytics (Lượt truy cập) và Mạng xã hội (Facebook / Instagram / TikTok,
