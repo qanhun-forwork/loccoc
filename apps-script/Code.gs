@@ -23,7 +23,7 @@
  * ───────────────────────────────────────────────────────────────────────────
  */
 
-var PHIEN_BAN = '4.9.2';
+var PHIEN_BAN = '4.10.0';
 var TEN_GUI = 'Lộc Cộc';            // tên người gửi trong email
 var GIA_BASIC = 350000;             // giá dòng Basic (tính lại ở máy chủ, không tin giá từ trình duyệt)
 var GIOI_HAN_MOI_GIO = 3;           // tối đa email gửi tới cùng 1 địa chỉ trong 1 giờ
@@ -31,7 +31,7 @@ var CHO_GUI = 'Chờ gửi';            // trạng thái cột "Email xác nhậ
 var HANG_CHO = 'thu_';              // tiền tố Script Properties của email chờ gửi
 
 var TAB = { BC: '📊 Báo cáo', DON: '🛒 Đơn hàng', CT: '📦 Chi tiết đơn', LH: '💬 Liên hệ', SL: '⚙ Số liệu',
-  BV: '📰 Bài viết', XEM: '👁 Lượt xem', NK: '🕘 Nhật ký', VC: '▲ Vercel',
+  BV: '📰 Bài viết', XEM: '👁 Lượt xem', NK: '🕘 Nhật ký', VC: '▲ Vercel', CHOT: '📌 Chốt số liệu',
   FB: '📘 Facebook', IG: '📸 Instagram', TT: '🎵 TikTok', TTA: '🎵 TikTok API', TTV: '🎵 TikTok video', QC: '📣 Quảng cáo IG' };
 var COT = {
   DON: ['Mã đơn', 'Thời gian', 'Ngày', 'Giờ', 'Tên khách', 'Số điện thoại', 'Email', 'Sản phẩm', 'Số đôi',
@@ -863,7 +863,7 @@ function ghiNK_(ten, vaiTro, hanhDong, chiTiet) {
 // lệnh → quyền cần có (admin chính có tất cả; "chinh" = chỉ admin chính)
 var LENH = { tongQuan: ['ban', 'don'], suaDong: ['don'], dsBai: ['bai'], luuBai: ['bai'], xoaBai: ['bai'], luotXem: ['xem'],
   vercel: ['xem'], dongBoVercel: ['xem'], mangXaHoi: ['xem'], dongBoTikTok: ['xem'], dongBoMeta: ['xem'], ttUrl: 'chinh', ttKetNoi: 'chinh',
-  dsTaiKhoan: 'chinh', taoTaiKhoan: 'chinh', suaTaiKhoan: 'chinh', xoaTaiKhoan: 'chinh', nhatKy: 'chinh' };
+  dsTaiKhoan: 'chinh', taoTaiKhoan: 'chinh', suaTaiKhoan: 'chinh', xoaTaiKhoan: 'chinh', nhatKy: 'chinh', chotSoLieu: 'chinh', layChot: ['xem'] };
 
 function quanTri_(d) {
   try {
@@ -902,6 +902,8 @@ function quanTri_(d) {
       case 'suaTaiKhoan': return coKhoa_(function () { return suaTaiKhoan_(d, nk); });
       case 'xoaTaiKhoan': return coKhoa_(function () { return xoaTaiKhoan_(d.ten, nk); });
       case 'nhatKy': return { ok: true, nk: bang_(TAB.NK).slice(-3000) };
+      case 'chotSoLieu': return coKhoa_(function () { var r = chotSoLieu_(d.du, tk.ten); if (r.ok) nk('Chốt số liệu báo cáo', r.luc); return r; });
+      case 'layChot': return layChot_();
     }
     return { ok: false, loi: 'Lệnh không hợp lệ.' };
   } catch (err) {
@@ -1269,6 +1271,28 @@ function thongKeMXH_(tu, den) {
   return { ok: true, qcIg: qc, fb: doc(TAB.FB, MXH_COT.fb), ig: doc(TAB.IG, MXH_COT.ig), tt: doc(TAB.TT, MXH_COT.tt), ttApi: api,
     vc: { coKetNoi: !!pp.vc_token, luc: pp.vc_luc || '', loi: pp.vc_loi || '' },
     meta: { coKetNoi: !!pp.mt_token, luc: pp.mt_luc || '', loi: pp.mt_loi || '', canhBao: pp.mt_canh || '', hienTai: pp.mt_hien ? JSON.parse(pp.mt_hien) : null, trang: pp.mt_ten || '', ig: pp.mt_ig_ten || '' } };
+}
+
+/* ═══════════ CHỐT SỐ LIỆU BÁO CÁO (v4.10) ═══════════
+ * Trang /quantrivien/baocao.html tính số từ dashboard rồi gửi bản tổng hợp (JSON) lên đây khi admin chính bấm "Chốt số liệu".
+ * Mỗi lần chốt thêm 1 dòng vào tab ẩn "📌 Chốt số liệu"; slide luôn đọc dòng mới nhất nên số trên slide không đổi sau giờ chốt.
+ */
+function chotSoLieu_(du, ai) {
+  var j = String(du || '');
+  if (j.length < 2 || j.length > 45000) return { ok: false, loi: 'Bản số liệu rỗng hoặc quá lớn.' };
+  try { JSON.parse(j); } catch (e) { return { ok: false, loi: 'Bản số liệu không hợp lệ.' }; }
+  var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(TAB.CHOT);
+  if (!sh) { sh = ss.insertSheet(TAB.CHOT); sh.appendRow(['Chốt lúc', 'Người chốt', 'Số liệu (JSON)']); sh.setFrozenRows(1); sh.hideSheet(); }
+  var now = new Date();
+  sh.appendRow([now, ai, "'" + j]);
+  return { ok: true, luc: now.toISOString() };
+}
+
+function layChot_() {
+  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(TAB.CHOT);
+  if (!sh || sh.getLastRow() < 2) return { ok: true, chot: null };
+  var r = sh.getRange(sh.getLastRow(), 1, 1, 3).getValues()[0];
+  return { ok: true, chot: { luc: laNgay_(r[0]) ? r[0].toISOString() : String(r[0]), ai: String(r[1]), du: JSON.parse(String(r[2]).replace(/^'/, '')) } };
 }
 
 function laNgay_(v) { return Object.prototype.toString.call(v) === '[object Date]' && !isNaN(v); }

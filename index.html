@@ -299,6 +299,10 @@ details[open] summary{margin-bottom:14px}
 .contact{max-width:620px;margin:0 auto}
 form{display:grid;gap:8px;margin-top:44px}
 input,textarea,select{width:100%;font:400 18px/1.5 var(--sans);color:var(--ink);background:transparent;border:0;border-bottom:1px solid rgba(90,62,50,.45);border-radius:0;padding:16px 2px;transition:border-color .3s;-webkit-appearance:none;appearance:none}
+.dy{display:flex;gap:12px;align-items:flex-start;margin:14px 0 6px;font-size:14px;line-height:1.55;color:var(--nau);text-align:left;cursor:pointer}
+.dy input{width:18px;height:18px;flex:none;margin:2px 0 0;padding:0;border:0;-webkit-appearance:checkbox;appearance:auto;accent-color:var(--red)}
+.dy a{color:var(--red);text-decoration:underline}
+.bm h2{margin-top:44px}.bm ul{padding-left:20px;line-height:1.7}
 input::placeholder,textarea::placeholder{color:#6E5446;font-style:italic;font-weight:300}
 input:focus,textarea:focus,select:focus{outline:0;border-bottom-color:var(--red)}
 select{background:transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23800E13' stroke-width='1.5'/%3E%3C/svg%3E") right 6px center no-repeat;margin-top:4px;cursor:pointer}
@@ -793,7 +797,7 @@ input:user-invalid::placeholder{color:#B3261E}
     </ol>
     <h2 style="margin-top:90px">Bạn có thể tùy chỉnh gì?</h2><div class="cols3"><div class="tile"><h3>Gỗ</h3>Ba tông gỗ: sáng, mật, nâu tối. Có thể thêm họa tiết chạm nổi như hoa lá trên mặt gỗ.</div><div class="tile"><h3>Quai</h3>Da, vải thêu, nhung hoặc vải be. Trang trí bằng hạt gỗ, hạt vàng, hạt bạc hay đinh tán.</div><div class="tile"><h3>Dấu ấn riêng</h3>Khắc tên hoặc dòng chữ, phối theo màu yêu thích, hoặc kể câu chuyện để Lộc Cộc gợi ý thiết kế.</div></div><div class="tile" style="margin-top:20px"><h3>Lộc Cộc lắng nghe trước khi làm</h3>Mỗi đôi Custom bắt đầu từ câu chuyện của bạn: bạn sẽ đi ở đâu, mặc gì, muốn cảm giác thế nào. Từ đó chúng tôi tư vấn vật liệu và kiểu dáng để đôi guốc vừa đẹp vừa hợp tính bạn.</div><h2 style="margin-top:90px">Câu hỏi về đặt riêng</h2><div class="narrow" style="margin:0 auto"><details open><summary>Làm mất bao lâu?</summary>Thời gian phụ thuộc mẫu và số đơn đang làm. Lộc Cộc sẽ báo cụ thể khi chốt thiết kế.</details><details><summary>Giá bao nhiêu?</summary>Dòng Custom không giới hạn mức giá, tùy vật liệu và độ phức tạp của thiết kế.</details><details><summary>Tôi chưa có ý tưởng thì sao?</summary>Bạn chỉ cần cho biết dịp dùng và màu yêu thích, Lộc Cộc sẽ gợi ý vài hướng.</details></div>
     <h2 style="margin-top:90px">Gửi yêu cầu</h2>
-    <form class="contact"><input required placeholder="Tên của bạn" aria-label="Tên"><input required type="tel" placeholder="Số điện thoại" aria-label="Số điện thoại"><input required type="email" placeholder="Email (để nhận xác nhận)" aria-label="Email" autocomplete="email"><input placeholder="Size chân (nếu đã biết)" aria-label="Size chân"><textarea rows="4" placeholder="Bạn muốn đôi guốc như thế nào?" aria-label="Mô tả"></textarea><button class="pill" type="submit">Gửi yêu cầu</button><p class="ok" role="status" hidden>Đã nhận yêu cầu. Lộc Cộc sẽ liên hệ với bạn sớm.</p></form>
+    <form class="contact"><input required placeholder="Tên của bạn" aria-label="Tên"><input required type="tel" placeholder="Số điện thoại" aria-label="Số điện thoại"><input required type="email" placeholder="Email (để nhận xác nhận)" aria-label="Email" autocomplete="email"><input placeholder="Size chân (nếu đã biết)" aria-label="Size chân"><textarea rows="4" placeholder="Bạn muốn đôi guốc như thế nào?" aria-label="Mô tả"></textarea><label class="dy"><input type="checkbox" required><span>Tôi đồng ý để Lộc Cộc dùng các thông tin trên chỉ để liên hệ và xử lý yêu cầu của tôi. Xem <a href="#/chinh-sach-bao-mat">Chính sách bảo mật</a>.</span></label><button class="pill" type="submit">Gửi yêu cầu</button><p class="ok" role="status" hidden>Đã nhận yêu cầu. Lộc Cộc sẽ liên hệ với bạn sớm.</p></form>
   </div></section>
 </div>
 
@@ -820,6 +824,22 @@ input:user-invalid::placeholder{color:#B3261E}
 <section style="padding-top:0"><div class="in2"><h2>Hướng dẫn đo size</h2><ol class="steps"><li><h3>Đặt chân lên giấy</h3>Đứng thẳng, đặt chân lên tờ giấy trắng trên nền phẳng.</li><li><h3>Đánh dấu hai đầu</h3>Vẽ vạch ở gót và ở đầu ngón chân dài nhất.</li><li><h3>Đo và gửi</h3>Đo khoảng cách giữa hai vạch rồi gửi số đo cho Lộc Cộc.</li></ol><h2 style="margin-top:90px">Bảo quản guốc gỗ</h2><div class="cols3"><div class="tile"><h3>Giữ khô ráo</h3>Lau bằng khăn mềm khô. Tránh ngâm nước hoặc để ẩm lâu.</div><div class="tile"><h3>Tránh nắng gắt</h3>Không phơi guốc dưới nắng trực tiếp để gỗ khỏi nứt và phai màu.</div><div class="tile"><h3>Cất nơi thoáng</h3>Để nơi khô thoáng, giữ quai không bị ép biến dạng.</div></div><p class="lead" style="margin:44px auto 0">Vẫn cần giúp? <a class="link" style="margin:0;font-size:inherit" href="#/lien-he">Nhắn cho Lộc Cộc ›</a></p></div></section>
 </div>
 
+<div class="pg" id="pg-chinh-sach-bao-mat">
+  <div class="ph-h"><h1>Chính sách bảo mật</h1><p>Lộc Cộc thu ít thông tin nhất có thể, và nói rõ dùng vào việc gì.</p></div>
+  <section style="padding-top:20px"><div class="in2 narrow bm">
+    <p>Lộc Cộc là dự án học tập của sinh viên Trường Đại học Văn Lang (học phần Truyền thông số, học kỳ 261). Chính sách này áp dụng cho mọi form trên loccoc.com.vn, theo Luật Bảo vệ dữ liệu cá nhân 2025.</p>
+    <h2>Thông tin chúng tôi thu</h2>
+    <ul><li>Tên, số điện thoại, email bạn tự điền vào form.</li><li>Size chân, nội dung yêu cầu và giỏ hàng (nếu có).</li><li>Thống kê lượt xem trang ẩn danh: một mã ngẫu nhiên lưu trên trình duyệt của bạn, trang đã xem, loại thiết bị và trang dẫn bạn đến. Không có tên, không có cookie quảng cáo.</li></ul>
+    <h2>Dùng vào việc gì</h2>
+    <ul><li>Liên hệ lại, tư vấn size và xử lý yêu cầu hoặc đơn đặt trước của bạn.</li><li>Gửi một email xác nhận đến địa chỉ bạn nhập.</li><li>Thống kê ẩn danh để nhóm đánh giá hiệu quả truyền thông.</li></ul>
+    <p>Lộc Cộc không bán, không chia sẻ thông tin của bạn cho bên thứ ba và không dùng để gửi quảng cáo.</p>
+    <h2>Lưu ở đâu, ai được xem</h2>
+    <p>Thông tin được lưu trong Google Sheet của nhóm. Chỉ tài khoản quản trị được cấp quyền mới xem được, mỗi lần truy cập đều ghi vào nhật ký hoạt động. Dữ liệu được xoá khi dự án kết thúc học phần.</p>
+    <h2>Quyền của bạn</h2>
+    <p>Bạn có thể yêu cầu xem, sửa, xoá thông tin hoặc rút lại sự đồng ý bất kỳ lúc nào bằng cách gửi form ở trang <a class="link" href="#/lien-he">Liên hệ</a> hoặc nhắn Fanpage Lộc Cộc. Chúng tôi xử lý trong vòng 72 giờ.</p>
+  </div></section>
+</div>
+
 <div class="pg" id="pg-danh-gia">
   <div class="ph-h"><h1>Đánh giá</h1><p>Lời của khách hàng thật, không phải lời của chúng tôi.</p></div>
   <section style="padding-top:20px"><div class="in2 narrow"><div class="tile" style="text-align:center"><h3>Đang chờ những đánh giá đầu tiên</h3>Review và ảnh khách mang Lộc Cộc sẽ xuất hiện ở đây.<p><a class="pill" href="#/lien-he">Gửi ảnh của bạn</a></p></div></div></section>
@@ -840,7 +860,7 @@ input:user-invalid::placeholder{color:#B3261E}
   <div class="ph-h"><h1>Liên hệ và mua</h1><p>Chọn cách nhắn thuận tiện nhất với bạn.</p></div>
   <section style="padding-top:20px"><div class="in2 narrow">
     <div class="socs" id="socs"></div>
-    <form class="contact"><input required placeholder="Tên của bạn" aria-label="Tên"><input required type="tel" placeholder="Số điện thoại" aria-label="Số điện thoại"><input required type="email" placeholder="Email (để nhận xác nhận)" aria-label="Email" autocomplete="email"><textarea rows="4" placeholder="Bạn cần Lộc Cộc giúp gì?" aria-label="Nội dung"></textarea><button class="pill" type="submit">Gửi thông tin</button><p class="ok" role="status" hidden>Đã nhận thông tin. Lộc Cộc sẽ liên hệ với bạn sớm.</p></form>
+    <form class="contact"><input required placeholder="Tên của bạn" aria-label="Tên"><input required type="tel" placeholder="Số điện thoại" aria-label="Số điện thoại"><input required type="email" placeholder="Email (để nhận xác nhận)" aria-label="Email" autocomplete="email"><textarea rows="4" placeholder="Bạn cần Lộc Cộc giúp gì?" aria-label="Nội dung"></textarea><label class="dy"><input type="checkbox" required><span>Tôi đồng ý để Lộc Cộc dùng các thông tin trên chỉ để liên hệ và xử lý yêu cầu của tôi. Xem <a href="#/chinh-sach-bao-mat">Chính sách bảo mật</a>.</span></label><button class="pill" type="submit">Gửi thông tin</button><p class="ok" role="status" hidden>Đã nhận thông tin. Lộc Cộc sẽ liên hệ với bạn sớm.</p></form>
   </div></section>
 <section style="padding-top:0"><div class="in2"><h2>Trước khi nhắn</h2><div class="cols3"><div class="tile"><h3>Ý tưởng hoặc ảnh mẫu</h3>Ảnh guốc bạn thích, màu sắc hoặc phong cách bạn hướng tới.</div><div class="tile"><h3>Size chân</h3>Nếu chưa biết, xem cách đo ở trang Hỗ trợ.</div><div class="tile"><h3>Dịp sử dụng</h3>Đi làm, dạo phố, dự tiệc hay làm quà tặng.</div></div><p class="lead" style="margin:44px auto 0">Bạn ở nước ngoài? Lộc Cộc cũng phục vụ khách quốc tế, cứ nhắn để được tư vấn.</p></div></section>
 </div>
@@ -853,7 +873,7 @@ input:user-invalid::placeholder{color:#B3261E}
 <div><h4>Hỗ trợ</h4><a href="#/ho-tro">Chọn size</a><a href="#/ho-tro">Bảo quản</a><a href="#/ho-tro">Đổi trả</a><a href="#/ho-tro">Câu hỏi thường gặp</a></div>
 <div><h4>Lộc Cộc</h4><a href="#/cau-chuyen">Câu chuyện</a><a href="#/tap-chi">Tạp chí</a><a href="#/danh-gia">Đánh giá</a><a href="#/lien-he">Liên hệ</a></div>
 <div><h4>Kết nối</h4><a href="#/lien-he">Zalo</a><a href="https://www.facebook.com/loccoc.com.vn" target="_blank" rel="noopener">Fanpage</a><a href="https://www.instagram.com/loccoc.com.vn/" target="_blank" rel="noopener">Instagram</a><a href="https://www.tiktok.com/@loccoc.com.vn" target="_blank" rel="noopener">TikTok</a></div></div>
-<div class="fine"><span>© 2026 Lộc Cộc. Bảo lưu mọi quyền.</span><span><a href="#/ho-tro">Chính sách bảo mật</a> | <a href="#/ho-tro">Điều khoản</a> | <a href="#/ho-tro">Đổi trả</a></span><span>Việt Nam</span></div></div></footer>
+<div class="fine"><span>© 2026 Lộc Cộc. Bảo lưu mọi quyền.</span><span><a href="#/chinh-sach-bao-mat">Chính sách bảo mật</a> | <a href="#/ho-tro">Điều khoản</a> | <a href="#/ho-tro">Đổi trả</a></span><span>Việt Nam</span></div></div></footer>
 
 <div id="shade"></div><div id="srch" role="dialog" aria-label="Tìm kiếm"><div class="si"><input id="q" type="search" placeholder="Tìm kiếm trên Lộc Cộc" aria-label="Tìm kiếm" autocomplete="off"><div id="res"></div></div></div><aside id="bag" aria-label="Giỏ hàng"><div class="bh"><h3>Giỏ hàng</h3><button class="rm" id="bx" style="font-size:16px">Đóng</button></div><div class="bl" id="bl"></div><button class="pill" id="bsend" type="button">Gửi đơn cho Lộc Cộc</button></aside>
 <script>
@@ -968,6 +988,9 @@ function tapChi(dd){
    khách: mã ngẫu nhiên giữ ở trình duyệt; phiên: hết hạn sau 30 phút không hoạt động. Chỉ đếm trên tên miền thật. */
 (function(){
  if(!/(^|\.)loccoc\.com\.vn$/.test(location.hostname))return;
+ // máy nội bộ (thành viên/admin) không đếm: mở link ?noibo=1 một lần hoặc đăng nhập /quantrivien; ?noibo=0 để bỏ
+ var qs=new URLSearchParams(location.search);
+ try{if(qs.get("noibo")==="1")localStorage.setItem("lc_noibo","1");if(qs.get("noibo")==="0")localStorage.removeItem("lc_noibo");if(localStorage.getItem("lc_noibo")==="1")return}catch(x){}
  function ma(){return (crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,12))}
  var khach;try{khach=localStorage.getItem("lc_khach")||"";if(!khach){khach=ma();localStorage.setItem("lc_khach",khach)}}catch(x){khach=ma()}
  var trc="";
@@ -976,6 +999,7 @@ function tapChi(dd){
   var p=null,now=Date.now(),moi=false;try{p=JSON.parse(sessionStorage.getItem("lc_phien")||"null")}catch(x){}
   if(!p||now-p.t>1800000){p={id:ma()};moi=true}p.t=now;try{sessionStorage.setItem("lc_phien",JSON.stringify(p))}catch(x){}
   var ng="";if(moi&&document.referrer){try{var h=new URL(document.referrer).hostname.replace(/^www\./,"");if(!/loccoc\.com\.vn$/.test(h))ng=h}catch(x){}}
+  if(moi&&qs.get("utm_source"))ng="utm: "+["utm_source","utm_medium","utm_campaign"].map(function(k){return (qs.get(k)||"").slice(0,30)}).filter(String).join(" / ");
   var w=innerWidth,tb=w<=760?"Điện thoại":w<=1100?"Máy tính bảng":"Máy tính";
   var body=JSON.stringify({hanh:"xem",khach:khach,phien:p.id,trang:t,nguon:ng,thietBi:tb});
   // không dùng sendBeacon: nó luôn gửi kèm cookie Google, trình duyệt đăng nhập (nhiều) tài khoản Google thì Apps Script
@@ -1038,7 +1062,7 @@ function gen(id){var g=G[id],h=`<div class="ph-h"><h1>${g[0]}</h1><p>${g[1]}</p>
  if(g[2].length)h+='<div class="narrow" style="margin:0 auto">'+g[2].map(function(p){return "<p>"+p+"</p>"}).join("")+"</div>";
  if(g[3])h+='<div class="cols3" style="margin-top:20px">'+g[3].map(function(x){var a=x[2]?`a href="#/${x[2]}"`:"div";return `<${a} class="tile" style="display:block;text-decoration:none"><h3>${x[0]}</h3>${x[1]}</${x[2]?"a":"div"}>`}).join("")+"</div>";
  if(g[4]==="b")h+='<div class="bhead"><div><span class="kick">Dòng Basic · '+B.length+' mẫu</span><h2>Chọn đôi hợp nhịp của bạn.</h2></div><div class="tagp"><small>Đồng giá</small><b>'+PRICE+'</b></div></div><div class="grid4 bgrid">'+B.map(function(x,i){return bcard(i)}).join("")+'</div><div class="cols3" style="margin-top:80px"><div class="tile"><h3>Ôm chân, êm bước</h3>Mặt gỗ tạo dáng theo vòm chân, lót êm ở gót để bạn đi cả ngày thoải mái.</div><div class="tile"><h3>Một giá cho mọi mẫu</h3>Cả '+B.length+' mẫu đều '+PRICE+'. Bạn chỉ cần chọn đôi hợp với mình nhất.</div><div class="tile"><h3>Muốn riêng hơn?</h3>Khắc tên khi đặt hàng, hoặc nhắn Lộc Cộc nếu muốn đổi màu quai và gỗ.</div></div>';
- if(g[4]==="f"||g[4]==="o")h+='<form class="contact" style="margin-top:36px">'+(g[4]==="o"?'<input required placeholder="Mã đơn hàng" aria-label="Mã đơn hàng">':'<input required placeholder="Tên của bạn" aria-label="Tên">')+'<input required type="tel" placeholder="Số điện thoại" aria-label="Số điện thoại"><input required type="email" placeholder="Email (để nhận xác nhận)" aria-label="Email" autocomplete="email">'+(g[4]==="f"?'<textarea rows="4" placeholder="Bạn muốn Lộc Cộc hỗ trợ điều gì?" aria-label="Nội dung"></textarea>':"")+'<button class="pill" type="submit">Gửi</button><p class="ok" role="status" hidden>Đã nhận thông tin. Lộc Cộc sẽ liên hệ với bạn sớm.</p></form>';
+ if(g[4]==="f"||g[4]==="o")h+='<form class="contact" style="margin-top:36px">'+(g[4]==="o"?'<input required placeholder="Mã đơn hàng" aria-label="Mã đơn hàng">':'<input required placeholder="Tên của bạn" aria-label="Tên">')+'<input required type="tel" placeholder="Số điện thoại" aria-label="Số điện thoại"><input required type="email" placeholder="Email (để nhận xác nhận)" aria-label="Email" autocomplete="email">'+(g[4]==="f"?'<textarea rows="4" placeholder="Bạn muốn Lộc Cộc hỗ trợ điều gì?" aria-label="Nội dung"></textarea>':"")+'<label class="dy"><input type="checkbox" required><span>Tôi đồng ý để Lộc Cộc dùng các thông tin trên chỉ để liên hệ và xử lý yêu cầu của tôi. Xem <a href="#/chinh-sach-bao-mat">Chính sách bảo mật</a>.</span></label><button class="pill" type="submit">Gửi</button><p class="ok" role="status" hidden>Đã nhận thông tin. Lộc Cộc sẽ liên hệ với bạn sớm.</p></form>';
  else h+='<p style="text-align:center;margin-top:36px"><a class="pill" href="#/lien-he">Nhắn cho Lộc Cộc</a></p>';
  $("pg-gen").innerHTML=h+"</div></section>";
  document.querySelectorAll("#pg-gen form").forEach(bindForm)}

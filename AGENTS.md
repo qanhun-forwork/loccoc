@@ -118,6 +118,15 @@ Lộc Cộc tại loccoc.com.vn. Không phục vụ mục đích thương mại:
   v4.9: mỗi lần đồng bộ còn lấy tổng người theo dõi hiện tại (FB `followers_count`, IG `followers_count` + `media_count`)
   lưu vào Script Property `mt_hien`; `mangXaHoi` trả `meta.hienTai`; trang FB/IG hiện khối "Tài khoản lúc này" và dòng tổng ở thẻ
   "Người theo dõi mới". Không lưu lịch sử tổng theo ngày (API chỉ trả số hiện tại).
+- Báo cáo cuối kỳ (v4.10): `quantrivien/baocao.html` = slide HTML 1280×720 (≤ 20 slide theo khung 15 phần của đề), lấy số bằng
+  chính các lệnh dashboard (`mangXaHoi`, `luotXem`, `vercel`, `tongQuan`) với token phiên trong sessionStorage (mở từ nút
+  "Báo cáo cuối kỳ" ở thanh bên, cùng tab). Admin chính bấm "Chốt số liệu" → lệnh `chotSoLieu` lưu bản tổng hợp JSON vào tab ẩn
+  "📌 Chốt số liệu"; slide mặc định đọc bản chốt mới nhất (`layChot`) để khớp PDF đã nộp. Tương tác ÷ LƯỢT XEM theo đề
+  (khác ER trên dashboard). Truy cập "từ bên ngoài" = phiên có nguồn ≠ "Trực tiếp". Khung `.bs` = chỗ nhóm cần bổ sung (ẩn khi in).
+  Thông tin cố định (thành viên, KPI 6A/6B, BAT_DAU 26/09) ở đầu script, lấy từ "Proposal Final - cap nhat 03-11.pptx".
+- Bộ đếm (08/11): không đếm máy nội bộ (localStorage `lc_noibo`, đặt khi đăng nhập /quantrivien hoặc mở link `?noibo=1`,
+  `?noibo=0` để bỏ); phiên vào từ link có `utm_source` ghi nguồn "utm: nguồn / phương tiện / chiến dịch".
+- Form web có ô đồng ý bắt buộc (`.dy`, không có aria-label nên không bị gửi đi) + trang `#/chinh-sach-bao-mat` (Luật BVDLCN 2025).
 - Đếm lượt xem dùng `fetch` với `credentials:"omit"`, KHÔNG dùng sendBeacon (luôn kèm cookie Google → mất lượt).
 - Web: trang `#/tap-chi` và `#/tap-chi/<đường-dẫn>`; hàm `md()` định dạng nội dung bài có 2 bản giống hệt nhau
   (index.html và trang quản trị): sửa một chỗ thì sửa cả hai. Đếm lượt xem chỉ chạy trên tên miền loccoc.com.vn.

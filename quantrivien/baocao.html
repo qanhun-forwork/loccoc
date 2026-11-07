@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="referrer" content="no-referrer">
+<title>Báo cáo cuối kỳ | Lộc Cộc</title>
+<meta name="theme-color" content="#800E13">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23800E13'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+/* Báo cáo cuối kỳ Truyền thông số: slide HTML lấy số từ chính dashboard quản trị (cùng API, cùng token đăng nhập).
+   Số trên slide đọc từ bản "đã chốt" (tab ẩn 📌 Chốt số liệu) để khớp với PDF đã nộp; nút "Số trực tiếp" chỉ để xem trước. */
+:root{--be:#E8DCC8;--be-l:#F3EBDD;--be-xl:#FAF6EF;--be-d:#D8C7AA;--red:#800E13;--red-d:#5E0A0E;--nau:#5A3E32;--nau-d:#3E2A21;
+ --ink:#2A1C16;--mute:#7E6858;--line:rgba(90,62,50,.2);--tan:#B08A5E;--ok:#2F6B22;--sans:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",sans-serif}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font:15px/1.5 var(--sans);color:var(--ink);background:#2A1C16;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;cursor:pointer}
+a{color:var(--red)}
+:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+
+/* thanh điều khiển */
+.thanh{position:fixed;inset:0 0 auto;z-index:5;display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:10px 16px;background:rgba(42,28,22,.92);color:var(--be);backdrop-filter:blur(8px)}
+.thanh b{font-weight:700;margin-right:auto}
+.thanh button,.thanh a{border:1px solid rgba(232,220,200,.35);background:transparent;border-radius:999px;padding:7px 14px;color:var(--be);text-decoration:none;font-size:13px}
+.thanh button.chinh{background:var(--red);border-color:var(--red)}
+.thanh button[aria-pressed=true]{background:var(--be);color:var(--ink)}
+.thanh .tt{font-size:12px;opacity:.8}
+body.chieu .thanh{opacity:0;pointer-events:none;transition:opacity .3s}
+body.chieu .thanh:hover{opacity:1;pointer-events:auto}
+
+/* sân khấu: mỗi slide 1280×720, co giãn theo màn hình */
+#san{min-height:100dvh;display:grid;place-items:center;padding:64px 0 20px}
+body.chieu #san{padding:0}
+.khung{width:calc(1280px*var(--k,1));height:calc(720px*var(--k,1));position:relative}
+.sl{position:absolute;inset:0 auto auto 0;width:1280px;height:720px;transform:scale(var(--k,1));transform-origin:0 0;background:var(--be-xl);
+ overflow:hidden;display:none;padding:56px 64px 48px;flex-direction:column}
+.sl.on{display:flex}
+.so-trang{position:absolute;right:64px;bottom:22px;font-size:12px;color:var(--mute);letter-spacing:.08em}
+.chan{position:absolute;left:64px;bottom:22px;font-size:12px;color:var(--mute);letter-spacing:.08em}
+#dem{position:fixed;right:16px;bottom:12px;color:var(--be);font-size:12px;opacity:.7}
+
+/* chữ */
+.phan{font-size:13px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--red);margin:0 0 10px;display:flex;gap:10px;align-items:center}
+.phan i{font-style:normal;background:var(--red);color:var(--be-xl);border-radius:999px;padding:2px 10px;letter-spacing:.06em}
+.phan s{text-decoration:none;color:var(--mute);font-weight:600;margin-left:auto;letter-spacing:.08em}
+h1{font-size:40px;line-height:1.15;font-weight:800;letter-spacing:-.02em;margin:0 0 22px;color:var(--nau-d);max-width:1100px}
+h2{font-size:15px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--nau);margin:0 0 10px}
+p{margin:0 0 10px}
+.nho{font-size:12px;color:var(--mute)}
+.do{color:var(--red)}
+.dat{color:var(--ok);font-weight:700}
+.chua{color:var(--red);font-weight:700}
+
+/* bố cục */
+.noi{flex:1;display:grid;gap:22px;min-height:0}
+.c2{grid-template-columns:1fr 1fr}.c3{grid-template-columns:repeat(3,1fr)}.c4{grid-template-columns:repeat(4,1fr)}
+.c52{grid-template-columns:1.25fr 1fr}
+.o{background:#fff;border-radius:18px;padding:20px 22px;box-shadow:0 1px 0 var(--line);min-height:0;display:flex;flex-direction:column}
+.o.toi{background:var(--nau-d);color:var(--be)}
+.o.toi h2{color:var(--be-d)}
+.so{font-size:46px;font-weight:800;letter-spacing:-.03em;line-height:1;color:var(--red)}
+.so small{font-size:20px;color:var(--mute);font-weight:600}
+.bang{width:100%;border-collapse:collapse;font-size:15px}
+.bang th{text-align:left;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);font-weight:700;padding:8px 10px;border-bottom:1px solid var(--line)}
+.bang td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+.bang td.s{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.bang th.s{text-align:right}
+.bd{position:relative;flex:1;min-height:0}
+.bd canvas{position:absolute;inset:0;width:100%!important;height:100%!important}
+.the-lk{display:flex;flex-direction:column;gap:6px}
+
+/* chỗ nhóm cần bổ sung */
+.bs{border:2px dashed var(--red);border-radius:14px;padding:14px 16px;background:rgba(128,14,19,.05);color:var(--red-d);font-size:14px}
+.bs b{display:block;font-size:12px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px}
+body.in .bs{display:none}
+
+/* phễu */
+.pheu{display:flex;flex-direction:column;gap:12px;align-items:center;flex:1;justify-content:center}
+.tang{background:var(--red);color:var(--be-xl);border-radius:16px;padding:16px 24px;display:flex;justify-content:space-between;align-items:baseline;gap:20px}
+.tang b{font-size:34px;font-weight:800}
+.tang span{font-size:14px;opacity:.85}
+.mui{font-size:13px;color:var(--mute);font-weight:600}
+
+/* bìa */
+.bia{background:var(--red);color:var(--be);padding:64px}
+.bia h1{color:var(--be-xl);font-size:64px;max-width:900px}
+.bia .phan{color:var(--be-d)}
+.bia .phan i{background:var(--be);color:var(--red)}
+.bia .chan,.bia .so-trang{color:var(--be-d)}
+.bia .o{background:rgba(250,246,239,.1);color:var(--be);box-shadow:none}
+.bia .o h2{color:var(--be-d)}
+.bia .so{color:var(--be-xl)}
+.bia .so small{color:var(--be-d)}
+
+#loi{position:fixed;inset:0;display:none;place-items:center;background:var(--be);z-index:9;padding:24px;text-align:center}
+#loi.on{display:grid}
+#loi div{max-width:460px}
+
+@media print{
+ @page{size:1280px 720px;margin:0}
+ body{background:#fff}
+ .thanh,#dem,#loi{display:none!important}
+ #san{display:block;padding:0}
+ .khung{width:auto;height:auto}
+ .sl{display:flex!important;position:relative;transform:none;page-break-after:always;break-after:page}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="thanh">
+ <b>Báo cáo cuối kỳ · Lộc Cộc</b>
+ <span class="tt" id="tt">Đang tải…</span>
+ <button id="n-chot" aria-pressed="true">Số đã chốt</button>
+ <button id="n-song" aria-pressed="false">Số trực tiếp</button>
+ <button id="n-luu" class="chinh" hidden>Chốt số liệu</button>
+ <button id="n-chieu">Trình chiếu</button>
+ <button id="n-in">In PDF</button>
+ <a href="./">Về dashboard</a>
+</div>
+<main id="san"><div class="khung" id="khung"></div></main>
+<div id="dem"></div>
+<div id="loi"><div><h1 style="font-size:28px">Cần đăng nhập quản trị</h1><p id="loi-nd">Mở trang quản trị, đăng nhập, rồi bấm "Báo cáo cuối kỳ" để vào đây.</p><p><a href="./">Đến trang quản trị</a></p></div></div>
+
+<script>
+/* Cùng địa chỉ Apps Script với website và trang quản trị. Đổi một chỗ thì đổi cả ba. */
+var API="https://script.google.com/macros/s/AKfycbzc2ftUntEyk5PQMaHxldWdDqk0LdH39U8qiY_ZoMe3HiDYQ2vSo_1d4jHRHc7J6VLUCg/exec";
+var token="";try{token=sessionStorage.getItem("qt_tk")||""}catch(x){}
+function $(i){return document.getElementById(i)}
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+function so(n){return Number(n||0).toLocaleString("vi-VN")}
+function pt(n){return (Math.round(n*1000)/10).toLocaleString("vi-VN")+"%"}
+function ngay(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+function nhan(t){return t.slice(8,10)+"/"+t.slice(5,7)}
+function gioVN(iso){var d=new Date(iso);return isNaN(d)?"":d.toLocaleString("vi-VN",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"})}
+function cong(t,n){var d=new Date(t+"T00:00:00");d.setDate(d.getDate()+n);return ngay(d)}
+function goi(hanh,du){
+ return fetch(API,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(Object.assign({hanh:hanh,token:token},du||{}))})
+  .then(function(r){return r.json()}).then(function(j){if(j.hetPhien){$("loi").classList.add("on");throw new Error(j.loi)}if(!j.ok)throw new Error(j.loi||"Có lỗi xảy ra.");return j})}
+
+/* ═════════ Thông tin cố định theo Proposal giữa kỳ (Proposal Final - cap nhat 03-11) ═════════ */
+var BAT_DAU="2026-09-26";   // bài đăng đầu tiên "Coming soon" (T1 26/09–02/10 trong Content Calendar)
+var NHOM={ten:"Lộc Cộc",lop:"Truyền thông số · 71_DGIM40533 · Lớp 09",gv:"ThS. Nguyễn Ngọc Đăng Khoa",
+ tv:["Phạm Quang Hùng (nhóm trưởng)","Lê Quốc Bảo","Nguyễn Diệp Gia Bảo","Nguyễn Thị Huế","Dương Nguyễn Khánh Lam","Ngô Lê Phương Minh",
+  "Bùi Ngọc Diễm Phương","Huỳnh Minh Thư","Huỳnh Ngọc Minh Thy","Lưu Thị Hương Trà","Nguyễn Lê Cẩm Tú"]};
+var LINK={fb:"facebook.com/loccoc.com.vn",ig:"instagram.com/loccoc.com.vn",tt:"tiktok.com/@loccoc.com.vn",web:"loccoc.com.vn"};
+// KPI chung 6A (giữ nguyên theo đề) và mục tiêu riêng 6B (theo slide 20 Proposal)
+var KPI={fb:{fol:150,xem:8000,er:.05,bai:2},ig:{fol:120,xem:5000,er:.05,bai:2},tt:{fol:120,xem:15000,er:.05,bai:2},web:120,tong:500};
+var MT6B={fbTt:2000,igXem:10000,form:50,formNen:23,tu6B:"2026-10-24"};
+var TEN={fb:"Facebook Fanpage",ig:"Instagram",tt:"TikTok",web:"Landing page"};
+var NGUON={fb:"Meta Business Suite",ig:"Meta Business Suite",tt:"TikTok Studio + TikTok API",web:"Bộ đếm loccoc.com.vn + Vercel Analytics"};
+
+/* ═════════ Tính số từ dữ liệu dashboard → bản tổng hợp S (đây là thứ được chốt) ═════════ */
+function tinh(mx,xem,vc,tq,den){
+ var tuan=[];for(var t=BAT_DAU,i=1;t<=den;t=cong(t,7),i++)tuan.push({i:i,tu:t,den:cong(t,6)<den?cong(t,6):den});
+ var tong=function(D,f,tu,dn){var s=0;Object.keys(D.ngay||{}).forEach(function(n){if(n>=(tu||BAT_DAU)&&n<=(dn||den))s+=D.ngay[n][f]||0});return s};
+ var folNay={fb:(mx.meta.hienTai||{}).fb||0,ig:(mx.meta.hienTai||{}).ig||0,tt:(mx.ttApi.hienTai||{}).fol||0};
+ var K={};
+ ["fb","ig","tt"].forEach(function(p){var D=mx[p],tt=function(a,b){return p==="tt"?tong(D,"thich",a,b)+tong(D,"bl",a,b)+tong(D,"cs",a,b):tong(D,"tt",a,b)};
+  var x=tong(D,"xem"),tu=tt();
+  K[p]={fol:folNay[p],xem:x,tuongTac:tu,er:x?tu/x:0,nguoi:tong(D,"nguoi"),clk:tong(D,"clk"),moi:tong(D,"moi"),cs:tong(D,"cs"),hs:tong(D,"hs"),
+   tuan:tuan.map(function(w){return {xem:tong(D,"xem",w.tu,w.den),fol:folNay[p]-tong(D,"moi",cong(w.den,1),den)}})}});
+ // TikTok: tần suất đăng tính từ danh sách video (API chỉ trả video, không có bài ảnh cuộn)
+ var vid=(mx.ttApi.video||[]).filter(function(v){return v.ngay>=BAT_DAU&&v.ngay<=den});
+ K.tt.video=vid.map(function(v){var t=v.thich+v.binhLuan+v.chiaSe;return {ten:v.tieuDe,ngay:v.ngay,xem:v.xem,tt:t,er:v.xem?t/v.xem:0,cs:v.chiaSe,link:v.link}}).sort(function(a,b){return b.xem-a.xem});
+ K.tt.baiTuan=tuan.map(function(w){return vid.filter(function(v){return v.ngay>=w.tu&&v.ngay<=w.den}).length});
+ // landing page: phiên có nguồn (mạng xã hội, link giới thiệu, UTM) = truy cập từ bên ngoài; bỏ "Trực tiếp" (gồm lượt của nhóm)
+ var ng=xem.nguon||{},ngoai=0;Object.keys(ng).forEach(function(k){if(k!=="Trực tiếp")ngoai+=ng[k]});
+ var trongKy=function(r){var n=String(r["Ngày"]||"").slice(0,10);if(!/^\d{4}-\d{2}-\d{2}$/.test(n)){var d=new Date(r["Thời gian"]);n=isNaN(d)?"":ngay(d)}return n};
+ var don=(tq.don||[]).map(trongKy).filter(function(n){return n>=BAT_DAU&&n<=den}),lh=(tq.lh||[]).map(trongKy).filter(function(n){return n>=BAT_DAU&&n<=den});
+ var form=don.concat(lh);
+ K.web={phien:xem.tong.phien,khach:xem.tong.khach,xem:xem.tong.xem,thoat:xem.tong.thoat,ngoai:ngoai,nguon:ng,vcKhach:vc.tong.khach,vcXem:vc.tong.xem,vcNguon:vc["Nguồn"]||{},
+  don:don.length,lh:lh.length,form:form.length,form6B:form.filter(function(n){return n>=MT6B.tu6B}).length,
+  tuan:tuan.map(function(w){var p=0;Object.keys(xem.ngay||{}).forEach(function(n){if(n>=w.tu&&n<=w.den)p+=xem.ngay[n].phien});
+   return {phien:p,form:form.filter(function(n){return n>=w.tu&&n<=w.den}).length}})};
+ K.fb.tt6B=(function(){var s=0;Object.keys(mx.fb.ngay).forEach(function(n){if(n>=MT6B.tu6B&&n<=den)s+=mx.fb.ngay[n].tt||0});return s})();
+ K.ig.xem6B=(function(){var s=0;Object.keys(mx.ig.ngay).forEach(function(n){if(n>=MT6B.tu6B&&n<=den)s+=mx.ig.ngay[n].xem||0});return s})();
+ return {luc:new Date().toISOString(),tu:BAT_DAU,den:den,tuan:tuan,k:K,qc:mx.qcIg||[],
+  nguonTT:"TikTok API + TikTok Studio",capNhat:{meta:mx.meta.luc,tt:mx.ttApi.luc,vc:vc.capNhat}};
+}
+function taiSong(){var den=ngay(new Date()),k={tu:BAT_DAU,den:den};
+ return Promise.all([goi("mangXaHoi",k),goi("luotXem",k),goi("vercel",k),goi("tongQuan")]).then(function(r){return tinh(r[0],r[1],r[2],r[3],den)})}
+
+/* ═════════ Vẽ slide từ S ═════════ */
+var BIEU=[];
+function ty(a,b){return b?a/b:0}
+function dg(a,b){return a>=b?'<span class="dat">Đạt</span>':'<span class="chua">Chưa đạt</span>'}
+function kq(a,b,kieu){return kieu==="pt"?pt(a)+" / "+pt(b):so(a)+" / "+so(b)}
+function bs(t){return '<div class="bs"><b>Cần nhóm bổ sung</b>'+t+'</div>'}
+function dong(ten,a,b,kieu,nguon){return '<tr><td>'+ten+'</td><td class="s">'+kq(a,b,kieu)+'</td><td class="s">'+(kieu==="pt"?pt(ty(a,b)).replace("%","")+"%":pt(ty(a,b)))+'</td><td class="s">'+dg(a,b)+'</td><td class="nho">'+nguon+'</td></tr>'}
+function bangKpi(p,S){var K=S.k[p],m=KPI[p],r='<table class="bang"><tr><th>Chỉ số bắt buộc</th><th class="s">Kết quả / mục tiêu</th><th class="s">% đạt</th><th class="s"></th><th>Nguồn · khoảng ngày</th></tr>';
+ var kh=nhan(S.tu)+"–"+nhan(S.den);
+ r+=dong("Người theo dõi (0 → "+so(K.fol)+")",K.fol,m.fol,"",NGUON[p]+" · "+kh);
+ r+=dong("Lượt xem (Views)",K.xem,m.xem,"",NGUON[p]+" · "+kh);
+ r+=dong("Tương tác ÷ lượt xem",K.er,m.er,"pt","("+so(K.tuongTac)+" ÷ "+so(K.xem)+")");
+ if(p==="tt"){var bt=K.baiTuan,dat=bt.filter(function(x){return x>=m.bai}).length;r+='<tr><td>Tần suất đăng (≥ 2 video/tuần)</td><td class="s">'+dat+' / '+bt.length+' tuần</td><td class="s">'+pt(ty(dat,bt.length))+'</td><td class="s">'+dg(dat,bt.length)+'</td><td class="nho">Danh sách video TikTok API</td></tr>'}
+ else r+='<tr><td>Tần suất đăng (≥ 2 bài/tuần)</td><td colspan="4">'+bs("Số bài đã đăng từng tuần (Meta Business Suite → Nội dung).")+'</td></tr>';
+ return r+'</table>'}
+function slide(o){return '<section class="sl'+(o.lop?" "+o.lop:"")+'" data-ten="'+esc(o.ten||"")+'"><p class="phan"><i>'+o.so+'</i>'+o.phan+(o.clo?'<s>'+o.clo+'</s>':"")+'</p><h1>'+o.tieuDe+'</h1><div class="noi '+(o.cot||"")+'">'+o.noi+'</div><span class="chan">Lộc Cộc · Báo cáo cuối kỳ Truyền thông số HK261</span><span class="so-trang"></span></section>'}
+
+function ve(S){
+ var K=S.k,folTong=K.fb.fol+K.ig.fol+K.tt.fol,xemTong=K.fb.xem+K.ig.xem+K.tt.xem,kh=nhan(S.tu)+"/"+S.tu.slice(0,4)+" – "+nhan(S.den)+"/"+S.den.slice(0,4);
+ var W=K.web,H=[];
+ // 1. Bìa & tóm tắt
+ H.push('<section class="sl bia"><p class="phan"><i>01</i>Bìa & tóm tắt kết quả<s>CLO3</s></p><h1>Lộc Cộc: '+so(folTong)+' người theo dõi organic, '+so(W.ngoai)+' lượt ghé web, '+so(W.form)+' lượt gửi form</h1>'+
+  '<p style="font-size:18px;max-width:900px">Báo cáo hiệu quả chiến dịch “Dáng mộc ôm chân, cân mọi outfit” trên Facebook · Instagram · TikTok · loccoc.com.vn. '+NHOM.lop+' · GVHD '+NHOM.gv+'. Số liệu chốt từ '+kh+'.</p>'+
+  '<div class="noi c3" style="margin-top:20px;flex:0 0 auto">'+
+  '<div class="o"><h2>Người theo dõi 3 kênh</h2><div class="so">'+so(folTong)+' <small>/ '+so(KPI.tong)+'</small></div><p class="nho" style="color:var(--be-d)">FB '+so(K.fb.fol)+' · IG '+so(K.ig.fol)+' · TikTok '+so(K.tt.fol)+'</p></div>'+
+  '<div class="o"><h2>→ Truy cập web từ bên ngoài</h2><div class="so">'+so(W.ngoai)+' <small>/ '+so(KPI.web)+'</small></div><p class="nho" style="color:var(--be-d)">Phiên đến từ mạng xã hội, link giới thiệu, UTM</p></div>'+
+  '<div class="o"><h2>→ Chuyển đổi (gửi form)</h2><div class="so">'+so(W.form)+' <small>/ '+so(MT6B.form)+'</small></div><p class="nho" style="color:var(--be-d)">'+so(W.don)+' đơn đặt trước · '+so(W.lh)+' liên hệ & thiết kế riêng</p></div></div>'+
+  '<span class="chan">Nhóm '+NHOM.ten+' · '+NHOM.tv.length+' thành viên</span><span class="so-trang"></span></section>');
+ // 2. Objectives & cách đo
+ H.push(slide({so:"02",phan:"Objectives ban đầu & cách đo",clo:"CLO3",tieuDe:"Giữ nguyên KPI 6A, đo 6B bằng hành vi mua guốc thủ công",cot:"c52",noi:
+  '<div class="o"><h2>6A · KPI chung (giữ nguyên)</h2><table class="bang"><tr><th>Chỉ số</th><th class="s">Fanpage</th><th class="s">Instagram</th><th class="s">TikTok</th><th>Công cụ đo</th></tr>'+
+  '<tr><td>Người theo dõi</td><td class="s">≥ 150</td><td class="s">≥ 120</td><td class="s">≥ 120</td><td class="nho">Meta Business Suite, TikTok Studio</td></tr>'+
+  '<tr><td>Lượt xem</td><td class="s">≥ 8.000</td><td class="s">≥ 5.000</td><td class="s">≥ 15.000</td><td class="nho">Meta Business Suite, TikTok Studio</td></tr>'+
+  '<tr><td>Tương tác ÷ lượt xem</td><td class="s">≥ 5%</td><td class="s">≥ 5%</td><td class="s">≥ 5%</td><td class="nho">Tính từ 2 số trên</td></tr>'+
+  '<tr><td>Tần suất đăng</td><td class="s">≥ 2/tuần</td><td class="s">≥ 2/tuần</td><td class="s">≥ 2 video/tuần</td><td class="nho">Lịch sử bài đăng</td></tr>'+
+  '<tr><td>Landing page</td><td class="s" colspan="3">≥ 120 lượt truy cập từ bên ngoài · tổng follower 3 kênh ≥ 500</td><td class="nho">Bộ đếm web, Vercel Analytics</td></tr></table></div>'+
+  '<div class="o"><h2>6B · Mục tiêu riêng (24/10 – 20/11)</h2><table class="bang"><tr><th>Kênh</th><th>Mục tiêu SMART</th></tr>'+
+  '<tr><td>Fanpage</td><td>2.000 lượt tương tác · 15 lượt chia sẻ/tham gia minigame</td></tr><tr><td>Instagram</td><td>10.000 lượt xem · 300 lượt lưu trụ “Cân Mọi Outfit”</td></tr>'+
+  '<tr><td>TikTok</td><td>Lượt chia sẻ video</td></tr><tr><td>Landing page</td><td>50 lượt gửi form (nền 23)</td></tr></table>'+
+  bs("Mục tiêu 6B TikTok trong Proposal chưa có con số. Nếu đã đổi mục tiêu: ghi mục tiêu cũ → mới, ngày đổi, lý do.")+'</div>'}));
+ // 3. Kế hoạch vs thực tế
+ H.push(slide({so:"03",phan:"Kế hoạch vs thực tế",clo:"CLO3",tieuDe:"Lịch 8 tuần: Teasing → Launching → Sustaining → Hero",cot:"c52",noi:
+  '<div class="o"><h2>Video TikTok đăng mỗi tuần (thực tế)</h2><div class="bd"><canvas id="b-lich"></canvas></div></div>'+
+  '<div class="o">'+bs("% thực hiện Content Calendar từ file “Content Plan – Lộc Cộc”: 66 bài kế hoạch (23 TikTok · 22 Instagram · 15 Facebook · 6 landing page) → đã đăng → đúng tuần. Content mix kế hoạch (Mộc Kể Chuyện 15% · Ôm Chân Thật 25% · Cân Mọi Outfit 30% · Dấu Ấn Riêng 30%) so với thực tế.")+'</div>'}));
+ // 4. Một thương hiệu – 4 nền tảng
+ H.push(slide({so:"04",phan:"Một thương hiệu – 4 nền tảng",clo:"CLO2",tieuDe:"Be · đỏ burgundy · nâu gỗ đồng bộ trên cả 4 kênh",cot:"c4",noi:
+  ["fb","ig","tt","web"].map(function(p){return '<div class="o"><h2>'+TEN[p]+'</h2><p class="nho">'+LINK[p]+'</p>'+bs("Ảnh chụp trang: ảnh đại diện, ảnh bìa, bio.")+'</div>'}).join("")}));
+ // 5. Sản phẩm tiêu biểu
+ var top=K.tt.video.slice(0,3);
+ H.push(slide({so:"05",phan:"Sản phẩm tiêu biểu",clo:"CLO2",tieuDe:"Video quy trình làm guốc kéo lượt xem mạnh nhất",cot:"c2",noi:
+  '<div class="o"><h2>TikTok nhiều lượt xem nhất</h2><table class="bang"><tr><th>Video</th><th class="s">Xem</th><th class="s">Tương tác</th></tr>'+
+  top.map(function(v){return '<tr><td>'+esc(v.ten.slice(0,60)||"(không tiêu đề)")+'<br><span class="nho">'+nhan(v.ngay)+'</span></td><td class="s">'+so(v.xem)+'</td><td class="s">'+pt(v.er)+'</td></tr>'}).join("")+'</table></div>'+
+  '<div class="o">'+bs("2–3 sản phẩm còn lại (ảnh/carousel Instagram, bài Facebook, landing page) kèm ảnh và số liệu của chính bài đó; ghi thông số (9:16, 4:5, 1080px…).")+'</div>'}));
+ // 6. Kết quả theo kênh
+ ["fb","ig","tt"].forEach(function(p,i){var k=K[p],m=KPI[p],d=[k.fol>=m.fol,k.xem>=m.xem,k.er>=m.er].filter(Boolean).length;
+  H.push(slide({so:"06",phan:"Kết quả theo kênh · "+TEN[p],clo:"CLO3",tieuDe:TEN[p]+": đạt "+d+"/3 chỉ số chính, lượt xem "+so(k.xem)+" / "+so(m.xem)+" ("+pt(ty(k.xem,m.xem))+")",cot:"c52",noi:
+   '<div class="o">'+bangKpi(p,S)+'<p class="nho" style="margin-top:12px">Phụ trợ: '+(p==="tt"?'lượt chia sẻ '+so(k.cs)+' · xem hồ sơ '+so(k.hs)+' · người xem tiếp cận '+so(k.nguoi):'người xem/tiếp cận '+so(k.nguoi)+' · click liên kết '+so(k.clk))+'</p></div>'+
+   '<div class="o"><h2>Lượt xem và người theo dõi theo tuần</h2><div class="bd"><canvas id="b-'+p+'"></canvas></div></div>'}))});
+ H.push(slide({so:"06",phan:"Kết quả theo kênh · Landing page",clo:"CLO3",tieuDe:"Landing page: "+so(W.ngoai)+" lượt truy cập từ bên ngoài / "+so(KPI.web)+" ("+pt(ty(W.ngoai,KPI.web))+")",cot:"c52",noi:
+  '<div class="o"><table class="bang"><tr><th>Chỉ số</th><th class="s">Kết quả / mục tiêu</th><th class="s">% đạt</th><th class="s"></th><th>Nguồn</th></tr>'+
+  dong("Truy cập từ bên ngoài",W.ngoai,KPI.web,"","Bộ đếm loccoc.com.vn")+dong("Gửi form (6B)",W.form6B+MT6B.formNen,MT6B.form,"","Google Sheet đơn hàng · nền "+MT6B.formNen)+'</table>'+
+  '<p class="nho" style="margin-top:12px">Cách tính: cộng các phiên có nguồn (Facebook, Instagram, TikTok, link UTM…), không tính phiên “Trực tiếp” vì gồm lượt của nhóm. Từ 08/11, máy thành viên và admin được loại hẳn khỏi bộ đếm.</p>'+
+  '<p class="nho">Phụ trợ: tổng '+so(W.phien)+' phiên · '+so(W.khach)+' khách · Vercel '+so(W.vcKhach)+' visitors.</p></div>'+
+  '<div class="o"><h2>Phiên truy cập và lượt gửi form theo tuần</h2><div class="bd"><canvas id="b-web"></canvas></div></div>'}));
+ // 7. Phễu
+ H.push(slide({so:"07",phan:"Phễu chuyển đổi",clo:"CLO3",tieuDe:"Cứ 100 lượt xem có "+(Math.round(ty(W.ngoai,xemTong)*1000)/10).toLocaleString("vi-VN")+" lượt ghé web; "+pt(ty(W.form,W.ngoai))+" lượt ghé gửi form",cot:"c52",noi:
+  '<div class="o"><div class="pheu" style="width:100%">'+
+  '<div class="tang" style="width:100%"><span>Lượt xem 3 kênh</span><b>'+so(xemTong)+'</b></div><div class="mui">↓ '+pt(ty(W.ngoai,xemTong))+' (mục tiêu CTR 2%)</div>'+
+  '<div class="tang" style="width:78%;background:var(--nau)"><span>Truy cập web từ bên ngoài</span><b>'+so(W.ngoai)+'</b></div><div class="mui">↓ '+pt(ty(W.form,W.ngoai))+' (mục tiêu 10%)</div>'+
+  '<div class="tang" style="width:56%;background:var(--tan)"><span>Gửi form (đơn + liên hệ)</span><b>'+so(W.form)+'</b></div></div></div>'+
+  '<div class="o"><h2>Nguồn của lượt truy cập</h2><table class="bang"><tr><th>Nguồn</th><th class="s">Phiên</th></tr>'+Object.keys(W.nguon).sort(function(a,b){return W.nguon[b]-W.nguon[a]}).slice(0,8).map(function(n){return '<tr><td>'+esc(n)+'</td><td class="s">'+so(W.nguon[n])+'</td></tr>'}).join("")+'</table>'+
+  '<p class="nho" style="margin-top:10px">Mục tiêu phễu Proposal: 25.000 xem → 500 truy cập → 50 form.</p></div>'}));
+ // 8. Tốt nhất & kém nhất
+ var vs=K.tt.video.slice(),tot=vs[0],kem=vs[vs.length-1],erCao=vs.slice().sort(function(a,b){return b.er-a.er})[0];
+ H.push(slide({so:"08",phan:"Nội dung tốt nhất & kém nhất",clo:"CLO3",tieuDe:"TikTok kéo lượt xem nhưng chưa đạt 15.000; video quy trình dẫn đầu",cot:"c3",noi:
+  [["Tốt nhất (lượt xem)",tot],["Tương tác cao nhất",erCao],["Kém nhất (lượt xem)",kem]].map(function(x){var v=x[1]||{ten:"",xem:0,er:0,ngay:S.den};return '<div class="o"><h2>'+x[0]+'</h2><p><b>'+esc(v.ten.slice(0,70)||"(không tiêu đề)")+'</b></p><div class="so">'+so(v.xem)+' <small>xem</small></div><p class="nho">Tương tác '+pt(v.er)+' · '+nhan(v.ngay)+'</p></div>'}).join("")+
+  '<div class="o" style="grid-column:1/-1">'+bs("3 nhận định đủ 3 phần (Số liệu → Ý nghĩa → Hành động), có ít nhất 1 mục tiêu chưa đạt; phân tích theo thời gian, so sánh kênh/bài, theo định dạng/chủ đề/hook.")+'</div>'}));
+ // 9–11
+ H.push(slide({so:"09",phan:"Ý tưởng sáng tạo đã triển khai",clo:"CLO4",tieuDe:"Atelier 3D và video quy trình AI: khác biệt của Lộc Cộc",cot:"c2",noi:
+  '<div class="o"><h2>Atelier 3D trên loccoc.com.vn</h2>'+bs("Đã triển khai từ ngày nào, số lượt dùng, so với bài thường.")+'</div><div class="o"><h2>Video quy trình làm guốc (AI, có gắn nhãn)</h2>'+bs("Số liệu video so với bài thường của nhóm.")+'</div>'}));
+ H.push(slide({so:"10",phan:"Thử nghiệm & điều chỉnh (PDCA)",clo:"CLO5",tieuDe:"Hai lần điều chỉnh dựa trên số liệu",cot:"c2",noi:
+  '<div class="o"><h2>Điều chỉnh 1</h2>'+bs("Plan → Do → Check → Act, kèm số trước – sau.")+'</div><div class="o"><h2>Điều chỉnh 2 (trong 2 tuần cuối)</h2>'+bs("Plan → Do → Check → Act, kèm số trước – sau.")+'</div>'}));
+ H.push(slide({so:"11",phan:"Hành trình nhóm",clo:"CLO5",tieuDe:NHOM.tv.length+" thành viên, 8 tuần, 4 nền tảng tự vận hành",cot:"c2",noi:
+  '<div class="o"><h2>Thành viên</h2><ul style="margin:0;padding-left:18px;columns:2;font-size:15px;line-height:1.8">'+NHOM.tv.map(function(t){return '<li>'+esc(t)+'</li>'}).join("")+'</ul></div>'+
+  '<div class="o">'+bs("Dòng thời gian dự án, phân công và % đóng góp từng người, việc làm vượt yêu cầu (ví dụ: tự xây website, dashboard quản trị, kết nối TikTok/Meta API).")+'</div>'}));
+ // 12. Quảng cáo
+ var Q=S.qc,chi=Q.reduce(function(s,q){return s+(q.chi||0)},0),clk=Q.reduce(function(s,q){return s+(q.clk||0)},0);
+ H.push(slide({so:"12",phan:"Quảng cáo trả phí",clo:"CLO3",tieuDe:Q.length?"Quảng cáo chỉ thử 1 lần: "+so(chi)+"đ, tách riêng khỏi KPI organic":"Không chạy quảng cáo: không áp dụng",cot:"c2",noi:
+  '<div class="o"><table class="bang"><tr><th>Bài</th><th class="s">Đã chi</th><th class="s">Xem</th><th class="s">Click</th><th class="s">CPC</th></tr>'+
+  Q.map(function(q){return '<tr><td>'+esc(q.ten)+'<br><span class="nho">'+esc(q.tu)+' → '+esc(q.den)+'</span></td><td class="s">'+so(q.chi)+'đ</td><td class="s">'+so(q.xem)+'</td><td class="s">'+so(q.clk)+'</td><td class="s">'+(q.clk?so(Math.round(q.chi/q.clk))+"đ":"–")+'</td></tr>'}).join("")+'</table>'+
+  '<p class="nho" style="margin-top:10px">Tổng: '+so(chi)+'đ · '+so(clk)+' click · CPC '+(clk?so(Math.round(chi/clk))+"đ":"–")+'. Không cộng vào KPI chung.</p></div>'+
+  '<div class="o">'+bs("Xác nhận còn chạy quảng cáo nào khác (Meta Ads Facebook, TikTok Promote) không; CPA nếu có đơn từ quảng cáo.")+'</div>'}));
+ // 13. Pháp lý
+ var PL=[["Thông tin trung thực","Giá 350.000đ ghi rõ; form đổi sang “đặt trước – chưa thu tiền”, bài minh bạch 23/10","Luật Quảng cáo 2012 (sđ 2025); Luật BVQLNTD 2023"],
+  ["Công khai hợp tác","Không có bài hợp tác/KOL trả phí","Luật 75/2025/QH15; NĐ 55/2024"],
+  ["Dữ liệu cá nhân","Form có ô đồng ý + trang Chính sách bảo mật (thêm 08/11); Sheet phân quyền, có nhật ký truy cập","Luật BVDLCN 91/2025/QH15"],
+  ["Nội dung AI","Bật nhãn AI mọi bài dùng ảnh/video AI","Luật Trí tuệ nhân tạo 134/2025/QH15"],
+  ["Bản quyền tài nguyên","Nhạc từ thư viện nền tảng; font Plus Jakarta Sans (OFL); ảnh sản phẩm tự chụp","Luật Sở hữu trí tuệ"],
+  ["Minigame, bán hàng","Minigame #CanMoiOutfit: thể lệ và công bố kết quả","Luật TMĐT 122/2025/QH15"]];
+ H.push(slide({so:"13",phan:"Tuân thủ pháp lý & minh chứng",clo:"CLO3",tieuDe:"Tự phát hiện và sửa: form web thêm ô đồng ý dữ liệu cá nhân",cot:"c52",noi:
+  '<div class="o"><table class="bang"><tr><th>Nhóm nội dung</th><th>Lộc Cộc đã làm</th><th>Căn cứ</th></tr>'+PL.map(function(r){return '<tr><td><b>'+r[0]+'</b></td><td>'+r[1]+'</td><td class="nho">'+r[2]+'</td></tr>'}).join("")+'</table></div>'+
+  '<div class="o">'+bs("Cặp ảnh trước – sau của form (trước 08/11 chưa có ô đồng ý → sau 08/11 có), ảnh bài có nhãn AI, ảnh thể lệ minigame. Kiểm tra lại dòng “Công khai hợp tác” và “Minigame”.")+'</div>'}));
+ // 14–15–16
+ H.push(slide({so:"14",phan:"Bài học & đề xuất",clo:"CLO4",tieuDe:"Giữ kênh mạnh, sửa điểm yếu trong 3 tháng tới",cot:"c2",noi:
+  '<div class="o"><h2>Bài học lớn nhất</h2>'+bs("Bài học lớn nhất của nhóm.")+'</div><div class="o"><h2>Kế hoạch 3 tháng tới</h2>'+bs("Giữ kênh nào, mục tiêu 3 tháng tới, điều chỉnh gì.")+'</div>'}));
+ H.push(slide({so:"15",phan:"Mở nền tảng thực · 3 phút",clo:"CLO2",tieuDe:"Số liệu chốt "+kh+": mở kênh thật để đối chiếu",cot:"c4",noi:
+  ["fb","ig","tt","web"].map(function(p){return '<div class="o the-lk"><h2>'+TEN[p]+'</h2><p style="font-size:18px;font-weight:700;color:var(--red)">'+LINK[p]+'</p><p class="nho">'+NGUON[p]+'</p></div>'}).join("")+
+  '<div class="o toi" style="grid-column:1/-1"><h2>Trình tự</h2><p>Meta Business Suite (FB, IG) → TikTok Studio → loccoc.com.vn từ link UTM → form đặt hàng → dashboard loccoc.com.vn/quantrivien → 1 minh chứng pháp lý.</p></div>'}));
+ H.push('<section class="sl bia"><p class="phan"><i>16</i>Cảm ơn</p><h1>Chỉn chu từng chi tiết – cho bạn lựa chọn không hối tiếc</h1><p style="font-size:20px">Cảm ơn thầy và các bạn đã lắng nghe.</p>'+
+  '<p style="margin-top:auto">'+[LINK.web,LINK.fb,LINK.ig,LINK.tt].join(" · ")+'</p><span class="chan">Nhóm Lộc Cộc · Lớp 09</span><span class="so-trang"></span></section>');
+ $("khung").innerHTML=H.join("");
+ [].forEach.call(document.querySelectorAll(".sl"),function(s,i,a){s.querySelector(".so-trang").textContent=(i+1)+" / "+a.length});
+ veBieu(S);hien(SL);
+ $("tt").textContent=(CHE==="chot"?"Số đã chốt lúc "+gioVN(S.luc):"Số trực tiếp (chưa chốt) · "+gioVN(S.luc))+" · "+kh;
+}
+function veBieu(S){BIEU.forEach(function(c){c.destroy()});BIEU=[];
+ Chart.defaults.font.family='"Plus Jakarta Sans",system-ui,sans-serif';Chart.defaults.color="#7E6858";Chart.defaults.animation=false;
+ var nh=S.tuan.map(function(w){return "T"+w.i+" · "+nhan(w.tu)});
+ var tao=function(id,cfg){var c=$(id);if(c)BIEU.push(new Chart(c,cfg))};
+ var cfg=function(ds,hai){return {data:{labels:nh,datasets:ds},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom",labels:{boxWidth:10,usePointStyle:true}}},
+  scales:Object.assign({x:{grid:{display:false}},y:{beginAtZero:true,grid:{color:"rgba(90,62,50,.12)"}}},hai?{y1:{beginAtZero:true,position:"right",grid:{display:false}}}:{})}}};
+ ["fb","ig","tt"].forEach(function(p){var t=S.k[p].tuan;
+  tao("b-"+p,Object.assign({type:"line"},cfg([{label:"Lượt xem",data:t.map(function(x){return x.xem}),borderColor:"#800E13",backgroundColor:"#800E13",tension:.3},
+   {label:"Người theo dõi (cuối tuần)",data:t.map(function(x){return x.fol}),borderColor:"#B08A5E",backgroundColor:"#B08A5E",tension:.3,yAxisID:"y1"}],true)))});
+ var w=S.k.web.tuan;
+ tao("b-web",Object.assign({type:"line"},cfg([{label:"Phiên truy cập",data:w.map(function(x){return x.phien}),borderColor:"#800E13",backgroundColor:"#800E13",tension:.3},
+  {label:"Gửi form",data:w.map(function(x){return x.form}),borderColor:"#5A3E32",backgroundColor:"#5A3E32",tension:.3,yAxisID:"y1"}],true)));
+ tao("b-lich",Object.assign({type:"bar"},cfg([{label:"Video TikTok",data:S.k.tt.baiTuan,backgroundColor:"#800E13",borderRadius:6}])));
+}
+
+/* ═════════ Điều khiển ═════════ */
+var SL=0,CHE="chot",CHOT=null,SONG=null;
+function hien(i){var a=document.querySelectorAll(".sl");if(!a.length)return;SL=Math.max(0,Math.min(a.length-1,i));
+ [].forEach.call(a,function(s,j){s.classList.toggle("on",j===SL)});$("dem").textContent=(SL+1)+" / "+a.length;
+ try{history.replaceState(null,"","#"+(SL+1))}catch(x){}}
+function co(){var cao=document.body.classList.contains("chieu")?innerHeight:innerHeight-84,k=Math.min(innerWidth/1280,cao/720);document.documentElement.style.setProperty("--k",k)}
+addEventListener("resize",co);co();
+addEventListener("keydown",function(e){if(/^(ArrowRight|PageDown| )$/.test(e.key)){e.preventDefault();hien(SL+1)}if(/^(ArrowLeft|PageUp)$/.test(e.key)){e.preventDefault();hien(SL-1)}
+ if(e.key==="Home")hien(0);if(e.key==="End")hien(99)});
+$("khung").addEventListener("click",function(e){if(e.target.closest("a"))return;hien(SL+(e.clientX>innerWidth/2?1:-1))});
+$("n-chieu").onclick=function(){var r=document.documentElement;(r.requestFullscreen?r.requestFullscreen():Promise.resolve()).catch(function(){})};
+document.addEventListener("fullscreenchange",function(){document.body.classList.toggle("chieu",!!document.fullscreenElement);co()});
+$("n-in").onclick=function(){document.body.classList.add("in");window.print()};
+addEventListener("afterprint",function(){document.body.classList.remove("in")});
+function che(m){CHE=m;$("n-chot").setAttribute("aria-pressed",m==="chot");$("n-song").setAttribute("aria-pressed",m==="song");
+ if(m==="chot"){if(CHOT)ve(CHOT.du);else{$("tt").textContent="Chưa chốt số liệu lần nào: đang hiện số trực tiếp.";if(SONG)ve(SONG)}}
+ else if(SONG)ve(SONG);else{$("tt").textContent="Đang tải số trực tiếp…";taiSong().then(function(S){SONG=S;if(CHE==="song")ve(S)}).catch(baoLoi)}}
+function baoLoi(e){$("tt").textContent="Lỗi: "+(e.message||e)}
+$("n-chot").onclick=function(){che("chot")};$("n-song").onclick=function(){che("song")};
+$("n-luu").onclick=function(){var b=this;
+ if(!confirm("Chốt số liệu bây giờ? Slide sẽ dùng số tại thời điểm này cho đến khi chốt lại."))return;
+ b.disabled=true;b.textContent="Đang chốt…";
+ taiSong().then(function(S){SONG=S;return goi("chotSoLieu",{du:JSON.stringify(S)}).then(function(){CHOT={luc:S.luc,du:S};che("chot")})})
+  .catch(baoLoi).finally(function(){b.disabled=false;b.textContent="Chốt số liệu"})};
+
+if(!token)$("loi").classList.add("on");
+else Promise.all([goi("toi"),goi("layChot").catch(function(){return {chot:null}})]).then(function(r){
+ if(r[0].vaiTro==="chinh")$("n-luu").hidden=false;
+ CHOT=r[1].chot;SL=Math.max(0,(parseInt(location.hash.slice(1),10)||1)-1);
+ if(CHOT)che("chot");else che("song");
+}).catch(function(e){$("loi-nd").textContent=e.message||"Không kết nối được máy chủ.";$("loi").classList.add("on")});
+</script>
+</body>
+</html>

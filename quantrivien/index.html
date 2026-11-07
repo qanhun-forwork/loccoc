@@ -375,6 +375,7 @@ aside.sb{background:var(--sb-bg);transition:background .6s}
   <nav class="sb-nav" id="sbnav"><span class="sb-nen" aria-hidden="true"></span>
    <p class="sb-nhom">Phân tích</p>
    <button type="button" data-v="ban" data-i="ban"><span>Tổng quan bán hàng</span></button>
+   <button type="button" id="bc" data-i="ban" onclick="location.href='baocao.html'"><span>Báo cáo cuối kỳ</span></button>
    <p class="sb-nhom">Website Analytics</p>
    <button type="button" data-v="xem" data-i="xem"><span>Lượt truy cập</span></button>
    <p class="sb-nhom">Mạng xã hội</p>
@@ -417,7 +418,7 @@ function goi(hanh,du){
 
 /* ---------- đăng nhập ---------- */
 $("fdn").addEventListener("submit",function(e){e.preventDefault();var n=$("dn-nut");n.disabled=true;n.textContent="Đang kiểm tra…";$("dn-loi").textContent="";
- goi("dangNhap",{ten:$("dn-ten").value,matKhau:$("dn-mk").value}).then(function(j){token=j.token;try{sessionStorage.setItem("qt_tk",token)}catch(x){}$("dn-mk").value="";vao(j)})
+ goi("dangNhap",{ten:$("dn-ten").value,matKhau:$("dn-mk").value}).then(function(j){token=j.token;try{sessionStorage.setItem("qt_tk",token);localStorage.setItem("lc_noibo","1")}catch(x){}$("dn-mk").value="";vao(j)})
  .catch(function(er){$("dn-loi").textContent=er.message||"Không kết nối được máy chủ."}).finally(function(){n.disabled=false;n.textContent="Đăng nhập"})});
 // quyền chỉ để ẩn/hiện mục trên giao diện; máy chủ vẫn kiểm tra quyền ở mỗi lệnh
 var QV={ban:"ban",don:"don",bai:"bai",xem:"xem",fb:"xem",ig:"xem",tt:"xem"};
