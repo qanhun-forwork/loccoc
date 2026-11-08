@@ -201,7 +201,7 @@ var NHOM={ten:"Lộc Cộc",lop:"Truyền thông số · 71_DGIM40533 · Lớp 0
 var LINK={fb:"facebook.com/loccoc.com.vn",ig:"instagram.com/loccoc.com.vn",tt:"tiktok.com/@loccoc.com.vn",web:"loccoc.com.vn"};
 // KPI chung 6A (giữ nguyên theo đề) và mục tiêu riêng 6B (theo slide 20 Proposal)
 var KPI={fb:{fol:150,xem:8000,er:.05,bai:2},ig:{fol:120,xem:5000,er:.05,bai:2},tt:{fol:120,xem:15000,er:.05,bai:2},web:120,tong:500};
-var MT6B={fbTt:2000,igXem:10000,form:50,formNen:23,tu6B:"2026-10-24"};
+var MT6B={fbTt:2000,igXem:10000,form:50};   // mọi chỉ số tính từ BAT_DAU (26/09) đến ngày chốt
 // số bài kế hoạch theo tuần T1–T8 (sheet "Tổng quan" của Content Plan - Loc Coc.xlsx) và tỉ lệ trụ nội dung (Proposal slide 9)
 var KH={tt:[2,0,3,2,4,4,4,4],ig:[2,0,6,2,3,3,3,3],fb:[0,0,1,2,3,3,3,3]};
 var TRU=[["Mộc Kể Chuyện",15],["Ôm Chân Thật",25],["Cân Mọi Outfit",30],["Dấu Ấn Riêng",30]];
@@ -235,12 +235,15 @@ function tinh(mx,xem,vc,tq,den,vcTruoc){
  var don=(tq.don||[]).map(trongKy).filter(function(n){return n>=BAT_DAU&&n<=den}),lh=(tq.lh||[]).map(trongKy).filter(function(n){return n>=BAT_DAU&&n<=den});
  var form=don.concat(lh);
  var demNgay=function(ds,a,b){return ds.filter(function(n){return n>=a&&n<=b}).length};
- K.web={phien:xem.tong.phien,khach:xem.tong.khach,xem:xem.tong.xem,thoat:xem.tong.thoat,ngoai:ngoai+ngoaiVc,ngoaiDem:ngoai,ngoaiVc:ngoaiVc,nguonVc:nguonVc,demTu:xem.dauTien||"",nguon:ng,vcKhach:vc.tong.khach,vcXem:vc.tong.xem,vcNguon:vc["Nguồn"]||{},
-  don:don.length,lh:lh.length,don2Ngay:demNgay(don,"2026-10-18","2026-10-19"),donTruoc23:demNgay(don,BAT_DAU,"2026-10-22"),donSau23:demNgay(don,"2026-10-23",den),form:form.length,form6B:form.filter(function(n){return n>=MT6B.tu6B}).length,
+ var vcTruocKhach=0;Object.keys(vc.ngay||{}).forEach(function(n){if(n>=BAT_DAU&&n<=den&&(!xem.dauTien||n<xem.dauTien))vcTruocKhach+=vc.ngay[n].khach||0});
+ K.web={phien:xem.tong.phien+vcTruocKhach,vcTruocKhach:vcTruocKhach,khach:xem.tong.khach,xem:xem.tong.xem,thoat:xem.tong.thoat,ngoai:ngoai+ngoaiVc,ngoaiDem:ngoai,ngoaiVc:ngoaiVc,nguonVc:nguonVc,demTu:xem.dauTien||"",nguon:ng,vcKhach:vc.tong.khach,vcXem:vc.tong.xem,vcNguon:vc["Nguồn"]||{},
+  don:don.length,lh:lh.length,don2Ngay:demNgay(don,"2026-10-18","2026-10-19"),donTruoc23:demNgay(don,BAT_DAU,"2026-10-22"),donSau23:demNgay(don,"2026-10-23",den),form:form.length,
+  // trước ngày bộ đếm bắt đầu: lượt truy cập lấy số khách theo ngày của Vercel
   tuan:tuan.map(function(w){var p=0;Object.keys(xem.ngay||{}).forEach(function(n){if(n>=w.tu&&n<=w.den)p+=xem.ngay[n].phien});
+   Object.keys(vc.ngay||{}).forEach(function(n){if(n>=w.tu&&n<=w.den&&(!xem.dauTien||n<xem.dauTien))p+=vc.ngay[n].khach||0});
    return {phien:p,form:form.filter(function(n){return n>=w.tu&&n<=w.den}).length}})};
- K.fb.tt6B=(function(){var s=0;Object.keys(mx.fb.ngay).forEach(function(n){if(n>=MT6B.tu6B&&n<=den)s+=mx.fb.ngay[n].tt||0});return s})();
- K.ig.xem6B=(function(){var s=0;Object.keys(mx.ig.ngay).forEach(function(n){if(n>=MT6B.tu6B&&n<=den)s+=mx.ig.ngay[n].xem||0});return s})();
+ K.fb.tt6B=K.fb.tuongTac;
+ K.ig.xem6B=K.ig.xem;
  return {luc:new Date().toISOString(),tu:BAT_DAU,den:den,tuan:tuan,k:K,qc:mx.qcIg||[],
   nguonTT:"TikTok API + TikTok Studio",capNhat:{meta:mx.meta.luc,tt:mx.ttApi.luc,vc:vc.capNhat}};
 }
@@ -287,10 +290,10 @@ function ve(S,capNhat){
   '<tr><td>Tương tác ÷ lượt xem</td><td class="s">≥ 5%</td><td class="s">≥ 5%</td><td class="s">≥ 5%</td><td class="nho">Tính từ 2 số trên</td></tr>'+
   '<tr><td>Tần suất đăng</td><td class="s">≥ 2/tuần</td><td class="s">≥ 2/tuần</td><td class="s">≥ 2 video/tuần</td><td class="nho">Lịch sử bài đăng</td></tr>'+
   '<tr><td>Landing page</td><td class="s" colspan="3">≥ 120 lượt truy cập từ bên ngoài · tổng follower 3 kênh ≥ 500</td><td class="nho">Bộ đếm web, Vercel Analytics</td></tr></table></div>'+
-  '<div class="o"><h2>6B · Mục tiêu riêng (24/10 – 20/11)</h2><table class="bang"><tr><th>Kênh</th><th>Mục tiêu SMART</th></tr>'+
+  '<div class="o"><h2>6B · Mục tiêu riêng (26/09 – 20/11)</h2><table class="bang"><tr><th>Kênh</th><th>Mục tiêu SMART</th></tr>'+
   '<tr><td>Fanpage</td><td>2.000 lượt tương tác · 15 lượt chia sẻ/tham gia minigame</td></tr><tr><td>Instagram</td><td>10.000 lượt xem · 300 lượt lưu trụ “Cân Mọi Outfit”</td></tr>'+
-  '<tr><td>TikTok</td><td>Lượt chia sẻ video <span class="nho">(chưa có con số)</span></td></tr><tr><td>Landing page</td><td>50 lượt gửi form (nền 23)</td></tr></table>'+
-  '<p class="nho" style="margin-top:10px">Kết quả 6B đến ngày chốt: Fanpage '+so(K.fb.tt6B)+' / 2.000 tương tác · Instagram '+so(K.ig.xem6B)+' / 10.000 lượt xem · TikTok '+so(K.tt.cs)+' lượt chia sẻ · Landing page '+so(W.form6B+MT6B.formNen)+' / 50 form.</p>'+
+  '<tr><td>TikTok</td><td>Lượt chia sẻ video <span class="nho">(chưa có con số)</span></td></tr><tr><td>Landing page</td><td>50 lượt gửi form</td></tr></table>'+
+  '<p class="nho" style="margin-top:10px">Kết quả 6B đến ngày chốt: Fanpage '+so(K.fb.tt6B)+' / 2.000 tương tác · Instagram '+so(K.ig.xem6B)+' / 10.000 lượt xem · TikTok '+so(K.tt.cs)+' lượt chia sẻ · Landing page '+so(W.form)+' / 50 form.</p>'+
   bs("Chốt con số mục tiêu chia sẻ TikTok (ghi mục tiêu cũ → mới, ngày đổi, lý do).")+'</div>'}));
  // 3. Kế hoạch vs thực tế
  H.push(slide({so:"03",phan:"Kế hoạch vs thực tế",clo:"CLO3",tieuDe:(function(){var kh=0,d=0;["tt","ig","fb"].forEach(function(p){(K[p].baiTuan||[]).forEach(function(x,i){kh+=KH[p][i]||0;d+=x})});return "Đã đăng "+d+"/"+kh+" bài theo lịch ("+pt(ty(d,kh))+"): cần bám lịch sát hơn ở giai đoạn Sustaining"})(),cot:"c52",noi:
@@ -317,9 +320,9 @@ function ve(S,capNhat){
    '<div class="o"><h2>Lượt xem và người theo dõi theo tuần</h2><div class="bd"><canvas id="b-'+p+'"></canvas></div></div>'}))});
  H.push(slide({so:"06",phan:"Kết quả theo kênh · Landing page",clo:"CLO3",tieuDe:"Landing page: "+so(W.ngoai)+" lượt truy cập từ bên ngoài / "+so(KPI.web)+" ("+pt(ty(W.ngoai,KPI.web))+")",cot:"c52",noi:
   '<div class="o"><table class="bang"><tr><th>Chỉ số</th><th class="s">Kết quả / mục tiêu</th><th class="s">% đạt</th><th class="s"></th><th>Nguồn</th></tr>'+
-  dong("Truy cập từ bên ngoài",W.ngoai,KPI.web,"",(W.ngoaiVc?"Vercel Analytics + ":"")+"bộ đếm loccoc.com.vn")+dong("Gửi form (6B)",W.form6B+MT6B.formNen,MT6B.form,"","Google Sheet đơn hàng · nền "+MT6B.formNen)+'</table>'+
+  dong("Truy cập từ bên ngoài",W.ngoai,KPI.web,"",(W.ngoaiVc?"Vercel Analytics + ":"")+"bộ đếm loccoc.com.vn")+dong("Gửi form (6B)",W.form,MT6B.form,"","Google Sheet đơn hàng & liên hệ")+'</table>'+
   '<p class="nho" style="margin-top:12px">Cách tính: '+(W.ngoaiVc?so(W.ngoaiVc)+' khách có nguồn giới thiệu theo Vercel Analytics ('+nhan(S.tu)+'–'+nhan(cong(W.demTu,-1))+') + ':'')+so(W.ngoaiDem)+' phiên có nguồn theo bộ đếm loccoc.com.vn (từ '+(W.demTu?nhan(W.demTu):"–")+'). Không tính truy cập trực tiếp vì gồm lượt của nhóm. Từ 08/11, máy thành viên và admin được loại hẳn khỏi bộ đếm.</p>'+
-  '<p class="nho">Phụ trợ: tổng '+so(W.phien)+' phiên · '+so(W.khach)+' khách · Vercel '+so(W.vcKhach)+' visitors.</p></div>'+
+  '<p class="nho">Phụ trợ: tổng '+so(W.phien)+' lượt truy cập ('+(W.vcTruocKhach?'Vercel trước '+nhan(W.demTu)+' + ':'')+'bộ đếm) · Vercel cả kỳ '+so(W.vcKhach)+' visitors.</p></div>'+
   '<div class="o"><h2>Phiên truy cập và lượt gửi form theo tuần</h2><div class="bd"><canvas id="b-web"></canvas></div></div>'}));
  // 7. Phễu
  H.push(slide({so:"07",phan:"Phễu chuyển đổi",clo:"CLO3",tieuDe:"Cứ 100 lượt xem có "+(Math.round(ty(W.ngoai,xemTong)*1000)/10).toLocaleString("vi-VN")+" lượt ghé web; "+pt(ty(W.form,W.ngoai))+" lượt ghé gửi form",cot:"c52",noi:
