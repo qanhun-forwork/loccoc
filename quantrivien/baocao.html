@@ -106,6 +106,9 @@ p{margin:0 0 10px}
 .bang tr:last-child td{border-bottom:0}
 .bang td.s{text-align:right;white-space:nowrap}
 .bang th.s{text-align:right}
+.o.gon{padding:14px 20px}.o.gon h2{margin-bottom:6px}.o.gon p{margin-bottom:6px;font-size:14px}.o.gon .so{font-size:38px}
+.nhan-dinh td{font-size:13.5px;line-height:1.45;color:var(--chu2)}
+.nhan-dinh td b{color:var(--chu);font-weight:700}
 .bd{position:relative;flex:1;min-height:0}
 .bd canvas{position:absolute;inset:0;width:100%!important;height:100%!important}
 .anh{flex:1;min-height:0;border-radius:16px;overflow:hidden;background:rgba(0,0,0,.2);border:1px solid var(--line)}
@@ -267,6 +270,22 @@ function bangKpi(p,S){var K=S.k[p],m=KPI[p],r='<table class="bang"><tr><th>Chỉ
  if(bt){var dat=bt.filter(function(x){return x>=m.bai}).length;r+='<tr><td>Tần suất đăng (≥ 2 '+(p==="tt"?"video":"bài")+'/tuần)</td><td class="s">'+dat+' / '+bt.length+' tuần</td><td class="s">'+pt(ty(dat,bt.length))+'</td><td class="s">'+dg(dat,bt.length)+'</td><td class="nho">'+(p==="tt"?"Danh sách video TikTok API":"Danh sách bài Meta Graph API")+' · '+bt.join("-")+'</td></tr>'}
  else r+='<tr><td>Tần suất đăng (≥ 2 bài/tuần)</td><td colspan="4">'+bs("Cập nhật Apps Script 4.11 rồi bấm Đồng bộ ngay để lấy danh sách bài FB/IG.")+'</td></tr>';
  return r+'</table>'}
+// 3 nhận định Số liệu → Ý nghĩa → Hành động, sinh từ số đã chốt (có ít nhất 1 mục tiêu chưa đạt)
+function nhanDinh(S){var K=S.k,r=[],tt=K.tt,v=tt.video,top=v[0],khac=v.slice(1),tbx=khac.length?khac.reduce(function(s,x){return s+x.xem},0)/khac.length:0;
+ r.push(["TikTok "+so(tt.xem)+" / 15.000 lượt xem ("+pt(ty(tt.xem,15000))+")"+(tt.xem<15000?' <span class="chua">Chưa đạt</span>':' <span class="dat">Đạt</span>'),
+  top?"Video “"+esc(top.ten.slice(0,40))+"” đạt "+so(top.xem)+" xem, gấp "+(tbx?(Math.round(top.xem/tbx*10)/10).toLocaleString("vi-VN"):"–")+" lần trung bình "+khac.length+" video còn lại: người xem dừng lại ở cảnh làm guốc thật, lướt qua video chỉ giới thiệu mẫu.":"Chưa có danh sách video TikTok.",
+  "Làm thành chuỗi video quy trình / hậu trường, mở bằng cảnh tay thợ trong 3 giây đầu, đăng đủ 2 video mỗi tuần; đo lại lượt xem sau 2 tuần."]);
+ var bt=K.ig.baiTuan;
+ if(bt){var dat=bt.filter(function(x){return x>=2}).length,day=[],thua=[];bt.forEach(function(x,i){(x>=2?day:thua).push(K.ig.tuan[i].xem)});
+  var tb=function(a){return a.length?a.reduce(function(s,x){return s+x},0)/a.length:0};
+  r.push(["Instagram đăng ≥ 2 bài/tuần: "+dat+" / "+bt.length+" tuần"+(dat<bt.length?' <span class="chua">Chưa đạt</span>':' <span class="dat">Đạt</span>'),
+   "Tuần đăng từ 2 bài trở lên trung bình "+so(Math.round(tb(day)))+" lượt xem/tuần, tuần đăng thưa chỉ "+so(Math.round(tb(thua)))+": lượt xem đi theo nhịp đăng bài.",
+   "Giữ lịch cố định 2 bài/tuần (1 carousel + 1 Reels), dùng lại video TikTok làm Reels để không tốn thêm công sản xuất."])}
+ var kn=["fb","ig"].sort(function(a,b){return K[a].er-K[b].er})[0],k=K[kn];
+ r.push([TEN[kn]+": tương tác ÷ lượt xem "+pt(k.er)+" / 5%"+(k.er<.05?' <span class="chua">Chưa đạt</span>':' <span class="dat">Đạt</span>'),
+  so(k.xem)+" lượt xem nhưng chỉ "+so(k.tuongTac)+" lượt tương tác: người xem thấy bài nhưng chưa có lý do để bình luận hay chia sẻ, vì bài chủ yếu giới thiệu sản phẩm.",
+  "Kết mỗi bài bằng một câu hỏi chọn mẫu / chọn outfit, ghim bình luận gợi ý, thêm minigame tag bạn; đo lại tỉ lệ sau 2 tuần."]);
+ return r}
 function slide(o){return '<section class="sl'+(o.lop?" "+o.lop:"")+'" data-ten="'+esc(o.ten||"")+'"><p class="phan"><i>'+o.so+'</i>'+o.phan+(o.clo?'<s>'+o.clo+'</s>':"")+'</p><h1>'+o.tieuDe+'</h1><div class="noi '+(o.cot||"")+'">'+o.noi+'</div><span class="chan">Lộc Cộc · Báo cáo cuối kỳ Truyền thông số HK261</span><span class="so-trang"></span></section>'}
 
 function ve(S,capNhat){
@@ -337,9 +356,10 @@ function ve(S,capNhat){
   '<p class="nho" style="margin-top:10px">Mục tiêu phễu Proposal: 25.000 xem → 500 truy cập → 50 form.</p></div>'}));
  // 8. Tốt nhất & kém nhất
  var vs=K.tt.video.slice(),tot=vs[0],kem=vs[vs.length-1],erCao=vs.slice().sort(function(a,b){return b.er-a.er})[0];
- H.push(slide({so:"08",phan:"Nội dung tốt nhất & kém nhất",clo:"CLO3",tieuDe:"TikTok kéo lượt xem nhưng chưa đạt 15.000; video quy trình dẫn đầu",cot:"c3",noi:
-  [["Tốt nhất (lượt xem)",tot],["Tương tác cao nhất",erCao],["Kém nhất (lượt xem)",kem]].map(function(x){var v=x[1]||{ten:"",xem:0,er:0,ngay:S.den};return '<div class="o"><h2>'+x[0]+'</h2><p><b>'+esc(v.ten.slice(0,70)||"(không tiêu đề)")+'</b></p><div class="so">'+so(v.xem)+' <small>xem</small></div><p class="nho">Tương tác '+pt(v.er)+' · '+nhan(v.ngay)+'</p></div>'}).join("")+
-  '<div class="o" style="grid-column:1/-1">'+bs("3 nhận định đủ 3 phần (Số liệu → Ý nghĩa → Hành động), có ít nhất 1 mục tiêu chưa đạt; phân tích theo thời gian, so sánh kênh/bài, theo định dạng/chủ đề/hook.")+'</div>'}));
+ H.push(slide({so:"08",phan:"Nội dung tốt nhất & kém nhất",clo:"CLO3",tieuDe:"Nội dung cho thấy cách làm thật kéo người xem; đăng thưa và ít lời mời tương tác kéo số xuống",cot:"c3 tu",noi:
+  [["Tốt nhất (lượt xem)",tot],["Tương tác cao nhất",erCao],["Kém nhất (lượt xem)",kem]].map(function(x){var v=x[1]||{ten:"",xem:0,er:0,ngay:S.den};return '<div class="o gon"><h2>'+x[0]+'</h2><p><b>'+esc(v.ten.slice(0,70)||"(không tiêu đề)")+'</b></p><div class="so">'+so(v.xem)+' <small>xem</small></div><p class="nho">Tương tác '+pt(v.er)+' · '+nhan(v.ngay)+'</p></div>'}).join("")+
+  '<div class="o" style="grid-column:1/-1"><table class="bang nhan-dinh"><tr><th style="width:28%">Số liệu · cái gì?</th><th style="width:38%">Ý nghĩa · vì sao?</th><th>Hành động · làm gì tiếp?</th></tr>'+
+  nhanDinh(S).map(function(r){return '<tr><td><b>'+r[0]+'</b></td><td>'+r[1]+'</td><td>'+r[2]+'</td></tr>'}).join("")+'</table></div>'}));
  // 9–11
  H.push(slide({so:"09",phan:"Ý tưởng sáng tạo đã triển khai",clo:"CLO4",tieuDe:"Hai cách làm khác biệt: kể quy trình bằng AI và tự mở bán trên web",cot:"c2",noi:
   (function(){var v=K.tt.video,top=v[0]||{ten:"",xem:0,er:0},khac=v.slice(1),tb=khac.length?khac.reduce(function(s,x){return s+x.xem},0)/khac.length:0;
