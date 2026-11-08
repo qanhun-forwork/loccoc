@@ -124,6 +124,9 @@ Lộc Cộc tại loccoc.com.vn. Không phục vụ mục đích thương mại:
   "📌 Chốt số liệu"; slide mặc định đọc bản chốt mới nhất (`layChot`) để khớp PDF đã nộp. Tương tác ÷ LƯỢT XEM theo đề
   (khác ER trên dashboard). Truy cập "từ bên ngoài" = phiên có nguồn ≠ "Trực tiếp". Khung `.bs` = chỗ nhóm cần bổ sung (ẩn khi in).
   Thông tin cố định (thành viên, KPI 6A/6B, BAT_DAU 26/09) ở đầu script, lấy từ "Proposal Final - cap nhat 03-11.pptx".
+- v4.11: `dongBoMeta_` gọi thêm `mtBaiDang_` → tab ẩn "📝 Bài đăng" (FB published_posts + video_reels, IG media; Kênh, Ngày, Giờ,
+  Loại, Nội dung, Link, Thích, Bình luận); `mangXaHoi` trả `baiDang`. Slide báo cáo đếm tần suất đăng FB/IG theo tuần từ đây,
+  so với kế hoạch `KH` (sheet "Tổng quan" của Content Plan - Loc Coc.xlsx). Ảnh 4 kênh cho slide 4: `quantrivien/anh-bao-cao/{fb,ig,tt,web}.jpg`.
 - Bộ đếm (08/11): không đếm máy nội bộ (localStorage `lc_noibo`, đặt khi đăng nhập /quantrivien hoặc mở link `?noibo=1`,
   `?noibo=0` để bỏ); phiên vào từ link có `utm_source` ghi nguồn "utm: nguồn / phương tiện / chiến dịch".
 - Form web có ô đồng ý bắt buộc (`.dy`, không có aria-label nên không bị gửi đi) + trang `#/chinh-sach-bao-mat` (Luật BVDLCN 2025).

@@ -58,7 +58,8 @@ p{margin:0 0 10px}
 .chua{color:var(--red);font-weight:700}
 
 /* bố cục */
-.noi{flex:1;display:grid;gap:22px;min-height:0}
+.noi{flex:1;display:grid;gap:22px;min-height:0;grid-auto-rows:minmax(0,1fr)}
+.noi.tu{grid-auto-rows:auto}
 .c2{grid-template-columns:1fr 1fr}.c3{grid-template-columns:repeat(3,1fr)}.c4{grid-template-columns:repeat(4,1fr)}
 .c52{grid-template-columns:1.25fr 1fr}
 .o{background:#fff;border-radius:18px;padding:20px 22px;box-shadow:0 1px 0 var(--line);min-height:0;display:flex;flex-direction:column}
@@ -73,6 +74,8 @@ p{margin:0 0 10px}
 .bang th.s{text-align:right}
 .bd{position:relative;flex:1;min-height:0}
 .bd canvas{position:absolute;inset:0;width:100%!important;height:100%!important}
+.anh{flex:1;min-height:0;border-radius:10px;overflow:hidden;background:var(--be-l)}
+.anh img{width:100%;height:100%;object-fit:cover;object-position:top;display:block}
 .the-lk{display:flex;flex-direction:column;gap:6px}
 
 /* chỗ nhóm cần bổ sung */
@@ -153,6 +156,9 @@ var LINK={fb:"facebook.com/loccoc.com.vn",ig:"instagram.com/loccoc.com.vn",tt:"t
 // KPI chung 6A (giữ nguyên theo đề) và mục tiêu riêng 6B (theo slide 20 Proposal)
 var KPI={fb:{fol:150,xem:8000,er:.05,bai:2},ig:{fol:120,xem:5000,er:.05,bai:2},tt:{fol:120,xem:15000,er:.05,bai:2},web:120,tong:500};
 var MT6B={fbTt:2000,igXem:10000,form:50,formNen:23,tu6B:"2026-10-24"};
+// số bài kế hoạch theo tuần T1–T8 (sheet "Tổng quan" của Content Plan - Loc Coc.xlsx) và tỉ lệ trụ nội dung (Proposal slide 9)
+var KH={tt:[2,0,3,2,4,4,4,4],ig:[2,0,6,2,3,3,3,3],fb:[0,0,1,2,3,3,3,3]};
+var TRU=[["Mộc Kể Chuyện",15],["Ôm Chân Thật",25],["Cân Mọi Outfit",30],["Dấu Ấn Riêng",30]];
 var TEN={fb:"Facebook Fanpage",ig:"Instagram",tt:"TikTok",web:"Landing page"};
 var NGUON={fb:"Meta Business Suite",ig:"Meta Business Suite",tt:"TikTok Studio + TikTok API",web:"Bộ đếm loccoc.com.vn + Vercel Analytics"};
 
@@ -170,13 +176,17 @@ function tinh(mx,xem,vc,tq,den){
  var vid=(mx.ttApi.video||[]).filter(function(v){return v.ngay>=BAT_DAU&&v.ngay<=den});
  K.tt.video=vid.map(function(v){var t=v.thich+v.binhLuan+v.chiaSe;return {ten:v.tieuDe,ngay:v.ngay,xem:v.xem,tt:t,er:v.xem?t/v.xem:0,cs:v.chiaSe,link:v.link}}).sort(function(a,b){return b.xem-a.xem});
  K.tt.baiTuan=tuan.map(function(w){return vid.filter(function(v){return v.ngay>=w.tu&&v.ngay<=w.den}).length});
+ // FB/IG: danh sách bài từ Graph API (tab ẩn 📝 Bài đăng, Apps Script ≥ 4.11); chưa có thì để null
+ var bd=(mx.baiDang||[]).filter(function(b){return b.ngay>=BAT_DAU&&b.ngay<=den});
+ ["fb","ig"].forEach(function(p){var ds=bd.filter(function(b){return b.kenh===p});K[p].baiTuan=ds.length?tuan.map(function(w){return ds.filter(function(b){return b.ngay>=w.tu&&b.ngay<=w.den}).length}):null});
  // landing page: phiên có nguồn (mạng xã hội, link giới thiệu, UTM) = truy cập từ bên ngoài; bỏ "Trực tiếp" (gồm lượt của nhóm)
  var ng=xem.nguon||{},ngoai=0;Object.keys(ng).forEach(function(k){if(k!=="Trực tiếp")ngoai+=ng[k]});
  var trongKy=function(r){var n=String(r["Ngày"]||"").slice(0,10);if(!/^\d{4}-\d{2}-\d{2}$/.test(n)){var d=new Date(r["Thời gian"]);n=isNaN(d)?"":ngay(d)}return n};
  var don=(tq.don||[]).map(trongKy).filter(function(n){return n>=BAT_DAU&&n<=den}),lh=(tq.lh||[]).map(trongKy).filter(function(n){return n>=BAT_DAU&&n<=den});
  var form=don.concat(lh);
+ var demNgay=function(ds,a,b){return ds.filter(function(n){return n>=a&&n<=b}).length};
  K.web={phien:xem.tong.phien,khach:xem.tong.khach,xem:xem.tong.xem,thoat:xem.tong.thoat,ngoai:ngoai,nguon:ng,vcKhach:vc.tong.khach,vcXem:vc.tong.xem,vcNguon:vc["Nguồn"]||{},
-  don:don.length,lh:lh.length,form:form.length,form6B:form.filter(function(n){return n>=MT6B.tu6B}).length,
+  don:don.length,lh:lh.length,don2Ngay:demNgay(don,"2026-10-18","2026-10-19"),donTruoc23:demNgay(don,BAT_DAU,"2026-10-22"),donSau23:demNgay(don,"2026-10-23",den),form:form.length,form6B:form.filter(function(n){return n>=MT6B.tu6B}).length,
   tuan:tuan.map(function(w){var p=0;Object.keys(xem.ngay||{}).forEach(function(n){if(n>=w.tu&&n<=w.den)p+=xem.ngay[n].phien});
    return {phien:p,form:form.filter(function(n){return n>=w.tu&&n<=w.den}).length}})};
  K.fb.tt6B=(function(){var s=0;Object.keys(mx.fb.ngay).forEach(function(n){if(n>=MT6B.tu6B&&n<=den)s+=mx.fb.ngay[n].tt||0});return s})();
@@ -199,8 +209,9 @@ function bangKpi(p,S){var K=S.k[p],m=KPI[p],r='<table class="bang"><tr><th>Chỉ
  r+=dong("Người theo dõi (0 → "+so(K.fol)+")",K.fol,m.fol,"",NGUON[p]+" · "+kh);
  r+=dong("Lượt xem (Views)",K.xem,m.xem,"",NGUON[p]+" · "+kh);
  r+=dong("Tương tác ÷ lượt xem",K.er,m.er,"pt","("+so(K.tuongTac)+" ÷ "+so(K.xem)+")");
- if(p==="tt"){var bt=K.baiTuan,dat=bt.filter(function(x){return x>=m.bai}).length;r+='<tr><td>Tần suất đăng (≥ 2 video/tuần)</td><td class="s">'+dat+' / '+bt.length+' tuần</td><td class="s">'+pt(ty(dat,bt.length))+'</td><td class="s">'+dg(dat,bt.length)+'</td><td class="nho">Danh sách video TikTok API</td></tr>'}
- else r+='<tr><td>Tần suất đăng (≥ 2 bài/tuần)</td><td colspan="4">'+bs("Số bài đã đăng từng tuần (Meta Business Suite → Nội dung).")+'</td></tr>';
+ var bt=K.baiTuan;
+ if(bt){var dat=bt.filter(function(x){return x>=m.bai}).length;r+='<tr><td>Tần suất đăng (≥ 2 '+(p==="tt"?"video":"bài")+'/tuần)</td><td class="s">'+dat+' / '+bt.length+' tuần</td><td class="s">'+pt(ty(dat,bt.length))+'</td><td class="s">'+dg(dat,bt.length)+'</td><td class="nho">'+(p==="tt"?"Danh sách video TikTok API":"Danh sách bài Meta Graph API")+' · '+bt.join("-")+'</td></tr>'}
+ else r+='<tr><td>Tần suất đăng (≥ 2 bài/tuần)</td><td colspan="4">'+bs("Cập nhật Apps Script 4.11 rồi bấm Đồng bộ ngay để lấy danh sách bài FB/IG.")+'</td></tr>';
  return r+'</table>'}
 function slide(o){return '<section class="sl'+(o.lop?" "+o.lop:"")+'" data-ten="'+esc(o.ten||"")+'"><p class="phan"><i>'+o.so+'</i>'+o.phan+(o.clo?'<s>'+o.clo+'</s>':"")+'</p><h1>'+o.tieuDe+'</h1><div class="noi '+(o.cot||"")+'">'+o.noi+'</div><span class="chan">Lộc Cộc · Báo cáo cuối kỳ Truyền thông số HK261</span><span class="so-trang"></span></section>'}
 
@@ -225,15 +236,21 @@ function ve(S){
   '<tr><td>Landing page</td><td class="s" colspan="3">≥ 120 lượt truy cập từ bên ngoài · tổng follower 3 kênh ≥ 500</td><td class="nho">Bộ đếm web, Vercel Analytics</td></tr></table></div>'+
   '<div class="o"><h2>6B · Mục tiêu riêng (24/10 – 20/11)</h2><table class="bang"><tr><th>Kênh</th><th>Mục tiêu SMART</th></tr>'+
   '<tr><td>Fanpage</td><td>2.000 lượt tương tác · 15 lượt chia sẻ/tham gia minigame</td></tr><tr><td>Instagram</td><td>10.000 lượt xem · 300 lượt lưu trụ “Cân Mọi Outfit”</td></tr>'+
-  '<tr><td>TikTok</td><td>Lượt chia sẻ video</td></tr><tr><td>Landing page</td><td>50 lượt gửi form (nền 23)</td></tr></table>'+
-  bs("Mục tiêu 6B TikTok trong Proposal chưa có con số. Nếu đã đổi mục tiêu: ghi mục tiêu cũ → mới, ngày đổi, lý do.")+'</div>'}));
+  '<tr><td>TikTok</td><td>Lượt chia sẻ video <span class="nho">(chưa có con số)</span></td></tr><tr><td>Landing page</td><td>50 lượt gửi form (nền 23)</td></tr></table>'+
+  '<p class="nho" style="margin-top:10px">Kết quả 6B đến ngày chốt: Fanpage '+so(K.fb.tt6B)+' / 2.000 tương tác · Instagram '+so(K.ig.xem6B)+' / 10.000 lượt xem · TikTok '+so(K.tt.cs)+' lượt chia sẻ · Landing page '+so(W.form6B+MT6B.formNen)+' / 50 form.</p>'+
+  bs("Chốt con số mục tiêu chia sẻ TikTok (ghi mục tiêu cũ → mới, ngày đổi, lý do).")+'</div>'}));
  // 3. Kế hoạch vs thực tế
- H.push(slide({so:"03",phan:"Kế hoạch vs thực tế",clo:"CLO3",tieuDe:"Lịch 8 tuần: Teasing → Launching → Sustaining → Hero",cot:"c52",noi:
-  '<div class="o"><h2>Video TikTok đăng mỗi tuần (thực tế)</h2><div class="bd"><canvas id="b-lich"></canvas></div></div>'+
-  '<div class="o">'+bs("% thực hiện Content Calendar từ file “Content Plan – Lộc Cộc”: 66 bài kế hoạch (23 TikTok · 22 Instagram · 15 Facebook · 6 landing page) → đã đăng → đúng tuần. Content mix kế hoạch (Mộc Kể Chuyện 15% · Ôm Chân Thật 25% · Cân Mọi Outfit 30% · Dấu Ấn Riêng 30%) so với thực tế.")+'</div>'}));
+ H.push(slide({so:"03",phan:"Kế hoạch vs thực tế",clo:"CLO3",tieuDe:(function(){var kh=0,d=0;["tt","ig","fb"].forEach(function(p){(K[p].baiTuan||[]).forEach(function(x,i){kh+=KH[p][i]||0;d+=x})});return "Đã đăng "+d+"/"+kh+" bài theo lịch ("+pt(ty(d,kh))+"): cần bám lịch sát hơn ở giai đoạn Sustaining"})(),cot:"c52",noi:
+  '<div class="o"><h2>Số bài kế hoạch và đã đăng mỗi tuần (3 kênh)</h2><div class="bd"><canvas id="b-lich"></canvas></div></div>'+
+  '<div class="o"><table class="bang"><tr><th>Kênh</th><th class="s">Kế hoạch đến nay</th><th class="s">Đã đăng</th><th class="s">Đúng tuần</th><th class="s">% thực hiện</th></tr>'+
+  ["tt","ig","fb"].map(function(p){var bt=K[p].baiTuan;if(!bt)return '<tr><td>'+TEN[p]+'</td><td colspan="4" class="nho">Chờ danh sách bài (Apps Script 4.11)</td></tr>';
+   var kh=0,dang=0,dung=0;bt.forEach(function(x,i){var k=KH[p][i]||0;kh+=k;dang+=x;dung+=Math.min(k,x)});
+   return '<tr><td>'+TEN[p]+'</td><td class="s">'+kh+'</td><td class="s">'+dang+'</td><td class="s">'+dung+'</td><td class="s">'+pt(ty(dang,kh))+'</td></tr>'}).join("")+'</table>'+
+  '<p class="nho" style="margin-top:10px">Kế hoạch: 66 bài trong 8 tuần (Content Plan – Lộc Cộc). Đúng tuần = số bài đăng trong đúng tuần đã lên lịch. Content mix kế hoạch: '+TRU.map(function(t){return t[0]+" "+t[1]+"%"}).join(" · ")+'.</p></div>'}));
  // 4. Một thương hiệu – 4 nền tảng
- H.push(slide({so:"04",phan:"Một thương hiệu – 4 nền tảng",clo:"CLO2",tieuDe:"Be · đỏ burgundy · nâu gỗ đồng bộ trên cả 4 kênh",cot:"c4",noi:
-  ["fb","ig","tt","web"].map(function(p){return '<div class="o"><h2>'+TEN[p]+'</h2><p class="nho">'+LINK[p]+'</p>'+bs("Ảnh chụp trang: ảnh đại diện, ảnh bìa, bio.")+'</div>'}).join("")}));
+ H.push(slide({so:"04",phan:"Một thương hiệu – 4 nền tảng",clo:"CLO2",tieuDe:"Be · đỏ burgundy · nâu gỗ đồng bộ trên cả 4 kênh",cot:"c2",noi:
+  ["fb","ig","tt","web"].map(function(p){return '<div class="o" style="padding:12px"><h2>'+TEN[p]+' · <span class="nho" style="text-transform:none;letter-spacing:0">'+LINK[p]+'</span></h2>'+
+   '<div class="anh"><img src="anh-bao-cao/'+p+'.jpg" alt="Ảnh chụp '+TEN[p]+'" onerror="this.parentNode.innerHTML=bs(\'Đặt ảnh chụp trang vào quantrivien/anh-bao-cao/'+p+'.jpg\')"></div></div>'}).join("")}));
  // 5. Sản phẩm tiêu biểu
  var top=K.tt.video.slice(0,3);
  H.push(slide({so:"05",phan:"Sản phẩm tiêu biểu",clo:"CLO2",tieuDe:"Video quy trình làm guốc kéo lượt xem mạnh nhất",cot:"c2",noi:
@@ -265,10 +282,20 @@ function ve(S){
   [["Tốt nhất (lượt xem)",tot],["Tương tác cao nhất",erCao],["Kém nhất (lượt xem)",kem]].map(function(x){var v=x[1]||{ten:"",xem:0,er:0,ngay:S.den};return '<div class="o"><h2>'+x[0]+'</h2><p><b>'+esc(v.ten.slice(0,70)||"(không tiêu đề)")+'</b></p><div class="so">'+so(v.xem)+' <small>xem</small></div><p class="nho">Tương tác '+pt(v.er)+' · '+nhan(v.ngay)+'</p></div>'}).join("")+
   '<div class="o" style="grid-column:1/-1">'+bs("3 nhận định đủ 3 phần (Số liệu → Ý nghĩa → Hành động), có ít nhất 1 mục tiêu chưa đạt; phân tích theo thời gian, so sánh kênh/bài, theo định dạng/chủ đề/hook.")+'</div>'}));
  // 9–11
- H.push(slide({so:"09",phan:"Ý tưởng sáng tạo đã triển khai",clo:"CLO4",tieuDe:"Atelier 3D và video quy trình AI: khác biệt của Lộc Cộc",cot:"c2",noi:
-  '<div class="o"><h2>Atelier 3D trên loccoc.com.vn</h2>'+bs("Đã triển khai từ ngày nào, số lượt dùng, so với bài thường.")+'</div><div class="o"><h2>Video quy trình làm guốc (AI, có gắn nhãn)</h2>'+bs("Số liệu video so với bài thường của nhóm.")+'</div>'}));
- H.push(slide({so:"10",phan:"Thử nghiệm & điều chỉnh (PDCA)",clo:"CLO5",tieuDe:"Hai lần điều chỉnh dựa trên số liệu",cot:"c2",noi:
-  '<div class="o"><h2>Điều chỉnh 1</h2>'+bs("Plan → Do → Check → Act, kèm số trước – sau.")+'</div><div class="o"><h2>Điều chỉnh 2 (trong 2 tuần cuối)</h2>'+bs("Plan → Do → Check → Act, kèm số trước – sau.")+'</div>'}));
+ H.push(slide({so:"09",phan:"Ý tưởng sáng tạo đã triển khai",clo:"CLO4",tieuDe:"Hai cách làm khác biệt: kể quy trình bằng AI và tự mở bán trên web",cot:"c2",noi:
+  (function(){var v=K.tt.video,top=v[0]||{ten:"",xem:0,er:0},khac=v.slice(1),tb=khac.length?khac.reduce(function(s,x){return s+x.xem},0)/khac.length:0;
+   return '<div class="o"><h2>Video quy trình làm guốc bằng AI (có gắn nhãn)</h2><p>“'+esc(top.ten.slice(0,60))+'”</p><div class="so">'+so(top.xem)+' <small>lượt xem</small></div>'+
+    '<p>Gấp <b>'+(tb?(Math.round(top.xem/tb*10)/10).toLocaleString("vi-VN"):"–")+' lần</b> trung bình '+khac.length+' video còn lại ('+so(Math.round(tb))+' xem/video). Tương tác '+pt(top.er)+'.</p>'+
+    '<p class="nho">Ý tưởng: kể quy trình thủ công bằng hình ảnh AI dựng từ 10 ảnh mẫu gốc, giữ đúng sản phẩm.</p></div>'+
+    '<div class="o"><h2>Website tự xây: mở đặt trước ngay trên web</h2><div class="so">'+so(W.don2Ngay)+' <small>lượt đặt trong 2 ngày đầu</small></div>'+
+    '<p>Tự dựng loccoc.com.vn (giỏ hàng, form, email xác nhận tự động, dashboard quản trị) thay vì chỉ chốt đơn qua tin nhắn. Tổng '+so(W.form)+' lượt gửi form đến ngày chốt.</p>'+
+    '<p class="nho">So sánh: kênh nhắn tin không có số liệu đo được; web đo được từng lượt ghé và từng form.</p></div>'})()}));
+ H.push(slide({so:"10",phan:"Thử nghiệm & điều chỉnh (PDCA)",clo:"CLO5",tieuDe:"Đọc số liệu rồi sửa ngay: minh bạch đặt trước, đổi hướng nội dung",cot:"c2",noi:
+  '<div class="o"><h2>Điều chỉnh 1 · Đổi “Đặt hàng” thành “Đăng ký đặt trước” (23/10)</h2><table class="bang">'+
+   '<tr><td><b>Plan</b></td><td>Mở bán dòng Basic trên web ngày 18/10, đo số lượt đặt.</td></tr>'+
+   '<tr><td><b>Do</b></td><td>Giỏ hàng + form đặt hàng + email xác nhận tự động.</td></tr>'+
+   '<tr><td><b>Check</b></td><td>'+so(W.don2Ngay)+' lượt đặt thật trong 2 ngày, nhưng sản phẩm chưa sản xuất → rủi ro khách hiểu nhầm (mức Đỏ).</td></tr>'+
+   '<tr><td><b>Act</b></td><td>Đổi nút thành “Đăng ký đặt trước – chưa thu tiền”, nhắn riêng từng khách, đăng bài minh bạch 23/10. Trước: '+so(W.donTruoc23)+' đơn · sau: '+so(W.donSau23)+' đăng ký.</td></tr></table></div><div class="o"><h2>Điều chỉnh 2 (trong 2 tuần cuối)</h2>'+bs("Một việc nhóm đã đổi sau 06/11 vì đọc số liệu (ví dụ: TikTok thiếu lượt xem so với 15.000 → đổi định dạng/giờ đăng/hook). Ghi rõ số trước – sau.")+'</div>'}));
  H.push(slide({so:"11",phan:"Hành trình nhóm",clo:"CLO5",tieuDe:NHOM.tv.length+" thành viên, 8 tuần, 4 nền tảng tự vận hành",cot:"c2",noi:
   '<div class="o"><h2>Thành viên</h2><ul style="margin:0;padding-left:18px;columns:2;font-size:15px;line-height:1.8">'+NHOM.tv.map(function(t){return '<li>'+esc(t)+'</li>'}).join("")+'</ul></div>'+
   '<div class="o">'+bs("Dòng thời gian dự án, phân công và % đóng góp từng người, việc làm vượt yêu cầu (ví dụ: tự xây website, dashboard quản trị, kết nối TikTok/Meta API).")+'</div>'}));
@@ -314,7 +341,9 @@ function veBieu(S){BIEU.forEach(function(c){c.destroy()});BIEU=[];
  var w=S.k.web.tuan;
  tao("b-web",Object.assign({type:"line"},cfg([{label:"Phiên truy cập",data:w.map(function(x){return x.phien}),borderColor:"#800E13",backgroundColor:"#800E13",tension:.3},
   {label:"Gửi form",data:w.map(function(x){return x.form}),borderColor:"#5A3E32",backgroundColor:"#5A3E32",tension:.3,yAxisID:"y1"}],true)));
- tao("b-lich",Object.assign({type:"bar"},cfg([{label:"Video TikTok",data:S.k.tt.baiTuan,backgroundColor:"#800E13",borderRadius:6}])));
+ var tongTuan=function(f){return S.tuan.map(function(w,i){return ["tt","ig","fb"].reduce(function(s,p){return s+f(p,i)},0)})};
+ tao("b-lich",Object.assign({type:"bar"},cfg([{label:"Kế hoạch",data:tongTuan(function(p,i){return KH[p][i]||0}),backgroundColor:"#D8C7AA",borderRadius:6},
+  {label:"Đã đăng",data:tongTuan(function(p,i){return (S.k[p].baiTuan||[])[i]||0}),backgroundColor:"#800E13",borderRadius:6}])));
 }
 
 /* ═════════ Điều khiển ═════════ */

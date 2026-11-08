@@ -23,7 +23,7 @@
  * ───────────────────────────────────────────────────────────────────────────
  */
 
-var PHIEN_BAN = '4.10.0';
+var PHIEN_BAN = '4.11.0';
 var TEN_GUI = 'Lộc Cộc';            // tên người gửi trong email
 var GIA_BASIC = 350000;             // giá dòng Basic (tính lại ở máy chủ, không tin giá từ trình duyệt)
 var GIOI_HAN_MOI_GIO = 3;           // tối đa email gửi tới cùng 1 địa chỉ trong 1 giờ
@@ -32,7 +32,7 @@ var HANG_CHO = 'thu_';              // tiền tố Script Properties của email
 
 var TAB = { BC: '📊 Báo cáo', DON: '🛒 Đơn hàng', CT: '📦 Chi tiết đơn', LH: '💬 Liên hệ', SL: '⚙ Số liệu',
   BV: '📰 Bài viết', XEM: '👁 Lượt xem', NK: '🕘 Nhật ký', VC: '▲ Vercel', CHOT: '📌 Chốt số liệu',
-  FB: '📘 Facebook', IG: '📸 Instagram', TT: '🎵 TikTok', TTA: '🎵 TikTok API', TTV: '🎵 TikTok video', QC: '📣 Quảng cáo IG' };
+  FB: '📘 Facebook', IG: '📸 Instagram', TT: '🎵 TikTok', TTA: '🎵 TikTok API', TTV: '🎵 TikTok video', QC: '📣 Quảng cáo IG', BD: '📝 Bài đăng' };
 var COT = {
   DON: ['Mã đơn', 'Thời gian', 'Ngày', 'Giờ', 'Tên khách', 'Số điện thoại', 'Email', 'Sản phẩm', 'Số đôi',
     'Tạm tính (đ)', 'Ghi chú của khách', 'Email xác nhận', 'Ghi chú nội bộ', 'Trạng thái'],
@@ -1268,7 +1268,11 @@ function thongKeMXH_(tu, den) {
       qc.push(o);
     });
   }
-  return { ok: true, qcIg: qc, fb: doc(TAB.FB, MXH_COT.fb), ig: doc(TAB.IG, MXH_COT.ig), tt: doc(TAB.TT, MXH_COT.tt), ttApi: api,
+  var bd = [], sb = ss.getSheetByName(TAB.BD);
+  if (sb && sb.getLastRow() > 1) bd = sb.getRange(2, 1, sb.getLastRow() - 1, 8).getValues().map(function (r) {
+    return { kenh: String(r[0]), ngay: laNgay_(r[1]) ? Utilities.formatDate(r[1], tz, 'yyyy-MM-dd') : String(r[1]).replace(/^'/, ''), loai: String(r[3]), tieuDe: String(r[4]), link: String(r[5]), thich: Number(r[6]) || 0, bl: Number(r[7]) || 0 };
+  });
+  return { ok: true, baiDang: bd, qcIg: qc, fb: doc(TAB.FB, MXH_COT.fb), ig: doc(TAB.IG, MXH_COT.ig), tt: doc(TAB.TT, MXH_COT.tt), ttApi: api,
     vc: { coKetNoi: !!pp.vc_token, luc: pp.vc_luc || '', loi: pp.vc_loi || '' },
     meta: { coKetNoi: !!pp.mt_token, luc: pp.mt_luc || '', loi: pp.mt_loi || '', canhBao: pp.mt_canh || '', hienTai: pp.mt_hien ? JSON.parse(pp.mt_hien) : null, trang: pp.mt_ten || '', ig: pp.mt_ig_ten || '' } };
 }
@@ -1509,6 +1513,35 @@ function dongBoMeta() {
   try { var r = dongBoMeta_(7); if (!r.ok) console.error(r.loi); } finally { k.releaseLock(); }
 }
 
+/* v4.11: ghi lại toàn bộ bài đã đăng của Trang (published_posts + video_reels) và Instagram (media) vào tab ẩn "📝 Bài đăng". */
+function mtBaiDang_(pp) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet(), tz = ss.getSpreadsheetTimeZone(), hang = [], co = {};
+  var lay = function (path, q, fn) {
+    for (var trang = 0, sau = ''; trang < 10; trang++) {
+      var j = mtGoi_(path, sau ? Object.assign({ after: sau }, q) : q);
+      (j.data || []).forEach(fn);
+      sau = ((j.paging || {}).cursors || {}).after;
+      if (!sau || !(j.paging || {}).next) break;
+    }
+  };
+  var them = function (kenh, t, loai, nd, link, thich, bl) {
+    var d = new Date(t); if (isNaN(d) || co[link]) return; co[link] = 1;
+    hang.push([kenh, "'" + Utilities.formatDate(d, tz, 'yyyy-MM-dd'), Utilities.formatDate(d, tz, 'HH:mm'), loai, an_(String(nd || '').replace(/\s+/g, ' ').slice(0, 150)), link, thich, bl]);
+  };
+  lay(pp.mt_page + '/published_posts', { fields: 'created_time,message,permalink_url', limit: 100 }, function (x) { them('fb', x.created_time, 'Bài viết', x.message, x.permalink_url || x.id, '', ''); });
+  try { lay(pp.mt_page + '/video_reels', { fields: 'created_time,description,permalink_url', limit: 100 }, function (x) {
+    them('fb', x.created_time, 'Thước phim', x.description, x.permalink_url ? 'https://www.facebook.com' + String(x.permalink_url).replace(/^https:\/\/www\.facebook\.com/, '') : x.id, '', ''); }); } catch (e) {}
+  if (pp.mt_ig) lay(pp.mt_ig + '/media', { fields: 'timestamp,media_type,media_product_type,caption,permalink,like_count,comments_count', limit: 100 }, function (x) {
+    them('ig', x.timestamp, x.media_product_type === 'REELS' ? 'Thước phim' : x.media_type === 'CAROUSEL_ALBUM' ? 'Carousel' : 'Ảnh', x.caption, x.permalink || x.id, x.like_count || 0, x.comments_count || 0); });
+  hang.sort(function (a, b) { return a[1] < b[1] ? -1 : a[1] > b[1] ? 1 : 0; });
+  var sh = ss.getSheetByName(TAB.BD);
+  if (!sh) { sh = ss.insertSheet(TAB.BD); sh.hideSheet(); }
+  sh.clearContents();
+  sh.getRange(1, 1, hang.length + 1, 8).setValues([['Kênh', 'Ngày', 'Giờ', 'Loại', 'Nội dung', 'Link', 'Thích', 'Bình luận']].concat(hang));
+  sh.setFrozenRows(1);
+  return hang.length;
+}
+
 function mtGoi_(path, q) {
   var tk = PropertiesService.getScriptProperties().getProperty('mt_token');
   if (!tk) throw new Error('Chưa kết nối Meta. Mở Google Sheet → menu Lộc Cộc → Kết nối Meta…');
@@ -1589,6 +1622,8 @@ function dongBoMeta_(soNgay) {
     catch (e) { chan.push('IG followers_count: ' + String(e.message).slice(0, 90)); }
   }
   if (hien.fb != null || hien.ig != null) { hien.luc = new Date().toISOString(); p.setProperty('mt_hien', JSON.stringify(hien)); }
+  // danh sách bài đăng FB + IG (tần suất đăng theo tuần cho báo cáo); lỗi ở đây không làm hỏng đồng bộ chính
+  try { chan.push('Bài đăng: ' + mtBaiDang_(pp) + ' bài'); } catch (e) { chan.push('Bài đăng: ' + String(e.message).slice(0, 90)); }
   ghiTheoNgay_(TAB.FB, fb);
   if (pp.mt_ig) ghiTheoNgay_(TAB.IG, ig);
   p.setProperties({ mt_luc: new Date().toISOString(), mt_loi: '', mt_canh: thieu.join(', '), mt_chan: chan.join('\n').slice(0, 8000) });
