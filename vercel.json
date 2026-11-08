@@ -1,0 +1,6 @@
+{
+  "redirects": [
+    { "source": "/baocao", "destination": "/quantrivien/baocao.html", "permanent": false },
+    { "source": "/baocao.html", "destination": "/quantrivien/baocao.html", "permanent": false }
+  ]
+}
