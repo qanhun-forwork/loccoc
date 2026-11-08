@@ -105,7 +105,7 @@ Lộc Cộc tại loccoc.com.vn. Không phục vụ mục đích thương mại:
 - Giao diện quản trị (v4.6): kính mờ (glass) toàn trang trên nền mảng màu loang `.nen-loang`; màu nhấn đọc từ biến CSS
   (--ac, --ac-grad, --b1..3). Thanh bên: Website Analytics (Lượt truy cập) và Mạng xã hội (Facebook / Instagram / TikTok,
   data-v fb/ig/tt, quyền xem). `datNen(v)` gắn lớp body nt-fb / nt-ig / nt-tt (TikTok nền tối) và đổi bảng màu biểu đồ `MAU`.
-  Chỉ số: FB/IG có ER = tương tác ÷ người xem (tiếp cận), CTR = click liên kết ÷ lượt xem, chuyển đổi follow = theo dõi mới ÷
+  Chỉ số: FB/IG có ER = tương tác ÷ lượt xem (theo đề cuối kỳ, dòng phụ ghi thêm ÷ người xem/tiếp cận), CTR = click liên kết ÷ lượt xem, chuyển đổi follow = theo dõi mới ÷
   lượt truy cập; TikTok có ER = (thích + bình luận + chia sẻ) ÷ lượt xem, tỉ lệ xem hồ sơ, chuyển đổi từ hồ sơ.
 - v4.7: tab "📣 Quảng cáo IG" (nhập tay từ app Instagram, đọc theo tên cột) → khối Quảng cáo ở trang Instagram
   (CTR = click liên kết ÷ lượt hiển thị, chưa có hiển thị thì ÷ lượt xem từ quảng cáo; CPC, CPM cần số tiền đã chi).
@@ -122,7 +122,7 @@ Lộc Cộc tại loccoc.com.vn. Không phục vụ mục đích thương mại:
   chính các lệnh dashboard (`mangXaHoi`, `luotXem`, `vercel`, `tongQuan`) với token phiên trong sessionStorage (mở từ nút
   "Báo cáo cuối kỳ" ở thanh bên, cùng tab). Admin chính bấm "Chốt số liệu" → lệnh `chotSoLieu` lưu bản tổng hợp JSON vào tab ẩn
   "📌 Chốt số liệu"; slide mặc định đọc bản chốt mới nhất (`layChot`) để khớp PDF đã nộp. Tương tác ÷ LƯỢT XEM theo đề
-  (khác ER trên dashboard). Truy cập "từ bên ngoài" = phiên có nguồn ≠ "Trực tiếp". Khung `.bs` = chỗ nhóm cần bổ sung (ẩn khi in).
+  (dashboard cũng dùng công thức này để khớp khi mở nền tảng thực). Truy cập "từ bên ngoài" = phiên có nguồn ≠ "Trực tiếp". Khung `.bs` = chỗ nhóm cần bổ sung (ẩn khi in).
   Thông tin cố định (thành viên, KPI 6A/6B, BAT_DAU 26/09) ở đầu script, lấy từ "Proposal Final - cap nhat 03-11.pptx".
 - v4.11: `dongBoMeta_` gọi thêm `mtBaiDang_` → tab ẩn "📝 Bài đăng" (FB published_posts + video_reels, IG media; Kênh, Ngày, Giờ,
   Loại, Nội dung, Link, Thích, Bình luận); `mangXaHoi` trả `baiDang`. Slide báo cáo đếm tần suất đăng FB/IG theo tuần từ đây,

@@ -334,10 +334,10 @@ function ve(S,capNhat){
   '<div class="o">'+bs("2–3 sản phẩm còn lại (ảnh/carousel Instagram, bài Facebook, landing page) kèm ảnh và số liệu của chính bài đó; ghi thông số (9:16, 4:5, 1080px…).")+'</div>'}));
  // 6. Kết quả theo kênh
  ["fb","ig","tt"].forEach(function(p,i){var k=K[p],m=KPI[p],d=[k.fol>=m.fol,k.xem>=m.xem,k.er>=m.er].filter(Boolean).length;
-  H.push(slide({so:"06",phan:"Kết quả theo kênh · "+TEN[p],clo:"CLO3",tieuDe:TEN[p]+": đạt "+d+"/3 chỉ số chính, lượt xem "+so(k.xem)+" / "+so(m.xem)+" ("+pt(ty(k.xem,m.xem))+")",cot:"c52",noi:
+  H.push(slide({so:"06",phan:"Kết quả theo kênh · "+TEN[p],clo:"CLO3",tieuDe:TEN[p]+": đạt "+d+"/3 chỉ số chính, lượt xem "+so(k.xem)+" / "+so(m.xem)+' <span style="white-space:nowrap">('+pt(ty(k.xem,m.xem))+")</span>",cot:"c52",noi:
    '<div class="o">'+bangKpi(p,S)+'<p class="nho" style="margin-top:12px">Phụ trợ: '+(p==="tt"?'lượt chia sẻ '+so(k.cs)+' · xem hồ sơ '+so(k.hs)+' · người xem tiếp cận '+so(k.nguoi):'người xem/tiếp cận '+so(k.nguoi)+' · click liên kết '+so(k.clk))+'</p></div>'+
    '<div class="o"><h2>Lượt xem và người theo dõi theo tuần</h2><div class="bd"><canvas id="b-'+p+'"></canvas></div></div>'}))});
- H.push(slide({so:"06",phan:"Kết quả theo kênh · Landing page",clo:"CLO3",tieuDe:"Landing page: "+so(W.ngoai)+" lượt truy cập từ bên ngoài / "+so(KPI.web)+" ("+pt(ty(W.ngoai,KPI.web))+")",cot:"c52",noi:
+ H.push(slide({so:"06",phan:"Kết quả theo kênh · Landing page",clo:"CLO3",tieuDe:"Landing page: "+so(W.ngoai)+" lượt truy cập từ bên ngoài / "+so(KPI.web)+' <span style="white-space:nowrap">('+pt(ty(W.ngoai,KPI.web))+")</span>",cot:"c52",noi:
   '<div class="o"><table class="bang"><tr><th>Chỉ số</th><th class="s">Kết quả / mục tiêu</th><th class="s">% đạt</th><th class="s"></th><th>Nguồn</th></tr>'+
   dong("Truy cập từ bên ngoài",W.ngoai,KPI.web,"",(W.ngoaiVc?"Vercel Analytics + ":"")+"bộ đếm loccoc.com.vn")+dong("Gửi form (6B)",W.form,MT6B.form,"","Google Sheet đơn hàng & liên hệ")+'</table>'+
   '<p class="nho" style="margin-top:12px">Cách tính: '+(W.ngoaiVc?so(W.ngoaiVc)+' khách có nguồn giới thiệu theo Vercel Analytics ('+nhan(S.tu)+'–'+nhan(cong(W.demTu,-1))+') + ':'')+so(W.ngoaiDem)+' phiên có nguồn theo bộ đếm loccoc.com.vn (từ '+(W.demTu?nhan(W.demTu):"–")+'). Không tính truy cập trực tiếp vì gồm lượt của nhóm. Từ 08/11, máy thành viên và admin được loại hẳn khỏi bộ đếm.</p>'+
