@@ -818,18 +818,20 @@ function vMxVe(p,j,jt,k){
    (M.canhBao?'<tr><td>API không trả</td><td>'+esc(M.canhBao)+' (giữ số cũ)</td></tr>':"")+'</tbody></table>'+
    '<div class="hang-nut"><button class="btn nh" type="button" id="mx-db"'+(M.coKetNoi?"":" disabled")+'>Đồng bộ ngay</button></div></section>'+
    '<section class="the" data-k="mxht"><h2>Tài khoản lúc này</h2>'+(tongMx!=null?'<div class="luoi-nho"><div><b>'+so(tongMx)+'</b><span>Tổng người theo dõi'+(HM.luc?' · cập nhật '+esc(gioVN(HM.luc)):"")+'</span></div>'+(p==="ig"&&HM.igBai?'<div><b>'+so(HM.igBai)+'</b><span>Bài đăng</span></div>':"")+'</div>':'<p class="trong">Chưa có số tổng. Bấm "Đồng bộ ngay" để lấy.</p>')+'</section>'+h}
- // Instagram: quảng cáo (tab "📣 Quảng cáo IG", nhập tay từ app Instagram)
- if(p==="ig"&&(j.qcIg||[]).length){var Q=j.qcIg,sum=function(f){return Q.reduce(function(s,x){return s+(x[f]||0)},0)},co=function(f){return Q.some(function(x){return x[f]!=null&&x[f]!==0})};
-  var chi=sum("chi"),ht=sum("ht"),xq=sum("xem"),clk=sum("clk"),moiQ=sum("moi"),mau=co("ht")?ht:xq;
+ // quảng cáo (tab "📣 Quảng cáo IG", nhập tay; cột Kênh = Facebook/Instagram, trống = Instagram). "Vào web" = phiên có Mã UTM, đếm trực tiếp
+ var Q=(j.qcIg||[]).filter(function(x){return (/^f/i.test(x.kenh||"")?"fb":"ig")===p});
+ if(Q.length){var sum=function(f){return Q.reduce(function(s,x){return s+(x[f]||0)},0)},co=function(f){return Q.some(function(x){return x[f]!=null&&x[f]!==0})};
+  var chi=sum("chi"),ht=sum("ht"),xq=sum("xem"),clk=sum("clk"),moiQ=sum("moi"),mau=co("ht")?ht:xq,web=Q.some(function(x){return x.utmPhien!=null});
   var tien=function(n){return n?so(Math.round(n))+"đ":"–"};
-  h+='<section class="the" data-k="mxqc"><h2>Quảng cáo Instagram</h2><div class="luoi-nho luoi-4">'+
+  h+='<section class="the" data-k="mxqc"><h2>Quảng cáo '+NT[p].ten+'</h2><div class="luoi-nho luoi-4">'+
    '<div><b>'+(mau?pt(clk/mau):"–")+'</b><span>CTR (click liên kết ÷ '+(co("ht")?"lượt hiển thị":"lượt xem từ quảng cáo")+')</span></div>'+
    '<div><b>'+(chi&&clk?tien(chi/clk):"–")+'</b><span>CPC (chi phí / click)</span></div>'+
    '<div><b>'+(chi&&co("ht")?tien(chi/ht*1000):"–")+'</b><span>CPM (chi phí / 1.000 hiển thị)</span></div>'+
    '<div><b>'+(chi?tien(chi):"–")+'</b><span>Đã chi · '+so(moiQ)+' người theo dõi từ quảng cáo</span></div></div>'+
-   '<div class="bc" style="margin-top:16px"><table class="bg"><thead><tr><th>Bài</th><th>Thời gian</th><th class="so-p">Đã chi</th><th class="so-p">Hiển thị</th><th class="so-p">Xem từ QC</th><th class="so-p">Tiếp cận</th><th class="so-p">Click</th><th class="so-p">CTR</th><th class="so-p">Tương tác</th><th class="so-p">Theo dõi</th></tr></thead><tbody>'+
-   Q.map(function(x){var m=x.ht||x.xem;return '<tr><td>'+esc(x.ten)+(x.gc?'<br><span class="mo">'+esc(x.gc)+'</span>':"")+'</td><td>'+(x.tu?nhan(x.tu):"")+(x.den&&x.den!==x.tu?"–"+nhan(x.den):"")+'</td><td class="so-p">'+tien(x.chi)+'</td><td class="so-p">'+(x.ht?so(x.ht):"–")+'</td><td class="so-p">'+so(x.xem)+'</td><td class="so-p">'+so(x.tc)+'</td><td class="so-p">'+so(x.clk)+'</td><td class="so-p">'+(m&&x.clk!=null?pt(x.clk/m):"–")+'</td><td class="so-p">'+so(x.tt)+'</td><td class="so-p">'+so(x.moi)+'</td></tr>'}).join("")+'</tbody></table></div>'+
-   (!chi||!co("ht")?'<div class="ph">Thiếu số tiền đã chi hoặc lượt hiển thị: điền trong tab 📣 Quảng cáo IG của Google Sheet để có CTR chuẩn, CPC, CPM.</div>':"")+'</section>'}
+   '<div class="bc" style="margin-top:16px"><table class="bg"><thead><tr><th>Bài</th><th>Thời gian</th><th class="so-p">Đã chi</th><th class="so-p">Hiển thị</th><th class="so-p">Xem từ QC</th><th class="so-p">Tiếp cận</th><th class="so-p">Click</th><th class="so-p">CTR</th><th class="so-p">Tương tác</th><th class="so-p">Theo dõi</th>'+(web?'<th class="so-p">Vào web (UTM)</th><th class="so-p">CPA</th>':"")+'</tr></thead><tbody>'+
+   Q.map(function(x){var m=x.ht||x.xem;return '<tr><td>'+esc(x.ten)+(x.gc?'<br><span class="mo">'+esc(x.gc)+'</span>':"")+'</td><td>'+(x.tu?nhan(x.tu):"")+(x.den&&x.den!==x.tu?"–"+nhan(x.den):"")+'</td><td class="so-p">'+tien(x.chi)+'</td><td class="so-p">'+(x.ht?so(x.ht):"–")+'</td><td class="so-p">'+so(x.xem)+'</td><td class="so-p">'+so(x.tc)+'</td><td class="so-p">'+so(x.clk)+'</td><td class="so-p">'+(m&&x.clk!=null?pt(x.clk/m):"–")+'</td><td class="so-p">'+so(x.tt)+'</td><td class="so-p">'+so(x.moi)+'</td>'+(web?'<td class="so-p">'+(x.utmPhien!=null?so(x.utmPhien):"–")+'</td><td class="so-p">'+(x.chi&&x.utmPhien?tien(x.chi/x.utmPhien):"–")+'</td>':"")+'</tr>'}).join("")+'</tbody></table></div>'+
+   (web?'<p class="mo">Vào web (UTM) = số phiên trên loccoc.com.vn mở từ link có Mã UTM của quảng cáo, cập nhật ngay khi có khách. CPA = đã chi ÷ vào web.</p>':"")+
+   (!chi||!co("ht")?'<div class="ph">Thiếu số tiền đã chi hoặc lượt hiển thị: điền trong tab 📣 Quảng cáo IG của Google Sheet để có CTR chuẩn, CPC, CPM, CPA.</div>':"")+'</section>'}
  // biểu đồ
  h+='<section class="the" data-k="mxbd"><h2>Lượt xem &amp; '+PT_NHAN[p][1].toLowerCase()+' theo ngày</h2><div class="bd cao"><canvas id="c-mx1"></canvas></div></section>'+
   '<section class="the w6" data-k="mxbder"><h2>Engagement rate theo ngày</h2><div class="bd"><canvas id="c-mx2"></canvas></div></section>'+

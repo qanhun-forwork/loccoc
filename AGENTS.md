@@ -108,6 +108,7 @@ Lộc Cộc tại loccoc.com.vn. Không phục vụ mục đích thương mại:
   Chỉ số: FB/IG có ER = tương tác ÷ lượt xem (theo đề cuối kỳ, dòng phụ ghi thêm ÷ người xem/tiếp cận), CTR = click liên kết ÷ lượt xem, chuyển đổi follow = theo dõi mới ÷
   lượt truy cập; TikTok có ER = (thích + bình luận + chia sẻ) ÷ lượt xem, tỉ lệ xem hồ sơ, chuyển đổi từ hồ sơ.
 - v4.7: tab "📣 Quảng cáo IG" (nhập tay từ app Instagram, đọc theo tên cột) → khối Quảng cáo ở trang Instagram
+- v4.13: tab đó thêm cột "Kênh" (Facebook/Instagram, trống = Instagram) và "Mã UTM". Dòng có Mã UTM: Apps Script đếm `utmPhien` = phiên trong tab 👁 Lượt xem có nguồn `utm: … / <mã>` trong ngày chạy (số trực tiếp) → CPA = đã chi ÷ utmPhien ở trang quản trị và slide 12 báo cáo. Link quảng cáo: `https://loccoc.com.vn/?utm_source=facebook&utm_medium=paid&utm_campaign=<mã>#/trang` (UTM phải đứng trước #)
   (CTR = click liên kết ÷ lượt hiển thị, chưa có hiển thị thì ÷ lượt xem từ quảng cáo; CPC, CPM cần số tiền đã chi).
   TikTok: trigger `dongBoTikTok` mỗi ngày ~23:15–23:45, tự tạo khi bấm Kết nối TikTok thành công.
 - Meta Graph API (v4.8): app "Lộc Cộc Tracking" (Development). Page Access Token không hết hạn dán bằng menu Sheet

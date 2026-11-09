@@ -23,7 +23,7 @@
  * ───────────────────────────────────────────────────────────────────────────
  */
 
-var PHIEN_BAN = '4.12.0';
+var PHIEN_BAN = '4.13.0';
 var TEN_GUI = 'Lộc Cộc';            // tên người gửi trong email
 var GIA_BASIC = 350000;             // giá dòng Basic (tính lại ở máy chủ, không tin giá từ trình duyệt)
 var GIOI_HAN_MOI_GIO = 3;           // tối đa email gửi tới cùng 1 địa chỉ trong 1 giờ
@@ -1271,12 +1271,16 @@ function thongKeMXH_(tu, den) {
   if (sq && sq.getLastRow() > 1) {
     var vq = sq.getRange(1, 1, sq.getLastRow(), sq.getLastColumn()).getValues(), hq = vq[0].map(function (x) { return String(x).trim(); });
     var Q = { ten: 'Bài quảng cáo', tu: 'Ngày bắt đầu', den: 'Ngày kết thúc', chi: 'Số tiền đã chi (đ)', ht: 'Lượt hiển thị', xem: 'Lượt xem từ quảng cáo',
-      tc: 'Người tiếp cận từ quảng cáo', clk: 'Click liên kết', tt: 'Tương tác từ quảng cáo', moi: 'Theo dõi từ quảng cáo', gc: 'Ghi chú' };
+      tc: 'Người tiếp cận từ quảng cáo', clk: 'Click liên kết', tt: 'Tương tác từ quảng cáo', moi: 'Theo dõi từ quảng cáo', gc: 'Ghi chú',
+      kenh: 'Kênh', utm: 'Mã UTM' };
     vq.slice(1).forEach(function (r) {
       if (!r.join('')) return;
       var o = {};
       Object.keys(Q).forEach(function (k) { var i = hq.indexOf(Q[k]), v = i > -1 ? r[i] : '';
-        o[k] = laNgay_(v) ? Utilities.formatDate(v, tz, 'yyyy-MM-dd') : (k === 'ten' || k === 'gc' || k === 'tu' || k === 'den') ? String(v) : (v === '' ? null : Number(v) || 0); });
+        o[k] = laNgay_(v) ? Utilities.formatDate(v, tz, 'yyyy-MM-dd') : /^(ten|gc|tu|den|kenh|utm)$/.test(k) ? String(v).trim() : (v === '' ? null : Number(v) || 0); });
+      // link quảng cáo gắn ?utm_campaign=<Mã UTM>: đếm phiên web (tab 👁 Lượt xem) có đúng mã đó trong thời gian chạy, số trực tiếp
+      if (o.utm && /^\d{4}-\d{2}-\d{2}$/.test(o.tu)) { var N = thongKeXem_(o.tu, o.den || o.tu).nguon; o.utmPhien = 0;
+        Object.keys(N).forEach(function (k) { if (/^utm:/.test(k) && k.split(' / ').pop() === o.utm) o.utmPhien += N[k]; }); }
       qc.push(o);
     });
   }
