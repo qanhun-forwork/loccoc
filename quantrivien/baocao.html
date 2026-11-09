@@ -293,6 +293,10 @@ function tinh(mx,xem,vc,tq,den,vcTruoc){
   var x=tong(D,"xem"),tu=tt();
   K[p]={fol:folNay[p],xem:x,tuongTac:tu,er:x?tu/x:0,nguoi:tong(D,"nguoi"),clk:tong(D,"clk"),moi:tong(D,"moi"),cs:tong(D,"cs"),hs:tong(D,"hs"),
    tuan:tuan.map(function(w){return {xem:tong(D,"xem",w.tu,w.den),fol:folNay[p]-tong(D,"moi",cong(w.den,1),den)}})}});
+ // ER Facebook/Instagram tính organic: trừ lượt xem và tương tác từ quảng cáo (tab 📣 Quảng cáo, cột Kênh) vì quảng cáo tách khỏi KPI organic
+ ["fb","ig"].forEach(function(p){var k=K[p];k.qcXem=0;k.qcTt=0;
+  (mx.qcIg||[]).forEach(function(q){if((/^f/i.test(q.kenh||"")?"fb":"ig")===p&&q.tu>=BAT_DAU&&q.tu<=den){k.qcXem+=q.xem||0;k.qcTt+=q.tt||0}});
+  k.er=k.xem>k.qcXem?(k.tuongTac-k.qcTt)/(k.xem-k.qcXem):0});
  // TikTok: tần suất đăng tính từ danh sách video (API chỉ trả video, không có bài ảnh cuộn)
  var vid=(mx.ttApi.video||[]).filter(function(v){return v.ngay>=BAT_DAU&&v.ngay<=den});
  K.tt.video=vid.map(function(v){var t=v.thich+v.binhLuan+v.chiaSe;return {ten:v.tieuDe,ngay:v.ngay,xem:v.xem,tt:t,er:v.xem?t/v.xem:0,cs:v.chiaSe,link:v.link}}).sort(function(a,b){return b.xem-a.xem});
@@ -348,7 +352,7 @@ function bangKpi(p,S){var K=S.k[p],m=KPI[p],r='<table class="bang"><tr><th>Chỉ
  var kh=nhan(S.tu)+"–"+nhan(S.den);
  r+=dong("Người theo dõi",K.fol,m.fol,"","Từ 0 khi lập kênh");
  r+=dong("Lượt xem (Views)",K.xem,m.xem,"",kh);
- r+=dong("Tương tác ÷ lượt xem",K.er,m.er,"pt","("+so(K.tuongTac)+" ÷ "+so(K.xem)+")");
+ r+=dong("Tương tác ÷ lượt xem"+(K.qcXem?" (organic)":""),K.er,m.er,"pt",K.qcXem?"("+so(K.tuongTac-K.qcTt)+" ÷ "+so(K.xem-K.qcXem)+", đã trừ "+so(K.qcXem)+" lượt xem, "+so(K.qcTt)+" tương tác từ quảng cáo)":"("+so(K.tuongTac)+" ÷ "+so(K.xem)+")");
  var bt=K.baiTuan;
  if(bt){var dat=bt.filter(function(x){return x>=m.bai}).length;r+='<tr><td>Tần suất đăng (≥ 2 '+(p==="tt"?"video":"bài")+'/tuần)<br><span class="nho">Theo tuần: '+bt.join("-")+'</span></td><td class="s">'+dat+' / '+bt.length+' tuần</td><td class="s">'+pt(ty(dat,bt.length))+tien(ty(dat,bt.length))+'</td><td class="s">'+dg(dat,bt.length)+'</td></tr>'}
  else r+='<tr><td>Tần suất đăng (≥ 2 bài/tuần)</td><td colspan="3">'+bs("Cập nhật Apps Script 4.11 rồi bấm Đồng bộ ngay để lấy danh sách bài FB/IG.")+'</td></tr>';
