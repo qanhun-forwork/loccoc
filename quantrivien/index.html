@@ -463,6 +463,9 @@ function thoat(){token="";DL=null;BAI=null;try{sessionStorage.removeItem("qt_tk"
 $("dx").onclick=function(){goi("dangXuat").catch(function(){});thoat()};
 document.querySelectorAll(".sb [data-v]").forEach(function(b){b.onclick=function(){mo(b.dataset.v)}});
 addEventListener("hashchange",function(){if(token)mo(location.hash.slice(1))});
+// trang chỉ xem số (tổng quan, lượt xem, mạng xã hội) tự lấy số mới mỗi phút, không hiện "Đang tải"; trang sửa đơn/bài không đụng; tab ẩn thì bỏ qua
+setInterval(function(){if(!token||document.hidden)return;
+ if(V==="ban")taiDL(true).then(vBanVe).catch(function(){});else if(V==="xem")vXemTai(true);else if(NT[V])vMxTai(V,true)},60000);
 
 function mo(v){
  if(!duocXem(v))v=["ban","don","bai","xem"].filter(duocXem)[0]||"mk";V=v;if(location.hash.slice(1)!==v)history.replaceState(null,"","#"+v);
@@ -548,7 +551,7 @@ function xep(m,n){return Object.keys(m).map(function(k){return [k,m[k]]}).sort(f
 /* ═════════ 1. TỔNG QUAN BÁN HÀNG ═════════ */
 function taiDL(ep){if(DL&&!ep)return Promise.resolve(DL);return goi("tongQuan").then(function(j){DL=j;return j})}
 function vBan(){
- $("vung").innerHTML='<div id="v-ban"><div class="dau"><div><h1>Tổng quan bán hàng</h1><p>Số liệu từ Google Sheet "LỘC CỘC - ĐƠN HÀNG", cập nhật mỗi lần mở hoặc bấm Làm mới.</p></div><div class="cong">'+chonKhoang("v-ban",30,vBanVe)+NUT_BC+'<button class="btn nh" type="button" id="lm">Làm mới</button></div></div><div id="ban-nd" class="dang-tai">Đang tải số liệu…</div></div>';
+ $("vung").innerHTML='<div id="v-ban"><div class="dau"><div><h1>Tổng quan bán hàng</h1><p>Số liệu từ Google Sheet "LỘC CỘC - ĐƠN HÀNG", tự làm mới mỗi phút.</p></div><div class="cong">'+chonKhoang("v-ban",30,vBanVe)+NUT_BC+'<button class="btn nh" type="button" id="lm">Làm mới</button></div></div><div id="ban-nd" class="dang-tai">Đang tải số liệu…</div></div>';
  $("lm").onclick=function(){$("ban-nd").innerHTML='<p class="dang-tai">Đang tải số liệu…</p>';taiDL(true).then(vBanVe).catch(loiTai)};
  taiDL().then(vBanVe).catch(loiTai)}
 function loiTai(e){var n=$("mx-nd")||$("ban-nd")||$("don-nd")||$("bai-nd")||$("xem-nd");if(n)n.innerHTML='<p class="trong">'+esc(e.message||"Không tải được dữ liệu.")+'</p>'}
@@ -696,11 +699,11 @@ function vXem(){
   '<div class="tabs" role="tablist" aria-label="Nguồn số liệu"><span class="tab-nen" aria-hidden="true"></span><button type="button" role="tab" data-n="lc">Bộ đếm<span class="dai"> Lộc Cộc</span></button><button type="button" role="tab" data-n="vc">Vercel<span class="dai"> Analytics</span></button></div><div id="xem-nd" class="dang-tai">Đang tải số liệu…</div></div>';
  document.querySelectorAll("#v-xem .tabs button").forEach(function(b){b.onclick=function(){NGX=b.dataset.n;vXemTai()}});
  vXemTai()}
-function vXemTai(){
- var k=khoang("v-xem"),kt=kyTruoc(k),nd=$("xem-nd");if(!nd)return;nd.className="dang-tai";nd.innerHTML="Đang tải số liệu…";
+function vXemTai(im){
+ var k=khoang("v-xem"),kt=kyTruoc(k),nd=$("xem-nd");if(!nd)return;if(!im){nd.className="dang-tai";nd.innerHTML="Đang tải số liệu…"}
  document.querySelectorAll("#v-xem .tabs button").forEach(function(b){b.setAttribute("aria-selected",b.dataset.n===NGX)});truot(document.querySelector("#v-xem .tab-nen"),document.querySelector('#v-xem .tabs [aria-selected="true"]'));
  var h=NGX==="vc"?"vercel":"luotXem";
- Promise.all([goi(h,k),kt?goi(h,kt):Promise.resolve(null)]).then(function(r){(NGX==="vc"?vVcVe:vXemVe)(r[0],r[1],k)}).catch(loiTai)}
+ Promise.all([goi(h,k),kt?goi(h,kt):Promise.resolve(null)]).then(function(r){if(V==="xem")(NGX==="vc"?vVcVe:vXemVe)(r[0],r[1],k)}).catch(im?function(){}:loiTai)}
 function vXemVe(j,jt,k){
  var nd=$("xem-nd");if(!nd)return;var T=j.tong,TT=jt&&jt.tong;
  $("xem-mo").textContent="Khách truy cập, lượt xem trang và tỉ lệ thoát do bộ đếm riêng của web ghi lại, giữ vĩnh viễn.";
@@ -762,8 +765,8 @@ var PT_NHAN={fb:["Tương tác","Người xem"],ig:["Tương tác","Số ngườ
 function vMx(p){
  $("vung").innerHTML='<div id="v-mx"><div class="dau"><div><p class="nt-nhan">'+svg(p)+'Mạng xã hội</p><h1>'+NT[p].ten+'</h1><p id="mx-mo"></p></div><div class="cong">'+chonKhoang("v-mx",30,function(){vMxTai(p)})+NUT_BC+'</div></div><div id="mx-nd" class="dang-tai">Đang tải số liệu…</div></div>';
  vMxTai(p)}
-function vMxTai(p){var k=khoang("v-mx"),kt=kyTruoc(k),nd=$("mx-nd");if(!nd)return;nd.className="dang-tai";nd.innerHTML="Đang tải số liệu…";
- Promise.all([goi("mangXaHoi",k),kt?goi("mangXaHoi",kt):Promise.resolve(null)]).then(function(r){if(V===p)vMxVe(p,r[0],r[1],k)}).catch(loiTai)}
+function vMxTai(p,im){var k=khoang("v-mx"),kt=kyTruoc(k),nd=$("mx-nd");if(!nd)return;if(!im){nd.className="dang-tai";nd.innerHTML="Đang tải số liệu…"}
+ Promise.all([goi("mangXaHoi",k),kt?goi("mangXaHoi",kt):Promise.resolve(null)]).then(function(r){if(V===p)vMxVe(p,r[0],r[1],k)}).catch(im?function(){}:loiTai)}
 // so sánh tỉ lệ: chênh lệch điểm phần trăm
 function ssTl(a,b){if(b==null||isNaN(b))return "";var d=a-b;if(Math.abs(d)<.0005)return "Bằng kỳ trước";return '<span class="'+(d>=0?"tang":"giam")+'">'+(d>=0?"▲ ":"▼ ")+(Math.round(Math.abs(d)*1000)/10).toLocaleString("vi-VN")+' điểm</span> so với kỳ trước'}
 function vMxVe(p,j,jt,k){
@@ -814,7 +817,7 @@ function vMxVe(p,j,jt,k){
  // Facebook / Instagram: đồng bộ qua Meta Graph API
  if(p!=="tt"){var M=j.meta||{};
   h='<section class="the" data-k="mxdb"><h2>Đồng bộ Meta</h2><table class="bg"><tbody><tr><td>Kết nối</td><td>'+(M.coKetNoi?esc(M.trang||"Fanpage")+(M.ig?" · "+esc(M.ig):""):"Chưa kết nối (Sheet → Lộc Cộc → Kết nối Meta…)")+'</td></tr>'+
-   '<tr><td>Lần cuối</td><td>'+(M.loi?'<span class="chu-loi">Lỗi: '+esc(M.loi)+'</span>':esc(gioVN(M.luc)||"chưa có")+" · tự đồng bộ khi có người xem số (15 phút/lần) và 4:00 mỗi ngày")+'</td></tr>'+
+   '<tr><td>Lần cuối</td><td>'+(M.loi?'<span class="chu-loi">Lỗi: '+esc(M.loi)+'</span>':esc(gioVN(M.luc)||"chưa có")+" · tự đồng bộ khi có người xem số (15 phút/lần, giới hạn của Meta) và 4:00 mỗi ngày")+'</td></tr>'+
    (M.canhBao?'<tr><td>API không trả</td><td>'+esc(M.canhBao)+' (giữ số cũ)</td></tr>':"")+'</tbody></table>'+
    '<div class="hang-nut"><button class="btn nh" type="button" id="mx-db"'+(M.coKetNoi?"":" disabled")+'>Đồng bộ ngay</button></div></section>'+
    '<section class="the" data-k="mxht"><h2>Tài khoản lúc này</h2>'+(tongMx!=null?'<div class="luoi-nho"><div><b>'+so(tongMx)+'</b><span>Tổng người theo dõi'+(HM.luc?' · cập nhật '+esc(gioVN(HM.luc)):"")+'</span></div>'+(p==="ig"&&HM.igBai?'<div><b>'+so(HM.igBai)+'</b><span>Bài đăng</span></div>':"")+'</div>':'<p class="trong">Chưa có số tổng. Bấm "Đồng bộ ngay" để lấy.</p>')+'</section>'+h}

@@ -124,6 +124,8 @@ Lộc Cộc tại loccoc.com.vn. Không phục vụ mục đích thương mại:
   Không đồng bộ FB "Tương tác" (page_post_engagements gồm cả click, ≈ 3 lần "Lượt tương tác với nội dung") và IG "Lượt click liên kết"
   (profile_links_taps luôn 0, ghi đè số click quảng cáo): 2 cột này chép tay theo Business Suite. `tuDongBo_`: lệnh `mangXaHoi`/`vercel`
   tự đồng bộ vài ngày gần nhất nếu lần trước đã quá 15 phút → dashboard và báo cáo (mặc định mở "Số trực tiếp") gần thời gian thực.
+  v4.14: TikTok và Vercel 1 phút, Meta giữ 15 phút (~25 lệnh gọi/lần, app Development giới hạn 200 lệnh/giờ); TikTok ghi đè dòng chụp cùng ngày trong tab 🎵 TikTok API.
+  Trang quản trị tự làm mới mỗi phút ở Tổng quan, Lượt xem, Facebook/Instagram/TikTok (không hiện "Đang tải"); báo cáo "Số trực tiếp" làm mới 10 giây.
   TikTok API chỉ có tổng trọn đời theo video: ngày "API" = tổng − các ngày trước, nên số từng ngày lệch Studio nhưng tổng đúng.
 - Báo cáo cuối kỳ (v4.10): `quantrivien/baocao.html` = slide HTML 1280×720 (≤ 20 slide theo khung 15 phần của đề), lấy số bằng
   chính các lệnh dashboard (`mangXaHoi`, `luotXem`, `vercel`, `tongQuan`) với token phiên trong sessionStorage (mở từ nút

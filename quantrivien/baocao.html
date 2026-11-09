@@ -477,7 +477,7 @@ function ve(S,capNhat){
   '<div class="o"><h2>Thành viên</h2><ul class="ds" style="gap:4px;font-size:14px">'+NHOM.tv.map(function(t){return '<li>'+esc(t)+'</li>'}).join("")+'</ul></div>'+
   '<div class="o"><h2>Dòng thời gian</h2><ul class="moc">'+MOC.map(function(m){return '<li><b>'+m[0]+'</b>'+m[1]+'</li>'}).join("")+'</ul></div>'+
   '<div class="o toi"><h2>Làm vượt yêu cầu</h2><ul class="ds" style="font-size:14.5px"><li>Tự xây website loccoc.com.vn: giỏ hàng, form, email xác nhận tự động</li><li>Dashboard quản trị riêng, phân quyền, nhật ký truy cập</li>'+
-  '<li>Kết nối TikTok API, Meta Graph API, Vercel Analytics: số liệu tự đồng bộ mỗi ngày</li><li>Slide báo cáo này lấy số trực tiếp từ dashboard</li></ul></div>'}));
+  '<li>Kết nối TikTok API, Meta Graph API, Vercel Analytics: số liệu tự đồng bộ (TikTok, Vercel mỗi phút; Meta 15 phút)</li><li>Slide báo cáo này lấy số trực tiếp từ dashboard</li></ul></div>'}));
  // 12. Quảng cáo
  var Q=S.qc,chi=Q.reduce(function(s,q){return s+(q.chi||0)},0),clk=Q.reduce(function(s,q){return s+(q.clk||0)},0);
  H.push(slide({so:"12",phan:"Quảng cáo trả phí",clo:"CLO3",lop:"sang",tieuDe:Q.length?"Quảng cáo thử "+Q.length+" lần: "+so(chi)+"đ, tách riêng khỏi KPI organic":"Không chạy quảng cáo: không áp dụng",cot:"c2",noi:

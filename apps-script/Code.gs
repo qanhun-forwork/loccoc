@@ -23,7 +23,7 @@
  * ───────────────────────────────────────────────────────────────────────────
  */
 
-var PHIEN_BAN = '4.13.0';
+var PHIEN_BAN = '4.14.0';
 var TEN_GUI = 'Lộc Cộc';            // tên người gửi trong email
 var GIA_BASIC = 350000;             // giá dòng Basic (tính lại ở máy chủ, không tin giá từ trình duyệt)
 var GIOI_HAN_MOI_GIO = 3;           // tối đa email gửi tới cùng 1 địa chỉ trong 1 giờ
@@ -890,10 +890,10 @@ function quanTri_(d) {
         return r; });
       case 'xoaBai': return coKhoa_(function () { var r = xoaBai_(d.ma); if (r.ok) nk('Xoá bài viết', d.ma + (r.tieuDe ? ' · "' + r.tieuDe + '"' : '')); return r; });
       case 'luotXem': return thongKeXem_(d.tu, d.den);
-      case 'vercel': tuDongBo_('vc_luc', 'vc_token', function () { dongBoVercel_(2); }); return thongKeVercel_(d.tu, d.den);
+      case 'vercel': tuDongBo_('vc_luc', 'vc_token', 1, function () { dongBoVercel_(2); }); return thongKeVercel_(d.tu, d.den);
       case 'mangXaHoi':
-        tuDongBo_('mt_luc', 'mt_token', function () { dongBoMeta_(4); });
-        tuDongBo_('tt_luc', 'tt_rt', function () { dongBoTikTok_(); });
+        tuDongBo_('mt_luc', 'mt_token', 15, function () { dongBoMeta_(4); });   // ~25 lệnh gọi/lần: 15 phút để không vượt giới hạn 200 lệnh/giờ của app Meta chế độ Development
+        tuDongBo_('tt_luc', 'tt_rt', 1, function () { dongBoTikTok_(); });
         return thongKeMXH_(d.tu, d.den);
       case 'dongBoTikTok': return coKhoa_(function () { var r = dongBoTikTok_(); if (r.ok) nk('Đồng bộ TikTok', r.soVideo + ' video'); return r; });
       case 'dongBoMeta': return coKhoa_(function () { var r = dongBoMeta_(30); if (r.ok) nk('Đồng bộ Meta', r.soNgay + ' ngày'); return r; });
@@ -974,9 +974,9 @@ function xoaTaiKhoan_(ten, nk) {
 
 // v4.12: dashboard và báo cáo đọc số → nếu lần đồng bộ gần nhất đã quá 15 phút thì đồng bộ vài ngày gần nhất trước khi trả số.
 // Không chờ khoá: đang có người đồng bộ thì trả luôn số hiện có. Lỗi đồng bộ không làm hỏng việc đọc số.
-function tuDongBo_(khoaLuc, khoaToken, fn) {
+function tuDongBo_(khoaLuc, khoaToken, phut, fn) {
   var p = PropertiesService.getScriptProperties(), luc = Date.parse(p.getProperty(khoaLuc) || '') || 0;
-  if (!p.getProperty(khoaToken) || Date.now() - luc < 15 * 60 * 1000) return;
+  if (!p.getProperty(khoaToken) || Date.now() - luc < phut * 60 * 1000) return;
   var lock = LockService.getScriptLock(); if (!lock.tryLock(100)) return;
   try { fn(); SpreadsheetApp.flush(); } catch (e) { console.error(e); } finally { lock.releaseLock(); }
 }
@@ -1422,7 +1422,11 @@ function dongBoTikTok_() {
   // 1) chụp số tổng
   var sa = ss.getSheetByName(TAB.TTA);
   if (!sa) { sa = ss.insertSheet(TAB.TTA); sa.appendRow(['Thời điểm', 'Ngày', 'Tổng lượt xem video', 'Tổng lượt thích video', 'Người theo dõi', 'Số video', 'Lượt thích tài khoản', 'Tổng bình luận video', 'Tổng chia sẻ video']); sa.setFrozenRows(1); sa.hideSheet(); }
-  sa.appendRow([now, "'" + hom, tongXem, tongThich, u.follower_count || 0, u.video_count || vids.length, u.likes_count || 0, tongBL, tongCS]);
+  // đồng bộ mỗi phút: cùng ngày thì ghi đè dòng chụp cuối (chỉ dùng số cuối mỗi ngày) để tab không phình 1.440 dòng/ngày
+  var chupMoi = [now, "'" + hom, tongXem, tongThich, u.follower_count || 0, u.video_count || vids.length, u.likes_count || 0, tongBL, tongCS], cuoi = sa.getLastRow();
+  var ngayCuoi = cuoi > 1 ? sa.getRange(cuoi, 2).getValue() : '';
+  if (cuoi > 1 && (laNgay_(ngayCuoi) ? Utilities.formatDate(ngayCuoi, tz, 'yyyy-MM-dd') : String(ngayCuoi).replace(/^'/, '')) === hom) sa.getRange(cuoi, 1, 1, 9).setValues([chupMoi]);
+  else sa.appendRow(chupMoi);
   // 2) danh sách video (ghi lại toàn bộ)
   var sv = ss.getSheetByName(TAB.TTV);
   if (!sv) { sv = ss.insertSheet(TAB.TTV); sv.setFrozenRows(1); }
