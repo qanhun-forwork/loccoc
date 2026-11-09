@@ -408,7 +408,9 @@ function tien(n){return so(n)+"đ"}
 function pt(n){return (Math.round(n*1000)/10).toLocaleString("vi-VN")+"%"}
 function tb(m){var t=$("tb");t.textContent=m;t.classList.add("on");clearTimeout(tb.t);tb.t=setTimeout(function(){t.classList.remove("on")},2600)}
 function ngay(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
-function ngayCua(iso){var d=new Date(iso);return isNaN(d)?"":ngay(d)}
+// ngày theo giờ Việt Nam (giống báo cáo), không phụ thuộc múi giờ máy đang mở
+function ngayCua(iso){var d=new Date(iso);return isNaN(d)?"":d.toLocaleDateString("en-CA",{timeZone:"Asia/Ho_Chi_Minh"})}
+var BAT_DAU="2026-09-26";   // ngày bắt đầu dự án, trùng báo cáo: "Tất cả" tính từ ngày này
 function gioVN(iso){var d=new Date(iso);return isNaN(d)?"":d.toLocaleString("vi-VN",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"})}
 function nhan(t){var d=new Date(t+"T00:00:00");return String(d.getDate()).padStart(2,"0")+"/"+String(d.getMonth()+1).padStart(2,"0")}
 
@@ -493,7 +495,7 @@ function chonKhoang(id,mac,doi){
  return h}
 function khoang(id){var k=KH[id],hn=new Date();
  if(k.n===-1)return {tu:k.tu,den:k.den};
- if(k.n===0)return {tu:"",den:ngay(hn)};
+ if(k.n===0)return {tu:BAT_DAU,den:ngay(hn)};
  var t=new Date();t.setDate(t.getDate()-k.n+1);return {tu:ngay(t),den:ngay(hn)}}
 function cacNgay(tu,den){var r=[],d=new Date(tu+"T00:00:00"),e=new Date(den+"T00:00:00");while(d<=e&&r.length<1500){r.push(ngay(d));d.setDate(d.getDate()+1)}return r}
 
@@ -551,13 +553,13 @@ function xep(m,n){return Object.keys(m).map(function(k){return [k,m[k]]}).sort(f
 /* ═════════ 1. TỔNG QUAN BÁN HÀNG ═════════ */
 function taiDL(ep){if(DL&&!ep)return Promise.resolve(DL);return goi("tongQuan").then(function(j){DL=j;return j})}
 function vBan(){
- $("vung").innerHTML='<div id="v-ban"><div class="dau"><div><h1>Tổng quan bán hàng</h1><p>Số liệu từ Google Sheet "LỘC CỘC - ĐƠN HÀNG", tự làm mới mỗi phút.</p></div><div class="cong">'+chonKhoang("v-ban",30,vBanVe)+NUT_BC+'<button class="btn nh" type="button" id="lm">Làm mới</button></div></div><div id="ban-nd" class="dang-tai">Đang tải số liệu…</div></div>';
+ $("vung").innerHTML='<div id="v-ban"><div class="dau"><div><h1>Tổng quan bán hàng</h1><p>Số liệu từ Google Sheet "LỘC CỘC - ĐƠN HÀNG", tự làm mới mỗi phút.</p></div><div class="cong">'+chonKhoang("v-ban",0,vBanVe)+NUT_BC+'<button class="btn nh" type="button" id="lm">Làm mới</button></div></div><div id="ban-nd" class="dang-tai">Đang tải số liệu…</div></div>';
  $("lm").onclick=function(){$("ban-nd").innerHTML='<p class="dang-tai">Đang tải số liệu…</p>';taiDL(true).then(vBanVe).catch(loiTai)};
  taiDL().then(vBanVe).catch(loiTai)}
 function loiTai(e){var n=$("mx-nd")||$("ban-nd")||$("don-nd")||$("bai-nd")||$("xem-nd");if(n)n.innerHTML='<p class="trong">'+esc(e.message||"Không tải được dữ liệu.")+'</p>'}
 function trongKhoang(ds,k,cot){return ds.filter(function(x){var n=ngayCua(x[cot||"Thời gian"]);return n&&(!k.tu||n>=k.tu)&&n<=k.den})}
 function soSanh(nay,truoc){if(truoc==null)return "";if(!truoc)return nay?'<span class="tang">Mới</span> so với kỳ trước':"";var p=(nay-truoc)/truoc;return '<span class="'+(p>=0?"tang":"giam")+'">'+(p>=0?"▲ ":"▼ ")+pt(Math.abs(p))+"</span> so với kỳ trước"}
-function kyTruoc(k){if(!k.tu)return null;var a=new Date(k.tu+"T00:00:00"),b=new Date(k.den+"T00:00:00"),n=Math.round((b-a)/864e5)+1;var t=new Date(a),d=new Date(a);t.setDate(t.getDate()-n);d.setDate(d.getDate()-1);return {tu:ngay(t),den:ngay(d)}}
+function kyTruoc(k){if(!k.tu||k.tu<=BAT_DAU)return null;var a=new Date(k.tu+"T00:00:00"),b=new Date(k.den+"T00:00:00"),n=Math.round((b-a)/864e5)+1;var t=new Date(a),d=new Date(a);t.setDate(t.getDate()-n);d.setDate(d.getDate()-1);return {tu:ngay(t),den:ngay(d)}}
 function vBanVe(){
  var nd=$("ban-nd");if(!nd||!DL)return;var k=khoang("v-ban"),kt=kyTruoc(k);
  var don=trongKhoang(DL.don,k),lh=trongKhoang(DL.lh,k),ct=trongKhoang(DL.ct,k);
@@ -695,7 +697,7 @@ var TEN_TRANG={"#/":"Trang chủ","#/basic":"Dòng Basic","#/san-pham":"Sản ph
 function tenTrang(t){return TEN_TRANG[t]||(/^#\/basic-\d+$/.test(t)?"Mẫu Basic "+(+t.split("-")[1]+1):/^#\/tap-chi\//.test(t)?"Bài: "+t.slice(10):t)}
 var NGX="lc";
 function vXem(){
- $("vung").innerHTML='<div id="v-xem"><div class="dau"><div><h1>Lượt truy cập</h1><p id="xem-mo"></p></div><div class="cong">'+chonKhoang("v-xem",30,vXemTai)+NUT_BC+'</div></div>'+
+ $("vung").innerHTML='<div id="v-xem"><div class="dau"><div><h1>Lượt truy cập</h1><p id="xem-mo"></p></div><div class="cong">'+chonKhoang("v-xem",0,vXemTai)+NUT_BC+'</div></div>'+
   '<div class="tabs" role="tablist" aria-label="Nguồn số liệu"><span class="tab-nen" aria-hidden="true"></span><button type="button" role="tab" data-n="lc">Bộ đếm<span class="dai"> Lộc Cộc</span></button><button type="button" role="tab" data-n="vc">Vercel<span class="dai"> Analytics</span></button></div><div id="xem-nd" class="dang-tai">Đang tải số liệu…</div></div>';
  document.querySelectorAll("#v-xem .tabs button").forEach(function(b){b.onclick=function(){NGX=b.dataset.n;vXemTai()}});
  vXemTai()}
@@ -709,13 +711,19 @@ function vXemVe(j,jt,k){
  $("xem-mo").textContent="Khách truy cập, lượt xem trang và tỉ lệ thoát do bộ đếm riêng của web ghi lại, giữ vĩnh viễn.";
  if(j.dauTien)$("xem-mo").textContent="Khách truy cập, lượt xem trang và tỉ lệ thoát trên loccoc.com.vn. Dữ liệu lưu từ "+nhan(j.dauTien)+"/"+j.dauTien.slice(0,4)+" và được giữ lại vĩnh viễn.";
  var tl=function(t){return t&&t.phien?t.thoat/t.phien:0};
+ var ngoai=0;Object.keys(j.nguon||{}).forEach(function(n){if(n!=="Trực tiếp")ngoai+=j.nguon[n]});
+ // giống báo cáo: trước ngày bộ đếm bắt đầu thì cộng khách có nguồn giới thiệu theo Vercel (bỏ "(không rõ)", loccoc.com.vn, vercel.com)
+ if(j.dauTien&&k.tu<j.dauTien){var dTr=ngay(new Date(new Date(j.dauTien+"T00:00:00")-864e5));goi("vercel",{tu:k.tu,den:dTr}).then(function(v){var N=v["Nguồn"]||{},vc=0;
+  Object.keys(N).forEach(function(n){if(!/^\(|loccoc\.com\.vn|vercel\.com/.test(n))vc+=N[n].khach||0});if(!$("x-ngoai"))return;
+  $("x-ngoai").textContent=so(ngoai+vc);$("x-ngoai-ph").textContent=so(vc)+" khách có nguồn theo Vercel ("+nhan(k.tu)+"–"+nhan(dTr)+") + "+so(ngoai)+" phiên có nguồn theo bộ đếm · KPI 120"}).catch(function(){})}
  var tu=k.tu||j.dauTien||k.den,ns=cacNgay(tu,k.den),g=function(n,f){return (j.ngay[n]||{})[f]||0};
  var thoatSS=TT?(function(){var a=tl(T),b=tl(TT);if(!TT.phien)return "";var d=a-b;return '<span class="'+(d<=0?"tang":"giam")+'">'+(d<=0?"▼ ":"▲ ")+pt(Math.abs(d))+"</span> so với kỳ trước"})():"";
  nd.className="the-luoi";nd.innerHTML=
-  '<section class="the w3" data-k="kkh"><h2>Khách truy cập</h2><div class="so">'+so(T.khach)+'</div><div class="ph">'+soSanh(T.khach,TT&&TT.khach)+'</div></section>'+
-  '<section class="the w3" data-k="kxem"><h2>Lượt xem trang</h2><div class="so">'+so(T.xem)+'</div><div class="ph">'+soSanh(T.xem,TT&&TT.xem)+'</div></section>'+
-  '<section class="the w3" data-k="kthoat"><h2>Tỉ lệ thoát</h2><div class="so">'+(T.phien?pt(tl(T)):"–")+'</div><div class="ph">'+(thoatSS||"Phiên chỉ xem 1 trang rồi rời đi")+'</div></section>'+
-  '<section class="the w3" data-k="kphien"><h2>Trang / phiên</h2><div class="so">'+(T.phien?(T.xem/T.phien).toLocaleString("vi-VN",{maximumFractionDigits:1}):"–")+'</div><div class="ph">'+so(T.phien)+' phiên truy cập</div></section>'+
+  '<section class="the w4" data-k="kngoai"><h2>Truy cập từ bên ngoài</h2><div class="so" id="x-ngoai">'+so(ngoai)+'</div><div class="ph" id="x-ngoai-ph">Phiên có nguồn (mạng xã hội, link, UTM), không tính truy cập trực tiếp · KPI '+so(120)+'</div></section>'+
+  '<section class="the w4" data-k="kkh"><h2>Khách truy cập</h2><div class="so">'+so(T.khach)+'</div><div class="ph">'+soSanh(T.khach,TT&&TT.khach)+'</div></section>'+
+  '<section class="the w4" data-k="kxem"><h2>Lượt xem trang</h2><div class="so">'+so(T.xem)+'</div><div class="ph">'+soSanh(T.xem,TT&&TT.xem)+'</div></section>'+
+  '<section class="the w6" data-k="kthoat"><h2>Tỉ lệ thoát</h2><div class="so">'+(T.phien?pt(tl(T)):"–")+'</div><div class="ph">'+(thoatSS||"Phiên chỉ xem 1 trang rồi rời đi")+'</div></section>'+
+  '<section class="the w6" data-k="kphien"><h2>Trang / phiên</h2><div class="so">'+(T.phien?(T.xem/T.phien).toLocaleString("vi-VN",{maximumFractionDigits:1}):"–")+'</div><div class="ph">'+so(T.phien)+' phiên truy cập</div></section>'+
   '<section class="the" data-k="bxh"><h2>Khách truy cập &amp; lượt xem theo ngày</h2><div class="bd cao"><canvas id="c-kx"></canvas></div></section>'+
   '<section class="the w6" data-k="bthoat"><h2>Tỉ lệ thoát theo ngày</h2><div class="bd"><canvas id="c-th"></canvas></div></section>'+
   '<section class="the w6" data-k="btb"><h2>Thiết bị</h2><div class="bd"><canvas id="c-tb"></canvas></div></section>'+
@@ -763,7 +771,7 @@ function datNen(v){var b=document.body;["nt","nt-fb","nt-ig","nt-tt"].forEach(fu
  if(t)b.classList.add("nt","nt-"+v)}
 var PT_NHAN={fb:["Tương tác","Người xem"],ig:["Tương tác","Số người tiếp cận"],tt:["Lượt thích","Người xem"]};
 function vMx(p){
- $("vung").innerHTML='<div id="v-mx"><div class="dau"><div><p class="nt-nhan">'+svg(p)+'Mạng xã hội</p><h1>'+NT[p].ten+'</h1><p id="mx-mo"></p></div><div class="cong">'+chonKhoang("v-mx",30,function(){vMxTai(p)})+NUT_BC+'</div></div><div id="mx-nd" class="dang-tai">Đang tải số liệu…</div></div>';
+ $("vung").innerHTML='<div id="v-mx"><div class="dau"><div><p class="nt-nhan">'+svg(p)+'Mạng xã hội</p><h1>'+NT[p].ten+'</h1><p id="mx-mo"></p></div><div class="cong">'+chonKhoang("v-mx",0,function(){vMxTai(p)})+NUT_BC+'</div></div><div id="mx-nd" class="dang-tai">Đang tải số liệu…</div></div>';
  vMxTai(p)}
 function vMxTai(p,im){var k=khoang("v-mx"),kt=kyTruoc(k),nd=$("mx-nd");if(!nd)return;if(!im){nd.className="dang-tai";nd.innerHTML="Đang tải số liệu…"}
  Promise.all([goi("mangXaHoi",k),kt?goi("mangXaHoi",kt):Promise.resolve(null)]).then(function(r){if(V===p)vMxVe(p,r[0],r[1],k)}).catch(im?function(){}:loiTai)}
