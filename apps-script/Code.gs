@@ -23,7 +23,7 @@
  * ───────────────────────────────────────────────────────────────────────────
  */
 
-var PHIEN_BAN = '4.11.1';
+var PHIEN_BAN = '4.12.0';
 var TEN_GUI = 'Lộc Cộc';            // tên người gửi trong email
 var GIA_BASIC = 350000;             // giá dòng Basic (tính lại ở máy chủ, không tin giá từ trình duyệt)
 var GIOI_HAN_MOI_GIO = 3;           // tối đa email gửi tới cùng 1 địa chỉ trong 1 giờ
@@ -890,8 +890,11 @@ function quanTri_(d) {
         return r; });
       case 'xoaBai': return coKhoa_(function () { var r = xoaBai_(d.ma); if (r.ok) nk('Xoá bài viết', d.ma + (r.tieuDe ? ' · "' + r.tieuDe + '"' : '')); return r; });
       case 'luotXem': return thongKeXem_(d.tu, d.den);
-      case 'vercel': return thongKeVercel_(d.tu, d.den);
-      case 'mangXaHoi': return thongKeMXH_(d.tu, d.den);
+      case 'vercel': tuDongBo_('vc_luc', 'vc_token', function () { dongBoVercel_(2); }); return thongKeVercel_(d.tu, d.den);
+      case 'mangXaHoi':
+        tuDongBo_('mt_luc', 'mt_token', function () { dongBoMeta_(4); });
+        tuDongBo_('tt_luc', 'tt_rt', function () { dongBoTikTok_(); });
+        return thongKeMXH_(d.tu, d.den);
       case 'dongBoTikTok': return coKhoa_(function () { var r = dongBoTikTok_(); if (r.ok) nk('Đồng bộ TikTok', r.soVideo + ' video'); return r; });
       case 'dongBoMeta': return coKhoa_(function () { var r = dongBoMeta_(30); if (r.ok) nk('Đồng bộ Meta', r.soNgay + ' ngày'); return r; });
       case 'ttUrl': return ttUrl_(d.quayVe);
@@ -967,6 +970,15 @@ function xoaTaiKhoan_(ten, nk) {
   var h = ds[ten].hoTen; delete ds[ten]; luuDsTK_(ds);
   nk('Xoá tài khoản', ten + ' (' + h + ')');
   return { ok: true };
+}
+
+// v4.12: dashboard và báo cáo đọc số → nếu lần đồng bộ gần nhất đã quá 15 phút thì đồng bộ vài ngày gần nhất trước khi trả số.
+// Không chờ khoá: đang có người đồng bộ thì trả luôn số hiện có. Lỗi đồng bộ không làm hỏng việc đọc số.
+function tuDongBo_(khoaLuc, khoaToken, fn) {
+  var p = PropertiesService.getScriptProperties(), luc = Date.parse(p.getProperty(khoaLuc) || '') || 0;
+  if (!p.getProperty(khoaToken) || Date.now() - luc < 15 * 60 * 1000) return;
+  var lock = LockService.getScriptLock(); if (!lock.tryLock(100)) return;
+  try { fn(); SpreadsheetApp.flush(); } catch (e) { console.error(e); } finally { lock.releaseLock(); }
 }
 
 function coKhoa_(fn) {
@@ -1470,11 +1482,13 @@ function dongBoTikTok_() {
 var MT_API = 'https://graph.facebook.com/v23.0/';
 var MT_TZ = 'America/Los_Angeles';
 // cột trong Sheet → danh sách tên chỉ số thử lần lượt (tên mới trước, tên cũ sau)
+// không lấy 'Tương tác': page_post_engagements tính cả lượt click (846 so với 292 "Lượt tương tác với nội dung" của Business Suite,
+// 10/10–08/11) và API không có chỉ số khớp → cột này điền tay theo Business Suite
 var MT_FB = { 'Lượt xem': ['page_media_view', 'page_impressions'], 'Người xem': ['page_total_media_view_unique', 'page_impressions_unique'],
-  'Tương tác': ['page_post_engagements'], 'Lượt truy cập trang': ['page_views_total'], 'Người theo dõi mới': ['page_daily_follows_unique', 'page_fan_adds_unique'] };
+  'Lượt truy cập trang': ['page_views_total'], 'Người theo dõi mới': ['page_daily_follows_unique', 'page_fan_adds_unique'] };
 var MT_IG_CHUOI = { 'Số người tiếp cận': 'reach', 'Người theo dõi mới': 'follower_count' };   // trả theo từng ngày
-var MT_IG_TONG = { 'Lượt xem': ['views'], 'Tương tác': ['total_interactions'], 'Lượt truy cập trang cá nhân': ['profile_views'],
-  'Lượt click liên kết': ['profile_links_taps', 'website_clicks'] };                         // phải hỏi từng ngày (total_value)
+// không lấy 'Lượt click liên kết': API chỉ có profile_links_taps (luôn 0), ghi đè mất số click quảng cáo Business Suite hiện (37 ngày 19/10)
+var MT_IG_TONG = { 'Lượt xem': ['views'], 'Tương tác': ['total_interactions'], 'Lượt truy cập trang cá nhân': ['profile_views'] };                         // phải hỏi từng ngày (total_value)
 
 function ketNoiMeta() {
   var ui = SpreadsheetApp.getUi(), p = PropertiesService.getScriptProperties();
@@ -1591,8 +1605,13 @@ function dongBoMeta_(soNgay) {
     if (pp.mt_ig) {
       Object.keys(MT_IG_CHUOI).forEach(function (cot) {
         try {
-          var j = mtGoi_(pp.mt_ig + '/insights', { metric: MT_IG_CHUOI[cot], period: 'day', since: tu, until: den }), dem = 0;
-          (((j.data || [])[0] || {}).values || []).forEach(function (x) { var n = mtNgayCua_(x.end_time, true); if (ig[n]) { ig[n][cot] = Number(x.value) || 0; dem++; } });
+          // API từ chối khoảng since–until quá 30 ngày → hỏi từng đợt 20 ngày
+          var dem = 0, vs = [];
+          for (var k = 0; k < ds.length; k += 20) {
+            var a = mtGiay_(ds[k]), b = mtGiay_(ds[Math.min(k + 19, ds.length - 1)]) + 86400;
+            vs = vs.concat((((mtGoi_(pp.mt_ig + '/insights', { metric: MT_IG_CHUOI[cot], period: 'day', since: a, until: b }).data || [])[0] || {}).values || []));
+          }
+          vs.forEach(function (x) { var n = mtNgayCua_(x.end_time, true); if (ig[n]) { ig[n][cot] = Number(x.value) || 0; dem++; } });
           chan.push('IG ' + MT_IG_CHUOI[cot] + ': ' + dem + ' ngày'); if (!dem) thieu.push('IG ' + cot);
         } catch (e) { if (/token/.test(e.message)) throw e; chan.push('IG ' + MT_IG_CHUOI[cot] + ': ' + String(e.message).slice(0, 90)); thieu.push('IG ' + cot); }
       });

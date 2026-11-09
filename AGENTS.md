@@ -118,6 +118,12 @@ Lộc Cộc tại loccoc.com.vn. Không phục vụ mục đích thương mại:
   v4.9: mỗi lần đồng bộ còn lấy tổng người theo dõi hiện tại (FB `followers_count`, IG `followers_count` + `media_count`)
   lưu vào Script Property `mt_hien`; `mangXaHoi` trả `meta.hienTai`; trang FB/IG hiện khối "Tài khoản lúc này" và dòng tổng ở thẻ
   "Người theo dõi mới". Không lưu lịch sử tổng theo ngày (API chỉ trả số hiện tại).
+  v4.11.1–4.12 (đối chiếu Business Suite 09/11): IG `total_value` hỏi since=a, until=a+23h (until tính cả ngày chứa nó; +24h cộng gộp 2 ngày);
+  IG chuỗi reach/follower_count có end_time = ĐẦU ngày của số đó (FB là cuối ngày) và hỏi từng đợt 20 ngày (API từ chối > 30 ngày).
+  Không đồng bộ FB "Tương tác" (page_post_engagements gồm cả click, ≈ 3 lần "Lượt tương tác với nội dung") và IG "Lượt click liên kết"
+  (profile_links_taps luôn 0, ghi đè số click quảng cáo): 2 cột này chép tay theo Business Suite. `tuDongBo_`: lệnh `mangXaHoi`/`vercel`
+  tự đồng bộ vài ngày gần nhất nếu lần trước đã quá 15 phút → dashboard và báo cáo (mặc định mở "Số trực tiếp") gần thời gian thực.
+  TikTok API chỉ có tổng trọn đời theo video: ngày "API" = tổng − các ngày trước, nên số từng ngày lệch Studio nhưng tổng đúng.
 - Báo cáo cuối kỳ (v4.10): `quantrivien/baocao.html` = slide HTML 1280×720 (≤ 20 slide theo khung 15 phần của đề), lấy số bằng
   chính các lệnh dashboard (`mangXaHoi`, `luotXem`, `vercel`, `tongQuan`) với token phiên trong sessionStorage (mở từ nút
   "Báo cáo cuối kỳ" ở thanh bên, cùng tab). Admin chính bấm "Chốt số liệu" → lệnh `chotSoLieu` lưu bản tổng hợp JSON vào tab ẩn
