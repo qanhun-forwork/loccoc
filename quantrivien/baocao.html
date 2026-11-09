@@ -321,12 +321,18 @@ function tinh(mx,xem,vc,tq,den,vcTruoc){
    return {phien:p,form:form.filter(function(n){return n>=w.tu&&n<=w.den}).length}})};
  K.fb.tt6B=K.fb.tuongTac;
  K.ig.xem6B=K.ig.xem;
- return {luc:new Date().toISOString(),tu:BAT_DAU,den:den,tuan:tuan,k:K,qc:mx.qcIg||[],
+ // quảng cáo: số đơn gửi trong đúng thời gian chạy (lượt vào web từ Instagram gắn thêm ở taiSong)
+ var qc=(mx.qcIg||[]).map(function(q){return Object.assign({},q,{don:/^\d{4}-\d{2}-\d{2}$/.test(q.tu)?demNgay(don,q.tu,q.den||q.tu):null})});
+ return {luc:new Date().toISOString(),tu:BAT_DAU,den:den,tuan:tuan,k:K,qc:qc,
   nguonTT:"TikTok API + TikTok Studio",capNhat:{meta:mx.meta.luc,tt:mx.ttApi.luc,vc:vc.capNhat}};
 }
 function taiSong(){var den=ngay(new Date()),k={tu:BAT_DAU,den:den};
  return Promise.all([goi("mangXaHoi",k),goi("luotXem",k),goi("vercel",k),goi("tongQuan")]).then(function(r){var d=r[1].dauTien;
-  return (d&&d>BAT_DAU?goi("vercel",{tu:BAT_DAU,den:cong(d,-1)}):Promise.resolve(null)).then(function(vt){return tinh(r[0],r[1],r[2],r[3],den,vt)})})}
+  return (d&&d>BAT_DAU?goi("vercel",{tu:BAT_DAU,den:cong(d,-1)}):Promise.resolve(null)).then(function(vt){return tinh(r[0],r[1],r[2],r[3],den,vt)})})
+  // CPA quảng cáo IG (hành động = bấm link web): khách Vercel có nguồn instagram.com / l.instagram.com trong đúng ngày chạy
+  .then(function(S){return Promise.all(S.qc.map(function(q){if(q.don==null)return null;
+   return goi("vercel",{tu:q.tu,den:q.den||q.tu}).then(function(v){var N=v["Nguồn"]||{},kh=0,xm=0;
+    Object.keys(N).forEach(function(k){if(/(^|\.)instagram\.com$/.test(k)){kh+=N[k].khach||0;xm+=N[k].xem||0}});q.igKhach=kh;q.igXem=xm})})).then(function(){return S})})}
 
 /* ═════════ Vẽ slide từ S ═════════ */
 var BIEU=[];
@@ -475,10 +481,15 @@ function ve(S,capNhat){
  H.push(slide({so:"12",phan:"Quảng cáo trả phí",clo:"CLO3",lop:"sang",tieuDe:Q.length?"Quảng cáo chỉ thử 1 lần: "+so(chi)+"đ, tách riêng khỏi KPI organic":"Không chạy quảng cáo: không áp dụng",cot:"c2",noi:
   '<div class="o"><table class="bang"><tr><th>Bài</th><th class="s">Đã chi</th><th class="s">Xem</th><th class="s">Click</th><th class="s">CPC</th></tr>'+
   Q.map(function(q){return '<tr><td>'+esc(q.ten)+'<br><span class="nho">'+esc(q.tu)+' → '+esc(q.den)+'</span></td><td class="s">'+so(q.chi)+'đ</td><td class="s">'+so(q.xem)+'</td><td class="s">'+so(q.clk)+'</td><td class="s">'+(q.clk?so(Math.round(q.chi/q.clk))+"đ":"–")+'</td></tr>'}).join("")+'</table>'+
-  '<p class="nho" style="margin-top:10px">Tổng: '+so(chi)+'đ · '+so(clk)+' click · CPC '+(clk?so(Math.round(chi/clk))+"đ":"–")+'. Không cộng vào KPI chung.</p></div>'+
-  '<div class="o toi"><h2>Hiệu quả trên mỗi đồng</h2>'+(function(){var sum=function(f){return Q.reduce(function(s,q){return s+(q[f]||0)},0)},ht=sum("ht"),moi=sum("moi"),xq=sum("xem");
-   var o=function(t,v,g){return '<div style="margin-bottom:14px"><p class="nho" style="margin:0">'+t+'</p><div class="so" style="font-size:34px">'+v+'</div>'+(g?'<p class="nho" style="margin:2px 0 0">'+g+'</p>':"")+'</div>'};
-   return '<div class="noi c2" style="flex:1;gap:4px 18px;grid-auto-rows:auto;align-content:center">'+o("CTR (click ÷ hiển thị)",ht?pt(clk/ht):"–",so(clk)+" / "+so(ht))+o("CPM",ht?so(Math.round(chi/ht*1000))+"đ":"–","chi phí / 1.000 lượt hiển thị")+
+  '<p class="nho" style="margin-top:10px">Tổng: '+so(chi)+'đ · '+so(clk)+' click · CPC '+(clk?so(Math.round(chi/clk))+"đ":"–")+'. Không cộng vào KPI chung.</p>'+
+  Q.filter(function(q){return q.igKhach!=null}).map(function(q){return '<div style="margin-top:auto;padding-top:12px;border-top:1px solid var(--line)"><h2 style="margin-bottom:8px">Cách tính CPA · hành động = bấm link website</h2>'+
+   '<p style="font-size:14px;margin:0 0 6px">Trong '+nhan(q.tu)+'–'+nhan(q.den||q.tu)+', Vercel ghi <b>'+so(q.igKhach)+' khách</b> vào loccoc.com.vn từ Instagram ('+so(q.igXem)+' lượt xem trang); Meta ghi '+so(q.clk)+' click link.</p>'+
+   '<p style="font-size:14px;margin:0 0 6px">CPA = '+so(q.chi)+'đ ÷ '+so(q.igKhach)+' = <b>'+(q.igKhach?so(Math.round(q.chi/q.igKhach))+'đ':'–')+'</b> mỗi lượt vào web · tính theo click của Meta: '+(q.clk?so(Math.round(q.chi/q.clk))+'đ':'–')+'.</p>'+
+   '<p class="nho" style="margin:0">Số khách từ Instagram gồm cả lượt organic (link bio, story) nên CPA thật nằm giữa hai mức trên. Vercel tính ngày theo giờ UTC.</p></div>'}).join("")+'</div>'+
+  '<div class="o toi"><h2>Hiệu quả trên mỗi đồng</h2>'+(function(){var sum=function(f){return Q.reduce(function(s,q){return s+(q[f]||0)},0)},ht=sum("ht"),moi=sum("moi"),xq=sum("xem"),igk=sum("igKhach"),dq=sum("don");
+   var o=function(t,v,g){return '<div style="margin-bottom:12px"><p class="nho" style="margin:0">'+t+'</p><div class="so" style="font-size:30px">'+v+'</div>'+(g?'<p class="nho" style="margin:2px 0 0">'+g+'</p>':"")+'</div>'};
+   return '<div class="noi c2" style="flex:1;gap:4px 18px;grid-auto-rows:auto;align-content:center">'+
+    o("CPA · vào web từ Instagram",igk?so(Math.round(chi/igk))+"đ":"–",so(igk)+" khách từ Instagram (Vercel) trong ngày chạy")+o("Chi phí / đơn trong ngày chạy",dq?so(Math.round(chi/dq))+"đ":"–",so(dq)+" đơn đặt trước, chưa tách được đơn từ quảng cáo")+o("CTR (click ÷ hiển thị)",ht?pt(clk/ht):"–",so(clk)+" / "+so(ht))+o("CPM",ht?so(Math.round(chi/ht*1000))+"đ":"–","chi phí / 1.000 lượt hiển thị")+
     o("Chi phí / người theo dõi mới",moi?so(Math.round(chi/moi))+"đ":"–",so(moi)+" người theo dõi từ quảng cáo")+o("Chi phí / 1.000 lượt xem",xq?so(Math.round(chi/xq*1000))+"đ":"–",so(xq)+" lượt xem từ quảng cáo")+'</div>'})()+
   bs("Xác nhận không còn quảng cáo nào khác (Facebook Ads, TikTok Promote).")+'</div>'}));
  // 13. Pháp lý
