@@ -23,7 +23,7 @@
  * ───────────────────────────────────────────────────────────────────────────
  */
 
-var PHIEN_BAN = '4.11.0';
+var PHIEN_BAN = '4.11.1';
 var TEN_GUI = 'Lộc Cộc';            // tên người gửi trong email
 var GIA_BASIC = 350000;             // giá dòng Basic (tính lại ở máy chủ, không tin giá từ trình duyệt)
 var GIOI_HAN_MOI_GIO = 3;           // tối đa email gửi tới cùng 1 địa chỉ trong 1 giờ
@@ -893,7 +893,7 @@ function quanTri_(d) {
       case 'vercel': return thongKeVercel_(d.tu, d.den);
       case 'mangXaHoi': return thongKeMXH_(d.tu, d.den);
       case 'dongBoTikTok': return coKhoa_(function () { var r = dongBoTikTok_(); if (r.ok) nk('Đồng bộ TikTok', r.soVideo + ' video'); return r; });
-      case 'dongBoMeta': return coKhoa_(function () { var r = dongBoMeta_(10); if (r.ok) nk('Đồng bộ Meta', r.soNgay + ' ngày'); return r; });
+      case 'dongBoMeta': return coKhoa_(function () { var r = dongBoMeta_(30); if (r.ok) nk('Đồng bộ Meta', r.soNgay + ' ngày'); return r; });
       case 'ttUrl': return ttUrl_(d.quayVe);
       case 'ttKetNoi': return coKhoa_(function () { var r = ttKetNoi_(d.code, d.state, d.quayVe); if (r.ok) nk('Kết nối TikTok', r.ten || ''); return r; });
       case 'dongBoVercel': return coKhoa_(function () { var r = dongBoVercel_(31); if (r.ok) nk('Đồng bộ Vercel', r.soNgay + ' ngày'); return r; });
@@ -1565,7 +1565,8 @@ function mtGiay_(n) { // nửa đêm ngày n giờ Thái Bình Dương → giây
   var d = new Date(n + 'T00:00:00Z'), lech = Number(Utilities.formatDate(d, MT_TZ, 'Z').replace(/^([+-])(\d\d)(\d\d)$/, function (_, s, h, m) { return (s === '-' ? -1 : 1) * (h * 60 + +m); }));
   return Math.floor(d.getTime() / 1000) - lech * 60;
 }
-function mtNgayCua_(endTime) { var t = new Date(String(endTime).replace(/([+-]\d\d)(\d\d)$/, '$1:$2')).getTime(); return isNaN(t) ? '' : Utilities.formatDate(new Date(t - 1000), MT_TZ, 'yyyy-MM-dd'); }
+// FB: end_time = cuối ngày (lùi 1 giây); IG: end_time = đầu ngày của chính số đó (đối chiếu Business Suite 09/11)
+function mtNgayCua_(endTime, dauNgay) { var t = new Date(String(endTime).replace(/([+-]\d\d)(\d\d)$/, '$1:$2')).getTime(); return isNaN(t) ? '' : Utilities.formatDate(new Date(dauNgay ? t : t - 1000), MT_TZ, 'yyyy-MM-dd'); }
 
 function dongBoMeta_(soNgay) {
   var p = PropertiesService.getScriptProperties(), pp = p.getProperties();
@@ -1591,7 +1592,7 @@ function dongBoMeta_(soNgay) {
       Object.keys(MT_IG_CHUOI).forEach(function (cot) {
         try {
           var j = mtGoi_(pp.mt_ig + '/insights', { metric: MT_IG_CHUOI[cot], period: 'day', since: tu, until: den }), dem = 0;
-          (((j.data || [])[0] || {}).values || []).forEach(function (x) { var n = mtNgayCua_(x.end_time); if (ig[n]) { ig[n][cot] = Number(x.value) || 0; dem++; } });
+          (((j.data || [])[0] || {}).values || []).forEach(function (x) { var n = mtNgayCua_(x.end_time, true); if (ig[n]) { ig[n][cot] = Number(x.value) || 0; dem++; } });
           chan.push('IG ' + MT_IG_CHUOI[cot] + ': ' + dem + ' ngày'); if (!dem) thieu.push('IG ' + cot);
         } catch (e) { if (/token/.test(e.message)) throw e; chan.push('IG ' + MT_IG_CHUOI[cot] + ': ' + String(e.message).slice(0, 90)); thieu.push('IG ' + cot); }
       });
@@ -1599,7 +1600,7 @@ function dongBoMeta_(soNgay) {
         var xong = MT_IG_TONG[cot].some(function (m) {
           try {
             ds.forEach(function (n) {
-              var a = mtGiay_(n), j = mtGoi_(pp.mt_ig + '/insights', { metric: m, period: 'day', metric_type: 'total_value', since: a, until: a + 86400 });
+              var a = mtGiay_(n), j = mtGoi_(pp.mt_ig + '/insights', { metric: m, period: 'day', metric_type: 'total_value', since: a, until: a + 82800 });   // until tính cả ngày chứa nó (a + 86400 cộng thêm ngày sau); +23 giờ vẫn trong ngày kể cả ngày đổi giờ
               ig[n][cot] = Number((((j.data || [])[0] || {}).total_value || {}).value) || 0;
             });
             chan.push('IG ' + m + ': ' + ds.length + ' ngày');
