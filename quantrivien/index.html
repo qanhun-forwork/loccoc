@@ -814,7 +814,7 @@ function vMxVe(p,j,jt,k){
  // Facebook / Instagram: đồng bộ qua Meta Graph API
  if(p!=="tt"){var M=j.meta||{};
   h='<section class="the" data-k="mxdb"><h2>Đồng bộ Meta</h2><table class="bg"><tbody><tr><td>Kết nối</td><td>'+(M.coKetNoi?esc(M.trang||"Fanpage")+(M.ig?" · "+esc(M.ig):""):"Chưa kết nối (Sheet → Lộc Cộc → Kết nối Meta…)")+'</td></tr>'+
-   '<tr><td>Lần cuối</td><td>'+(M.loi?'<span class="chu-loi">Lỗi: '+esc(M.loi)+'</span>':esc(gioVN(M.luc)||"chưa có")+" · tự đồng bộ mỗi ngày lúc 4:00")+'</td></tr>'+
+   '<tr><td>Lần cuối</td><td>'+(M.loi?'<span class="chu-loi">Lỗi: '+esc(M.loi)+'</span>':esc(gioVN(M.luc)||"chưa có")+" · tự đồng bộ khi có người xem số (15 phút/lần) và 4:00 mỗi ngày")+'</td></tr>'+
    (M.canhBao?'<tr><td>API không trả</td><td>'+esc(M.canhBao)+' (giữ số cũ)</td></tr>':"")+'</tbody></table>'+
    '<div class="hang-nut"><button class="btn nh" type="button" id="mx-db"'+(M.coKetNoi?"":" disabled")+'>Đồng bộ ngay</button></div></section>'+
    '<section class="the" data-k="mxht"><h2>Tài khoản lúc này</h2>'+(tongMx!=null?'<div class="luoi-nho"><div><b>'+so(tongMx)+'</b><span>Tổng người theo dõi'+(HM.luc?' · cập nhật '+esc(gioVN(HM.luc)):"")+'</span></div>'+(p==="ig"&&HM.igBai?'<div><b>'+so(HM.igBai)+'</b><span>Bài đăng</span></div>':"")+'</div>':'<p class="trong">Chưa có số tổng. Bấm "Đồng bộ ngay" để lấy.</p>')+'</section>'+h}
@@ -844,14 +844,14 @@ function vMxVe(p,j,jt,k){
  // bảng theo ngày
  var cotB=p==="tt"?[["xem","Lượt xem"],["nguoi","Người xem"],["thich","Thích"],["bl","Bình luận"],["cs","Chia sẻ"],["hs","Xem hồ sơ"],["moi","Theo dõi mới"]]:
   [["xem","Lượt xem"],["nguoi",PT_NHAN[p][1]],["tt","Tương tác"],["clk","Click"],["tc","Truy cập"],["moi","Theo dõi mới"]];
- var dong=ns.slice().reverse().filter(function(n){return D.ngay[n]}).map(function(n){var o=D.ngay[n],er=p==="tt"?chia(tuongTac(o),o.xem):chia(o.tt,o.nguoi);
+ var dong=ns.slice().reverse().filter(function(n){return D.ngay[n]}).map(function(n){var o=D.ngay[n],er=chia(tuongTac(o),o.xem);
   return '<tr><td>'+nhan(n)+'/'+n.slice(0,4)+'</td>'+cotB.map(function(c){return '<td class="so-p">'+so(o[c[0]])+'</td>'}).join("")+'<td class="so-p">'+(er?pt(er):"–")+'</td>'+(p!=="tt"?'<td class="so-p">'+(o.xem?pt(chia(o.clk,o.xem)):"–")+'</td>':"")+'</tr>'}).join("");
  h+='<section class="the" data-k="mxbang"><h2>Số theo ngày</h2><div class="bc">'+(dong?'<table class="bg"><thead><tr><th>Ngày</th>'+cotB.map(function(c){return '<th class="so-p">'+c[1]+'</th>'}).join("")+'<th class="so-p">ER</th>'+(p!=="tt"?'<th class="so-p">CTR</th>':"")+'</tr></thead><tbody>'+dong+'</tbody></table>':'<p class="trong">Chưa có dữ liệu trong khoảng này.</p>')+'</div></section>';
  nd.className="the-luoi";nd.innerHTML=h;
  var ch={};the.forEach(function(x){ch[x[0]]=x[5]});nangThe(nd,ch);
  var nx=ns.map(nhan),pct={y:{beginAtZero:true,ticks:{callback:function(v){return v+"%"}}},x:{grid:{display:false},ticks:{maxTicksLimit:10}}};
  ve("c-mx1",duong(nx,[["Lượt xem",cnt("xem")],[PT_NHAN[p][1],cnt("nguoi")]]));
- ve("c-mx2",{type:"line",data:{labels:nx,datasets:[{label:"Engagement rate (%)",data:p==="tt"?tlNgay(ttN,"xem"):tlNgay("tt","nguoi"),borderColor:MAU[0],backgroundColor:chuyen(MAU[0],"40"),fill:true,spanGaps:true,tension:.35,pointRadius:ns.length>45?0:3,borderWidth:2.5}]},
+ ve("c-mx2",{type:"line",data:{labels:nx,datasets:[{label:"Engagement rate (%)",data:tlNgay(ttN,"xem"),borderColor:MAU[0],backgroundColor:chuyen(MAU[0],"40"),fill:true,spanGaps:true,tension:.35,pointRadius:ns.length>45?0:3,borderWidth:2.5}]},
   options:{plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return " "+c.parsed.y+"%"}}}},scales:pct}});
  ve("c-mx3",p==="tt"?cot(nx,[["Thích",cnt("thich")],["Bình luận",cnt("bl")],["Chia sẻ",cnt("cs")]],false,true):duong(nx,[["Tương tác",cnt("tt")],["Click liên kết",cnt("clk")],[p==="ig"?"Truy cập trang cá nhân":"Truy cập trang",cnt("tc")]]));
  ve("c-mx4",cot(nx,[["Người theo dõi mới",cnt("moi")]]));

@@ -308,7 +308,8 @@ function tinh(mx,xem,vc,tq,den,vcTruoc){
  // bỏ "(không rõ)" (truy cập trực tiếp) và lượt từ chính loccoc.com.vn / vercel.com
  var vt=(vcTruoc||{})["Nguồn"]||{},nguonVc={},ngoaiVc=0;
  Object.keys(vt).forEach(function(k){if(/^\(|loccoc\.com\.vn|vercel\.com/.test(k)||!vt[k].khach)return;nguonVc[k]=vt[k].khach;ngoaiVc+=vt[k].khach});
- var trongKy=function(r){var n=String(r["Ngày"]||"").slice(0,10);if(!/^\d{4}-\d{2}-\d{2}$/.test(n)){var d=new Date(r["Thời gian"]);n=isNaN(d)?"":ngay(d)}return n};
+ // ô ngày giờ trong Sheet về trình duyệt dạng ISO giờ UTC (18/10 00:00 giờ VN = "2026-10-17T17:00Z") → đổi lại ngày theo giờ Việt Nam
+ var trongKy=function(r){var d=new Date(r["Thời gian"]||r["Ngày"]);return isNaN(d)?"":d.toLocaleDateString("en-CA",{timeZone:"Asia/Ho_Chi_Minh"})};
  var don=(tq.don||[]).map(trongKy).filter(function(n){return n>=BAT_DAU&&n<=den}),lh=(tq.lh||[]).map(trongKy).filter(function(n){return n>=BAT_DAU&&n<=den});
  var form=don.concat(lh);
  var demNgay=function(ds,a,b){return ds.filter(function(n){return n>=a&&n<=b}).length};
