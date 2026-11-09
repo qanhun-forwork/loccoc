@@ -124,6 +124,9 @@ Lộc Cộc tại loccoc.com.vn. Không phục vụ mục đích thương mại:
   "📌 Chốt số liệu"; slide mặc định đọc bản chốt mới nhất (`layChot`) để khớp PDF đã nộp. Tương tác ÷ LƯỢT XEM theo đề
   (dashboard cũng dùng công thức này để khớp khi mở nền tảng thực). Truy cập "từ bên ngoài" = phiên có nguồn ≠ "Trực tiếp". Khung `.bs` = chỗ nhóm cần bổ sung (ẩn khi in).
   Thông tin cố định (thành viên, KPI 6A/6B, BAT_DAU 26/09) ở đầu script, lấy từ "Proposal Final - cap nhat 03-11.pptx".
+  Giao diện (09/11): slide tối xen slide sáng (lớp `.sang`, đổi biến màu ngay trên slide; slide có biểu đồ Chart.js giữ nền tối), thẻ kính có viền sáng
+  + ánh sáng quét, thẻ hiện lần lượt, thanh/vòng % đạt chạy từ 0. Sau mỗi lần vẽ, `vua()` thu nhỏ tiêu đề quá 2 dòng và thu nhỏ (zoom) nội dung thẻ
+  bị tràn, nên số liệu dài hơn vẫn không ra khỏi khung. Phần nội dung suy ra từ số liệu (PDCA 2, bài học, kế hoạch) có khung `.bs` nhắc nhóm duyệt lại.
 - v4.11: `dongBoMeta_` gọi thêm `mtBaiDang_` → tab ẩn "📝 Bài đăng" (FB published_posts + video_reels, IG media; Kênh, Ngày, Giờ,
   Loại, Nội dung, Link, Thích, Bình luận); `mangXaHoi` trả `baiDang`. Slide báo cáo đếm tần suất đăng FB/IG theo tuần từ đây,
   so với kế hoạch `KH` (sheet "Tổng quan" của Content Plan - Loc Coc.xlsx). Ảnh 4 kênh cho slide 4: `quantrivien/anh-bao-cao/{fb,ig,tt,web}.jpg`.
