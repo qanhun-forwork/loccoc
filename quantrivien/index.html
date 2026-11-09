@@ -774,7 +774,8 @@ function vMx(p){
  $("vung").innerHTML='<div id="v-mx"><div class="dau"><div><p class="nt-nhan">'+svg(p)+'Mạng xã hội</p><h1>'+NT[p].ten+'</h1><p id="mx-mo"></p></div><div class="cong">'+chonKhoang("v-mx",0,function(){vMxTai(p)})+NUT_BC+'</div></div><div id="mx-nd" class="dang-tai">Đang tải số liệu…</div></div>';
  vMxTai(p)}
 function vMxTai(p,im){var k=khoang("v-mx"),kt=kyTruoc(k),nd=$("mx-nd");if(!nd)return;if(!im){nd.className="dang-tai";nd.innerHTML="Đang tải số liệu…"}
- Promise.all([goi("mangXaHoi",k),kt?goi("mangXaHoi",kt):Promise.resolve(null)]).then(function(r){if(V===p)vMxVe(p,r[0],r[1],k)}).catch(im?function(){}:loiTai)}
+ // taiDL: danh sách đơn để tính CPA quảng cáo (chi phí / đơn trong ngày chạy)
+ Promise.all([goi("mangXaHoi",k),kt?goi("mangXaHoi",kt):Promise.resolve(null),taiDL(im).catch(function(){return null})]).then(function(r){if(V===p)vMxVe(p,r[0],r[1],k)}).catch(im?function(){}:loiTai)}
 // so sánh tỉ lệ: chênh lệch điểm phần trăm
 function ssTl(a,b){if(b==null||isNaN(b))return "";var d=a-b;if(Math.abs(d)<.0005)return "Bằng kỳ trước";return '<span class="'+(d>=0?"tang":"giam")+'">'+(d>=0?"▲ ":"▼ ")+(Math.round(Math.abs(d)*1000)/10).toLocaleString("vi-VN")+' điểm</span> so với kỳ trước'}
 function vMxVe(p,j,jt,k){
@@ -835,16 +836,18 @@ function vMxVe(p,j,jt,k){
  // quảng cáo (tab "📣 Quảng cáo IG", nhập tay; cột Kênh = Facebook/Instagram, trống = Instagram). "Vào web" = phiên có Mã UTM, đếm trực tiếp
  var Q=(j.qcIg||[]).filter(function(x){return (/^f/i.test(x.kenh||"")?"fb":"ig")===p});
  if(Q.length){var sum=function(f){return Q.reduce(function(s,x){return s+(x[f]||0)},0)},co=function(f){return Q.some(function(x){return x[f]!=null&&x[f]!==0})};
-  var chi=sum("chi"),ht=sum("ht"),xq=sum("xem"),clk=sum("clk"),moiQ=sum("moi"),mau=co("ht")?ht:xq,web=Q.some(function(x){return x.utmPhien!=null});
+  var chi=sum("chi"),ht=sum("ht"),xq=sum("xem"),clk=sum("clk"),moiQ=sum("moi"),mau=co("ht")?ht:xq;
+  // CPA = chi phí / đơn đặt hàng gửi trong ngày chạy (form không ghi nguồn khách nên gồm cả đơn organic), giống báo cáo
+  var donQ=function(x){if(!DL||!/^\d{4}-\d{2}-\d{2}$/.test(x.tu||""))return null;var b=x.den||x.tu;return DL.don.filter(function(d){var n=ngayCua(d["Thời gian"]);return n&&n>=x.tu&&n<=b}).length};
   var tien=function(n){return n?so(Math.round(n))+"đ":"–"};
   h+='<section class="the" data-k="mxqc"><h2>Quảng cáo '+NT[p].ten+'</h2><div class="luoi-nho luoi-4">'+
    '<div><b>'+(mau?pt(clk/mau):"–")+'</b><span>CTR (click liên kết ÷ '+(co("ht")?"lượt hiển thị":"lượt xem từ quảng cáo")+')</span></div>'+
    '<div><b>'+(chi&&clk?tien(chi/clk):"–")+'</b><span>CPC (chi phí / click)</span></div>'+
    '<div><b>'+(chi&&co("ht")?tien(chi/ht*1000):"–")+'</b><span>CPM (chi phí / 1.000 hiển thị)</span></div>'+
    '<div><b>'+(chi?tien(chi):"–")+'</b><span>Đã chi · '+so(moiQ)+' người theo dõi từ quảng cáo</span></div></div>'+
-   '<div class="bc" style="margin-top:16px"><table class="bg"><thead><tr><th>Bài</th><th>Thời gian</th><th class="so-p">Đã chi</th><th class="so-p">Hiển thị</th><th class="so-p">Xem từ QC</th><th class="so-p">Tiếp cận</th><th class="so-p">Click</th><th class="so-p">CTR</th><th class="so-p">Tương tác</th><th class="so-p">Theo dõi</th>'+(web?'<th class="so-p">Vào web (UTM)</th><th class="so-p">CPA</th>':"")+'</tr></thead><tbody>'+
-   Q.map(function(x){var m=x.ht||x.xem;return '<tr><td>'+esc(x.ten)+(x.gc?'<br><span class="mo">'+esc(x.gc)+'</span>':"")+'</td><td>'+(x.tu?nhan(x.tu):"")+(x.den&&x.den!==x.tu?"–"+nhan(x.den):"")+'</td><td class="so-p">'+tien(x.chi)+'</td><td class="so-p">'+(x.ht?so(x.ht):"–")+'</td><td class="so-p">'+so(x.xem)+'</td><td class="so-p">'+so(x.tc)+'</td><td class="so-p">'+so(x.clk)+'</td><td class="so-p">'+(m&&x.clk!=null?pt(x.clk/m):"–")+'</td><td class="so-p">'+so(x.tt)+'</td><td class="so-p">'+so(x.moi)+'</td>'+(web?'<td class="so-p">'+(x.utmPhien!=null?so(x.utmPhien):"–")+'</td><td class="so-p">'+(x.chi&&x.utmPhien?tien(x.chi/x.utmPhien):"–")+'</td>':"")+'</tr>'}).join("")+'</tbody></table></div>'+
-   (web?'<p class="mo">Vào web (UTM) = số phiên trên loccoc.com.vn mở từ link có Mã UTM của quảng cáo, cập nhật ngay khi có khách. CPA = đã chi ÷ vào web.</p>':"")+
+   '<div class="bc" style="margin-top:16px"><table class="bg"><thead><tr><th>Bài</th><th>Thời gian</th><th class="so-p">Đã chi</th><th class="so-p">Hiển thị</th><th class="so-p">Xem từ QC</th><th class="so-p">Tiếp cận</th><th class="so-p">Click</th><th class="so-p">CTR</th><th class="so-p">Tương tác</th><th class="so-p">Theo dõi</th>'+'<th class="so-p">Đơn trong ngày chạy</th><th class="so-p">CPA (chi phí / đơn)</th>'+'</tr></thead><tbody>'+
+   Q.map(function(x){var m=x.ht||x.xem;return '<tr><td>'+esc(x.ten)+(x.gc?'<br><span class="mo">'+esc(x.gc)+'</span>':"")+'</td><td>'+(x.tu?nhan(x.tu):"")+(x.den&&x.den!==x.tu?"–"+nhan(x.den):"")+'</td><td class="so-p">'+tien(x.chi)+'</td><td class="so-p">'+(x.ht?so(x.ht):"–")+'</td><td class="so-p">'+so(x.xem)+'</td><td class="so-p">'+so(x.tc)+'</td><td class="so-p">'+so(x.clk)+'</td><td class="so-p">'+(m&&x.clk!=null?pt(x.clk/m):"–")+'</td><td class="so-p">'+so(x.tt)+'</td><td class="so-p">'+so(x.moi)+'</td>'+(function(){var dn=donQ(x);return '<td class="so-p">'+(dn!=null?so(dn):"–")+'</td><td class="so-p">'+(x.chi&&dn?tien(x.chi/dn):"–")+'</td>'})()+'</tr>'}).join("")+'</tbody></table></div>'+
+   '<p class="mo">CPA = đã chi ÷ số đơn đặt hàng gửi trong ngày chạy quảng cáo. Form không ghi khách đến từ đâu nên số đơn gồm cả đơn từ organic.</p>'+
    (!chi||!co("ht")?'<div class="ph">Thiếu số tiền đã chi hoặc lượt hiển thị: điền trong tab 📣 Quảng cáo IG của Google Sheet để có CTR chuẩn, CPC, CPM, CPA.</div>':"")+'</section>'}
  // biểu đồ
  h+='<section class="the" data-k="mxbd"><h2>Lượt xem &amp; '+PT_NHAN[p][1].toLowerCase()+' theo ngày</h2><div class="bd cao"><canvas id="c-mx1"></canvas></div></section>'+
