@@ -813,7 +813,7 @@ function vMxVe(p,j,jt,k){
   them("mxctr","CTR",chia(T.clk,T.xem),"pt",(ssTl(chia(T.clk,T.xem),DT?chia(TT.clk,TT.xem):null)||"")+'<br>Click liên kết ÷ lượt xem',tlNgay("clk","xem"));
   them("mxtc",p==="ig"?"Truy cập trang cá nhân":"Lượt truy cập trang",T.tc,"so",soSanh(T.tc,TT.tc),cnt("tc"));
   var HM=(j.meta||{}).hienTai,tongMx=HM?(p==="ig"?HM.ig:HM.fb):null;
-  them("mxmoi","Người theo dõi mới",T.moi,"so",(tongMx!=null?'Tổng người theo dõi: <b>'+so(tongMx)+'</b><br>':"")+soSanh(T.moi,TT.moi)+(T.tc?'<br>Chuyển đổi từ lượt truy cập: '+pt(chia(T.moi,T.tc)):""),cnt("moi"));
+  them("mxmoi","Người theo dõi mới",T.moi,"so",(tongMx!=null?'Tổng người theo dõi: <b>'+so(tongMx)+'</b>'+(T.moi>tongMx?' (lượt theo dõi mới chưa trừ lượt bỏ theo dõi, giống Business Suite)':'')+'<br>':"")+soSanh(T.moi,TT.moi)+(T.tc?'<br>Chuyển đổi từ lượt truy cập: '+pt(chia(T.moi,T.tc)):""),cnt("moi"));
  }
  var h=the.map(function(x){return '<section class="the w3" data-k="'+x[0]+'"><h2>'+x[1]+'</h2><div class="so">'+(x[3]==="pt"?pt(x[2]):so(x[2]))+'</div><div class="ph">'+(x[4]||"&nbsp;")+'</div></section>'}).join("");
  // TikTok: đồng bộ + số hiện tại + video
