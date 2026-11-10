@@ -178,6 +178,7 @@ p{margin:0 0 10px;text-wrap:pretty}
 .bs{border:1.5px dashed rgba(231,169,163,.6);border-radius:14px;padding:10px 14px;background:rgba(128,14,19,.18);color:var(--chu2);font-size:13px;margin-top:auto}
 .bs b{display:block;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:2px;color:var(--hl)}
 body.in .bs{display:none}
+body.in .sl{display:flex!important;transform:none!important}   /* lúc in: slide ẩn cũng có kích thước thật (không bị thu nhỏ theo màn hình) để biểu đồ vẽ đúng cỡ */
 
 /* phễu */
 .pheu{display:flex;flex-direction:column;gap:10px;align-items:center;flex:1;justify-content:center}
@@ -265,7 +266,13 @@ body::after{content:"";position:fixed;inset:0;z-index:6;pointer-events:none;opac
 
 @media print{
  @page{size:1280px 720px;margin:0}
- *{-webkit-print-color-adjust:exact;print-color-adjust:exact;animation:none!important}
+ *{-webkit-print-color-adjust:exact;print-color-adjust:exact;animation:none!important;transition:none!important}
+ /* in PDF: mọi phần tử hiện đủ ở trạng thái cuối, không dính trạng thái đầu của hiệu ứng vào slide */
+ .sl h1,.sl .phan,.sl .mo-ta,.sl .noi>*,.sl .dt,.sl .o,.sl .tang,.sl .the,.sl .dt-o{opacity:1!important;filter:none!important;clip-path:none!important}
+ .sl h1,.sl .phan,.sl .mo-ta,.sl .noi>*,.sl .dt,.sl .tang{transform:none!important}
+ /* chữ tiêu đề tô gradient (background-clip:text) in PDF ra vạch kẻ mảnh quanh khung: in màu đặc */
+ .o::before,.o::after{display:none!important}   /* viền sáng theo chuột và vệt sáng quét không có trong bản in */
+ h1{background:none!important;-webkit-background-clip:border-box!important;background-clip:border-box!important;color:var(--h1a)!important}
  body{background:#1A100C}
  .thanh,#dem,#loi,#tt,.nen,.tien-do,#xem,body::after{display:none!important}
  #san{display:block;padding:0}
@@ -784,7 +791,11 @@ $("khung").addEventListener("click",function(e){var im=e.target.closest(".dt img
  if(e.target.closest("a"))return;hien(SL+(e.clientX>innerWidth/2?1:-1))});
 $("n-chieu").onclick=function(){var r=document.documentElement;(r.requestFullscreen?r.requestFullscreen():Promise.resolve()).catch(function(){})};
 document.addEventListener("fullscreenchange",function(){document.body.classList.toggle("chieu",!!document.fullscreenElement);co()});
-$("n-in").onclick=function(){document.body.classList.add("in");window.print()};
+$("n-in").onclick=function(){document.body.classList.add("in");
+ // số đang lăn dở: trả về chữ thường đúng giá trị cuối trước khi in
+ [].forEach.call(document.querySelectorAll(".dem"),function(e){e.classList.remove("quay","chay","nhay");e.textContent=(e.dataset.f==="pt"?ptTho:soTho)(+e.dataset.v)});
+ BIEU.forEach(function(c){c.resize()});
+ requestAnimationFrame(function(){requestAnimationFrame(function(){window.print()})})};
 addEventListener("afterprint",function(){document.body.classList.remove("in")});
 /* tự cập nhật nền mỗi 10 giây (chỉ ở chế độ số trực tiếp; số đã chốt thì đứng yên để khớp PDF đã nộp) */
 var HEN=0,DUNG=false,DANG_TAI=false;
