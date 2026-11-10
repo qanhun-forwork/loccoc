@@ -514,11 +514,12 @@ function ve(S,capNhat){
   '<li><b>Bảo vệ thương hiệu:</b> chuẩn bị kỹ về pháp lý từ đầu.</li>'+
   '<li><b>Kết quả:</b> nhờ chuẩn bị kỹ, nhóm thắng tranh chấp và sở hữu chính chủ tên miền loccoc.com.vn.</li></ul></div>'}));
  // 12. Quảng cáo
- var Q=S.qc,chi=Q.reduce(function(s,q){return s+(q.chi||0)},0),clk=Q.reduce(function(s,q){return s+(q.clk||0)},0);
- H.push(slide({so:"12",phan:"Quảng cáo trả phí",clo:"CLO3",lop:"sang",tieuDe:Q.length?"Quảng cáo thử "+Q.length+" lần: "+so(chi)+"đ, tách riêng khỏi KPI organic":"Không chạy quảng cáo: không áp dụng",cot:"c2",noi:
+ [["Instagram",S.qc.filter(function(q){return !/^f/i.test(q.kenh||"")})],["Facebook",S.qc.filter(function(q){return /^f/i.test(q.kenh||"")})]].forEach(function(g,gi){var Q=g[1];if(gi&&!Q.length)return;   // mỗi kênh một slide, không gộp số
+ var chi=Q.reduce(function(s,q){return s+(q.chi||0)},0),clk=Q.reduce(function(s,q){return s+(q.clk||0)},0);
+ H.push(slide({so:"12",phan:"Quảng cáo trả phí",clo:"CLO3",lop:"sang",tieuDe:Q.length?"Quảng cáo "+g[0]+(Q.length>1?" thử "+Q.length+" lần":"")+": "+so(chi)+"đ, tách riêng khỏi KPI organic":"Không chạy quảng cáo: không áp dụng",cot:"c2",noi:
   '<div class="o"><table class="bang"><tr><th>Bài</th><th class="s">Đã chi</th><th class="s">Xem</th><th class="s">Click</th><th class="s">CPC</th></tr>'+
   Q.map(function(q){return '<tr><td>'+esc(q.ten)+'<br><span class="nho">'+esc(q.tu)+' → '+esc(q.den)+'</span></td><td class="s">'+(q.chi?so(q.chi)+'đ':'chờ số')+'</td><td class="s">'+(q.xem!=null?so(q.xem):'–')+'</td><td class="s">'+(q.clk!=null?so(q.clk):'–')+'</td><td class="s">'+(q.clk&&q.chi?so(Math.round(q.chi/q.clk))+"đ":"–")+'</td></tr>'}).join("")+'</table>'+
-  '<p class="nho" style="margin-top:10px">Tổng: '+so(chi)+'đ · '+so(clk)+' click · CPC '+(clk?so(Math.round(chi/clk))+"đ":"–")+'. Không cộng vào KPI chung.</p>'+
+  '<p class="nho" style="margin-top:10px">Tổng: '+so(chi)+'đ · '+so(clk)+' click · CPC '+(clk?so(Math.round(chi/clk))+"đ":"–")+'. Không cộng vào KPI chung'+(gi?', không gộp với quảng cáo Instagram':'')+'.</p>'+
   (Q.length?'<div style="margin-top:auto;padding-top:12px;border-top:1px solid var(--line)"><h2 style="margin-bottom:8px">Cách tính CPA · hành động = đơn đặt hàng</h2>'+
    Q.map(function(q){return '<p style="font-size:14px;margin:0 0 6px">'+esc(q.ten)+': '+(q.chi?so(q.chi)+'đ ÷ '+so(q.don)+' đơn ('+nhan(q.tu)+'–'+nhan(q.den||q.tu)+') = <b>'+(q.don?so(Math.round(q.chi/q.don))+'đ':'–')+'</b> mỗi đơn':'chờ số tiền đã chi · '+so(q.don)+' đơn trong '+nhan(q.tu)+'–'+nhan(q.den||q.tu))+'.</p>'}).join("")+
    '<p class="nho" style="margin:0">Form đặt hàng không ghi khách đến từ đâu nên đơn tính theo ngày chạy quảng cáo, gồm cả đơn từ organic.</p></div>':'')+'</div>'+
@@ -527,7 +528,7 @@ function ve(S,capNhat){
    return '<div class="noi c2" style="flex:1;gap:4px 18px;grid-auto-rows:auto;align-content:center">'+
     o("CPA · chi phí / đơn đặt hàng",dq?so(Math.round(chiD/dq))+"đ":"–",so(dq)+" đơn đặt trước trong ngày chạy")+o("CPC (chi phí / click)",clk?so(Math.round(chi/clk))+"đ":"–",so(clk)+" click liên kết")+o("CTR (click ÷ hiển thị)",ht?pt(clk/ht):"–",so(clk)+" / "+so(ht))+o("CPM",ht?so(Math.round(chi/ht*1000))+"đ":"–","chi phí / 1.000 lượt hiển thị")+
     o("Chi phí / người theo dõi mới",moi?so(Math.round(chi/moi))+"đ":"–",so(moi)+" người theo dõi từ quảng cáo")+o("Chi phí / 1.000 lượt xem",xq?so(Math.round(chi/xq*1000))+"đ":"–",so(xq)+" lượt xem từ quảng cáo")+'</div>'})()+
-  bs("Xác nhận không còn quảng cáo nào khác (TikTok Promote).")+'</div>'}));
+  (gi?'<p class="nho" style="margin:0">Số tạm từ Trình quản lý quảng cáo (09/11 18:30 → 10/11 18:30, quảng cáo còn đang chạy).</p>':bs("Xác nhận không còn quảng cáo nào khác (TikTok Promote)."))+'</div>'}))});
  // 12b. Phản hồi khách từ quảng cáo
  H.push(slide({so:"12",phan:"Phản hồi khách từ quảng cáo",clo:"CLO3",tieuDe:"Quảng cáo Instagram đến đúng người: khách nhắn tin đặt hàng, có cả người trong nghề",cot:"c2",noi:
   '<div class="o"><h2>Tin nhắn Instagram</h2><div class="so">4 <small>khách nhắn tin quan tâm và đặt hàng</small></div>'+
