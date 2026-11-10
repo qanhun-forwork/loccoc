@@ -552,8 +552,10 @@ function ve(S,capNhat){
   '<li><b>Ô đồng ý dữ liệu cá nhân</b> ở cả 3 form: loccoc.com.vn/#/lien-he</li><li><b>Chính sách bảo mật</b>: loccoc.com.vn/#/chinh-sach-bao-mat</li>'+
   '<li><b>Thông báo không thu tiền, không giao hàng</b> trong email xác nhận đơn; chân trang web ghi rõ sản phẩm môn học</li><li><b>Nhãn AI</b> trên video quy trình làm guốc (TikTok 16/10)</li>'+
   '<li><b>Nhật ký truy cập</b> dữ liệu khách: dashboard → Thành viên & nhật ký</li></ul>'+
-  '<div class="anh" style="margin:10px 0"><img src="anh-bao-cao/form-dong-y.jpg" alt="Form đặt hàng trên loccoc.com.vn có ô đồng ý dữ liệu cá nhân" style="object-position:bottom"></div>'+
-  bs("Bổ sung ảnh form trước 08/11 (chưa có ô đồng ý) để so sánh, và ảnh thể lệ minigame sau khi chạy (khoảng 20/11).")+'</div>'}));
+  '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;flex:1;min-height:0;margin:10px 0 4px">'+
+   [["form-truoc-0811.jpg","Trước 08/11: chưa có ô đồng ý"],["form-dong-y.jpg","Từ 08/11: có ô đồng ý + Chính sách bảo mật"]].map(function(a){return '<div style="display:flex;flex-direction:column;min-height:0"><div class="anh" style="flex:1;margin:0"><img src="anh-bao-cao/'+a[0]+'" alt="Form đặt hàng loccoc.com.vn, '+a[1]+'" style="object-position:bottom"></div><p class="nho" style="margin:4px 0 0">'+a[1]+'</p></div>'}).join("")+'</div>'+
+  '<p class="nho" style="margin:0">Ảnh “trước” chụp lại từ mã nguồn web ngày 07/11 (git 888e794).</p>'+
+  bs("Bổ sung ảnh thể lệ minigame sau khi chạy (khoảng 20/11).")+'</div>'}));
  // 13b. Chứng minh êm chân
  H.push(slide({so:"14",phan:"Chứng minh êm chân",clo:"CLO4",tieuDe:"Khắc phục góp ý “cần video người thật để chứng minh êm chân”",cot:"c2",noi:
   '<div class="o"><h2>Nghiên cứu bổ sung so với Proposal giữa kỳ</h2><ul class="ds" style="font-size:14px">'+
