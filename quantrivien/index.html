@@ -711,7 +711,8 @@ function vXemVe(j,jt,k){
  $("xem-mo").textContent="Khách truy cập, lượt xem trang và tỉ lệ thoát do bộ đếm riêng của web ghi lại, giữ vĩnh viễn.";
  if(j.dauTien)$("xem-mo").textContent="Khách truy cập, lượt xem trang và tỉ lệ thoát trên loccoc.com.vn. Dữ liệu lưu từ "+nhan(j.dauTien)+"/"+j.dauTien.slice(0,4)+" và được giữ lại vĩnh viễn.";
  var tl=function(t){return t&&t.phien?t.thoat/t.phien:0};
- var ngoai=0;Object.keys(j.nguon||{}).forEach(function(n){if(n!=="Trực tiếp")ngoai+=j.nguon[n]});
+ // giống báo cáo: bỏ truy cập trực tiếp và phiên quảng cáo trả phí (UTM medium = paid), quảng cáo để riêng khỏi KPI organic
+ var ngoai=0;Object.keys(j.nguon||{}).forEach(function(n){if(n!=="Trực tiếp"&&!/^utm: [^/]+ \/ paid\b/.test(n))ngoai+=j.nguon[n]});
  // giống báo cáo: trước ngày bộ đếm bắt đầu thì cộng khách có nguồn giới thiệu theo Vercel (bỏ "(không rõ)", loccoc.com.vn, vercel.com)
  if(j.dauTien&&k.tu<j.dauTien){var dTr=ngay(new Date(new Date(j.dauTien+"T00:00:00")-864e5));goi("vercel",{tu:k.tu,den:dTr}).then(function(v){var N=v["Nguồn"]||{},vc=0;
   Object.keys(N).forEach(function(n){if(!/^\(|loccoc\.com\.vn|vercel\.com/.test(n))vc+=N[n].khach||0});if(!$("x-ngoai"))return;
@@ -719,7 +720,7 @@ function vXemVe(j,jt,k){
  var tu=k.tu||j.dauTien||k.den,ns=cacNgay(tu,k.den),g=function(n,f){return (j.ngay[n]||{})[f]||0};
  var thoatSS=TT?(function(){var a=tl(T),b=tl(TT);if(!TT.phien)return "";var d=a-b;return '<span class="'+(d<=0?"tang":"giam")+'">'+(d<=0?"▼ ":"▲ ")+pt(Math.abs(d))+"</span> so với kỳ trước"})():"";
  nd.className="the-luoi";nd.innerHTML=
-  '<section class="the w4" data-k="kngoai"><h2>Truy cập từ bên ngoài</h2><div class="so" id="x-ngoai">'+so(ngoai)+'</div><div class="ph" id="x-ngoai-ph">Phiên có nguồn (mạng xã hội, link, UTM), không tính truy cập trực tiếp · KPI '+so(120)+'</div></section>'+
+  '<section class="the w4" data-k="kngoai"><h2>Truy cập từ bên ngoài</h2><div class="so" id="x-ngoai">'+so(ngoai)+'</div><div class="ph" id="x-ngoai-ph">Phiên có nguồn (mạng xã hội, link, UTM), không tính truy cập trực tiếp và phiên quảng cáo trả phí · KPI '+so(120)+'</div></section>'+
   '<section class="the w4" data-k="kkh"><h2>Khách truy cập</h2><div class="so">'+so(T.khach)+'</div><div class="ph">'+soSanh(T.khach,TT&&TT.khach)+'</div></section>'+
   '<section class="the w4" data-k="kxem"><h2>Lượt xem trang</h2><div class="so">'+so(T.xem)+'</div><div class="ph">'+soSanh(T.xem,TT&&TT.xem)+'</div></section>'+
   '<section class="the w6" data-k="kthoat"><h2>Tỉ lệ thoát</h2><div class="so">'+(T.phien?pt(tl(T)):"–")+'</div><div class="ph">'+(thoatSS||"Phiên chỉ xem 1 trang rồi rời đi")+'</div></section>'+
