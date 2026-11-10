@@ -293,6 +293,8 @@ function tinh(mx,xem,vc,tq,den,vcTruoc){
   var x=tong(D,"xem"),tu=tt();
   K[p]={fol:folNay[p],xem:x,tuongTac:tu,er:x?tu/x:0,nguoi:tong(D,"nguoi"),clk:tong(D,"clk"),moi:tong(D,"moi"),cs:tong(D,"cs"),hs:tong(D,"hs"),
    tuan:tuan.map(function(w){return {xem:tong(D,"xem",w.tu,w.den),fol:folNay[p]-tong(D,"moi",cong(w.den,1),den)}})}});
+ // lượt theo dõi Facebook theo ngày 26/09–15/10 (slide Sự cố: buff follow bẩn)
+ K.fb.moiNgay=Object.keys(mx.fb.ngay||{}).filter(function(n){return n>=BAT_DAU&&n<="2026-10-15"}).sort().map(function(n){return [n,mx.fb.ngay[n].moi||0]});
  // ER Facebook/Instagram tính organic: trừ lượt xem và tương tác từ quảng cáo (tab 📣 Quảng cáo, cột Kênh) vì quảng cáo tách khỏi KPI organic
  ["fb","ig"].forEach(function(p){var k=K[p];k.qcXem=0;k.qcTt=0;
   (mx.qcIg||[]).forEach(function(q){if((/^f/i.test(q.kenh||"")?"fb":"ig")===p&&q.tu>=BAT_DAU&&q.tu<=den){k.qcXem+=q.xem||0;k.qcTt+=q.tt||0}});
@@ -481,12 +483,12 @@ function ve(S,capNhat){
   '<li><b>'+so(W.don)+'</b> đơn đặt trước và '+so(W.lh)+' liên hệ qua form</li>'+
   '<li>Khách thật nhắn tin đặt hàng sau khi xem quảng cáo (slide Phản hồi khách)</li></ul>'+
   '<p class="nho" style="margin-top:auto">Nhóm đánh giá: dù khó hơn ở khâu ra đơn, dự án đã làm được và vượt mong đợi.</p></div>'}));
- H.push(slide({so:"10",phan:"Thử nghiệm & điều chỉnh (PDCA)",clo:"CLO5",tieuDe:"Đọc số liệu rồi sửa ngay: minh bạch đặt trước, đổi hướng nội dung",cot:"c2",noi:
-  '<div class="o"><h2>Điều chỉnh 1 · Đổi “Đặt hàng” thành “Đăng ký đặt trước” (23/10)</h2><table class="bang pdca">'+
+ H.push(slide({so:"10",phan:"Thử nghiệm & điều chỉnh (PDCA)",clo:"CLO5",tieuDe:"Đọc số liệu rồi sửa ngay: minh bạch với khách, đổi hướng nội dung",cot:"c2",noi:
+  '<div class="o"><h2>Điều chỉnh 1 · Minh bạch với khách đặt hàng (23/10)</h2><table class="bang pdca">'+
    '<tr><td><b>Plan</b></td><td>Mở bán dòng Basic trên web ngày 18/10, đo số lượt đặt.</td></tr>'+
    '<tr><td><b>Do</b></td><td>Giỏ hàng + form đặt hàng + email xác nhận tự động.</td></tr>'+
    '<tr><td><b>Check</b></td><td>'+so(W.don2Ngay)+' lượt đặt thật trong 2 ngày, nhưng sản phẩm chưa sản xuất → rủi ro khách hiểu nhầm (mức Đỏ).</td></tr>'+
-   '<tr><td><b>Act</b></td><td>Đổi nút thành “Đăng ký đặt trước – chưa thu tiền”, nhắn riêng từng khách, đăng bài minh bạch 23/10. Trước: '+so(W.donTruoc23)+' đơn · sau: '+so(W.donSau23)+' đăng ký.</td></tr></table></div>'+(function(){var M="2026-11-06",v=K.tt.video,tr=v.filter(function(x){return x.ngay<M}),sau=v.filter(function(x){return x.ngay>=M}),
+   '<tr><td><b>Act</b></td><td>Email xác nhận ghi rõ dự án học tập: “bạn sẽ không bị thu tiền và cũng sẽ không có sản phẩm nào được giao”; nhắn riêng từng khách, đăng bài minh bạch 23/10. Trước: '+so(W.donTruoc23)+' đơn · sau: '+so(W.donSau23)+' đăng ký.</td></tr></table></div>'+(function(){var M="2026-11-06",v=K.tt.video,tr=v.filter(function(x){return x.ngay<M}),sau=v.filter(function(x){return x.ngay>=M}),
    tb=function(a,f){return a.length?a.reduce(function(s,x){return s+f(x)},0)/a.length:0},cs=function(x){return x.cs},er=function(x){return x.er};
    return '<div class="o"><h2>Điều chỉnh 2 · TikTok chuyển sang chuỗi video phối outfit (từ 06/11)</h2><table class="bang pdca">'+
    '<tr><td><b>Plan</b></td><td>Mục tiêu TikTok trong 6B ở Proposal giữa kỳ đặt quá cao so với nguồn lực, trong khi Instagram là kênh chính → điều chỉnh TikTok theo mục tiêu mới và để đạt KPI chung 6A ('+so(K.tt.xem)+' / '+so(KPI.tt.xem)+' lượt xem): video phối outfit dòng Basic + ưu đãi, kêu gọi chia sẻ, đăng dày hơn.</td></tr>'+
@@ -494,7 +496,7 @@ function ve(S,capNhat){
    '<tr><td><b>Check</b></td><td>Chia sẻ trung bình '+so(tb(tr,cs))+' → <b>'+so(tb(sau,cs))+'</b> lượt/video · tương tác '+pt(tb(tr,er))+' → <b>'+pt(tb(sau,er))+'</b>.</td></tr>'+
    '<tr><td><b>Act</b></td><td>Giữ định dạng phối outfit + lời mời chia sẻ, đăng ≥ 2 video/tuần đến 20/11.</td></tr></table></div>'})()}));
  var MOC=[["26/09","Bài “Coming soon” đầu tiên trên 3 kênh"],["16/10","Video quy trình làm guốc: video nhiều xem nhất"],["18/10","Mở bán dòng Basic trên loccoc.com.vn + thử quảng cáo IG"],
-  ["23/10","Đổi sang “đăng ký đặt trước”, bài minh bạch"],["24/10","Bật bộ đếm truy cập riêng của web"],["31/10","Ra mắt Halloween collection"],["06/11","Chuỗi video phối outfit Basic + ưu đãi"],["08/11","Thêm ô đồng ý dữ liệu + Chính sách bảo mật"]];
+  ["23/10","Nhắn riêng từng khách, bài minh bạch"],["24/10","Bật bộ đếm truy cập riêng của web"],["31/10","Ra mắt Halloween collection"],["06/11","Chuỗi video phối outfit Basic + ưu đãi"],["08/11","Thêm ô đồng ý dữ liệu + Chính sách bảo mật"]];
  H.push(slide({so:"11",phan:"Hành trình nhóm",clo:"CLO5",lop:"sang",tieuDe:NHOM.tv.length+" thành viên, 8 tuần, 4 nền tảng tự vận hành",cot:"c3",noi:
   '<div class="o"><h2>Thành viên</h2><ul class="ds" style="gap:4px;font-size:14px">'+NHOM.tv.map(function(t){return '<li>'+esc(t)+'</li>'}).join("")+'</ul></div>'+
   '<div class="o"><h2>Dòng thời gian</h2><ul class="moc">'+MOC.map(function(m){return '<li><b>'+m[0]+'</b>'+m[1]+'</li>'}).join("")+'</ul></div>'+
@@ -504,6 +506,7 @@ function ve(S,capNhat){
  H.push(slide({so:"11",phan:"Sự cố & cách vượt qua",clo:"CLO5",tieuDe:"Hai sự cố đầu dự án, nhóm vượt qua mà không chậm tiến độ học phần",cot:"c2",noi:
   '<div class="o"><h2>Facebook bị buff follow bẩn</h2><div class="so">'+so(K.fb.moi)+' <small>lượt theo dõi · còn '+so(K.fb.fol)+' người theo dõi</small></div>'+
   '<p>Fanpage tăng follow đột ngột (riêng 28/09 có 397 lượt theo dõi) rồi tụt lại. Nguyên nhân: một bên thứ ba tấn công, buff follow bẩn, chưa rõ lý do.</p>'+
+  ((K.fb.moiNgay||[]).length?'<div class="bd" style="height:150px;flex:none;margin:6px 0 10px"><canvas id="b-buff"></canvas></div>':'')+''+
   '<p>Nhóm không coi đây là khó khăn và tiếp tục triển khai, không để ảnh hưởng tiến độ học phần. KPI người theo dõi dùng số thực tế hiện tại ('+so(K.fb.fol)+'), không cộng dồn lượt theo dõi.</p></div>'+
   '<div class="o toi"><h2>Tranh chấp thương hiệu với sinh viên Khóa 29</h2>'+
   '<p style="font-size:15px">Xảy ra trong bài tập nhóm đầu tiên (nhóm là Khóa 30), cùng thời điểm bị buff bẩn; không ghi nhận liên quan giữa hai sự việc.</p>'+
@@ -528,13 +531,15 @@ function ve(S,capNhat){
  // 12b. Phản hồi khách từ quảng cáo
  H.push(slide({so:"12",phan:"Phản hồi khách từ quảng cáo",clo:"CLO3",tieuDe:"Quảng cáo Instagram đến đúng người: khách nhắn tin đặt hàng, có cả người trong nghề",cot:"c2",noi:
   '<div class="o"><h2>Tin nhắn Instagram</h2><div class="so">4 <small>khách nhắn tin quan tâm và đặt hàng</small></div>'+
-  '<p>Ngoài form trên web, quảng cáo Instagram còn mang về khách hỏi và đặt hàng qua tin nhắn. 2 trong 4 khách đã điền form đặt trước trên loccoc.com.vn.</p>'+
-  '<p class="nho">Số tin nhắn đếm thủ công trong hộp thư Instagram đến ngày làm báo cáo.</p></div>'+
+  '<p>Khách hỏi đặt làm theo mẫu, hỏi khu vực, xin Zalo để đặt. Sau khi nhóm giải thích đây là dự án sinh viên, 2 khách vẫn điền form trên web để ủng hộ nhóm.</p>'+
+  '<div class="anh"><img src="anh-bao-cao/tin-nhan-2.jpg" alt="Tin nhắn Instagram của một khách sau khi nhận email xác nhận" style="object-position:bottom"></div>'+
+  '<p class="nho" style="margin:8px 0 0">Ảnh chụp hộp thư Instagram @loccoc.com.vn; đã che ảnh đại diện và tên khách.</p></div>'+
   '<div class="o toi"><h2>Khách từ quảng cáo là người trong nghề</h2>'+
-  '<p style="font-size:15.5px">Chị <b>Trương Thu Hằng</b>, founder Gypsy Store (kinh doanh guốc gỗ từ 2013), biết đến Lộc Cộc qua quảng cáo, đã điền form đặt hàng và nhắn tin bày tỏ sự yêu mến, ủng hộ các bạn trẻ làm guốc, sẵn sàng giúp đỡ nếu Lộc Cộc muốn đưa dự án đi xa hơn.</p>'+
-  '<p style="font-size:15.5px;margin-top:auto"><b>Ý nghĩa:</b> người hiểu thị trường guốc gỗ tiếp cận Lộc Cộc qua quảng cáo, chứng minh nhóm đã đặt quảng cáo đúng tệp khách hàng mục tiêu.</p></div>'}));
+  '<p style="font-size:15.5px">Chị <b>Trương Thu Hằng</b>, founder Gypsy Store (kinh doanh guốc gỗ từ 2013), biết đến Lộc Cộc qua quảng cáo, đã điền form ủng hộ nhóm và nhắn tin bày tỏ sự yêu mến, ủng hộ các bạn trẻ làm guốc, sẵn sàng giúp đỡ nếu Lộc Cộc muốn đưa dự án đi xa hơn.</p>'+
+  '<div class="anh" style="margin:8px 0"><img src="anh-bao-cao/tin-nhan-1.jpg" alt="Tin nhắn Instagram của chị Thu Hằng"></div>'+
+  '<p style="font-size:15.5px;margin:0"><b>Ý nghĩa:</b> người hiểu thị trường guốc gỗ tiếp cận Lộc Cộc qua quảng cáo, chứng minh nhóm đã đặt quảng cáo đúng tệp khách hàng mục tiêu.</p></div>'}));
  // 13. Pháp lý
- var PL=[["Thông tin trung thực","Giá 350.000đ ghi rõ; form đổi sang “đặt trước – chưa thu tiền”, bài minh bạch 23/10","Luật Quảng cáo 2012 (sđ 2025); Luật BVQLNTD 2023"],
+ var PL=[["Thông tin trung thực","Giá 350.000đ ghi rõ; email xác nhận ghi rõ không thu tiền, không giao hàng; bài minh bạch 23/10","Luật Quảng cáo 2012 (sđ 2025); Luật BVQLNTD 2023"],
   ["Công khai hợp tác","Không có bài hợp tác/KOL trả phí","Luật 75/2025/QH15; NĐ 55/2024"],
   ["Dữ liệu cá nhân","Form có ô đồng ý + trang Chính sách bảo mật (thêm 08/11); Sheet phân quyền, có nhật ký truy cập","Luật BVDLCN 91/2025/QH15"],
   ["Nội dung AI","Bật nhãn AI mọi bài dùng ảnh/video AI","Luật Trí tuệ nhân tạo 134/2025/QH15"],
@@ -544,9 +549,10 @@ function ve(S,capNhat){
   '<div class="o"><table class="bang"><tr><th style="width:24%">Nhóm nội dung</th><th>Lộc Cộc đã làm</th><th style="width:30%">Căn cứ</th></tr>'+PL.map(function(r){return '<tr><td><b>'+r[0]+'</b></td><td>'+r[1]+'</td><td class="nho">'+r[2]+'</td></tr>'}).join("")+'</table></div>'+
   '<div class="o toi"><h2>Minh chứng mở được ngay</h2><ul class="ds" style="font-size:14.5px">'+
   '<li><b>Ô đồng ý dữ liệu cá nhân</b> ở cả 3 form: loccoc.com.vn/#/lien-he</li><li><b>Chính sách bảo mật</b>: loccoc.com.vn/#/chinh-sach-bao-mat</li>'+
-  '<li><b>Thông báo đặt trước, chưa thu tiền</b> trong email xác nhận và trang giỏ hàng</li><li><b>Nhãn AI</b> trên video quy trình làm guốc (TikTok 16/10)</li>'+
+  '<li><b>Thông báo không thu tiền, không giao hàng</b> trong email xác nhận đơn; chân trang web ghi rõ sản phẩm môn học</li><li><b>Nhãn AI</b> trên video quy trình làm guốc (TikTok 16/10)</li>'+
   '<li><b>Nhật ký truy cập</b> dữ liệu khách: dashboard → Thành viên & nhật ký</li></ul>'+
-  bs("Chụp cặp ảnh form trước – sau 08/11. Ảnh thể lệ minigame bổ sung sau khi chạy (khoảng 20/11).")+'</div>'}));
+  '<div class="anh" style="margin:10px 0"><img src="anh-bao-cao/form-dong-y.jpg" alt="Form đặt hàng trên loccoc.com.vn có ô đồng ý dữ liệu cá nhân" style="object-position:bottom"></div>'+
+  bs("Bổ sung ảnh form trước 08/11 (chưa có ô đồng ý) để so sánh, và ảnh thể lệ minigame sau khi chạy (khoảng 20/11).")+'</div>'}));
  // 13b. Chứng minh êm chân
  H.push(slide({so:"14",phan:"Chứng minh êm chân",clo:"CLO4",tieuDe:"Khắc phục góp ý “cần video người thật để chứng minh êm chân”",cot:"c2",noi:
   '<div class="o"><h2>Nghiên cứu bổ sung so với Proposal giữa kỳ</h2><ul class="ds" style="font-size:14px">'+
@@ -554,10 +560,13 @@ function ve(S,capNhat){
    ["Footwear and insole design features that reduce plantar pressure – systematic review","JFAR, 2020","https://doaj.org/article/ad1168775a524f6e86822ac530ee52d3"],
    ["Biomechanics of postoperative shoes","Arch Orthop Trauma Surg, 2011","https://pubmed.ncbi.nlm.nih.gov/20549221/"],
    ["Effects of Different Heel Heights on Plantar Foot Pressure","J Phys Ther Sci, 2012","https://www.jstage.jst.go.jp/article/jpts/24/11/24_1091/_article"],
-   ["Prolonged occupational standing: the impact of time and footwear","Footwear Science, 2018","https://salford-repository.worktribe.com/OutputFile/1490420"]].map(function(n){return '<li><a href="'+n[2]+'" target="_blank" rel="noopener">'+esc(n[0])+'</a><br><span class="nho">'+n[1]+'</span></li>'}).join("")+'</ul></div>'+
+   ["Prolonged occupational standing: the impact of time and footwear","Footwear Science, 2018","https://salford-repository.worktribe.com/OutputFile/1490420"]].map(function(n){return '<li><a href="'+n[2]+'" target="_blank" rel="noopener">'+esc(n[0])+'</a><br><span class="nho">'+n[1]+'</span></li>'}).join("")+'</ul>'+
+  '<div class="anh" style="margin-top:8px"><img src="../img/basic/B01-3-600.webp" alt="Mẫu Basic khi mang" style="object-position:center 75%"></div></div>'+
   '<div class="o toi"><h2>TVC quay người thật · tháng 12</h2><div class="so">5 <small>triệu đồng</small></div>'+
   '<p style="font-size:15.5px">Đầu tư từ học phần Chiến lược quảng cáo, kế thừa giá trị thương hiệu Lộc Cộc để tiếp tục thực hiện.</p>'+
-  '<p style="font-size:15.5px">Người thật mang guốc trong sinh hoạt hằng ngày: bằng chứng trực quan cho cảm giác êm chân, bổ sung cho cơ sở nghiên cứu bên trái.</p></div>'}));
+  '<p style="font-size:15.5px">Người thật mang guốc trong sinh hoạt hằng ngày: bằng chứng trực quan cho cảm giác êm chân, bổ sung cho cơ sở nghiên cứu bên trái.</p>'+
+  '<div class="anh" style="margin-top:6px"><img src="../img/basic/B01-2-600.webp" alt="Đế gỗ cong của mẫu Basic" style="object-position:center"></div>'+
+  '<p class="nho" style="margin:6px 0 0">Ảnh AI minh hoạ đế gỗ cong ôm vòm chân (dòng Basic). TVC sẽ thay bằng cảnh quay người thật.</p></div>'}));
  // 14–15–16
  H.push(slide({so:"14",phan:"Bài học & đề xuất",clo:"CLO4",lop:"sang",tieuDe:"Cho người xem thấy cách làm thật, đăng đều, và đo được mới sửa được",cot:"c2",noi:
   '<div class="o"><h2>Bài học lớn nhất</h2><ul class="ds lon" style="font-size:16.5px">'+
@@ -608,6 +617,8 @@ function veBieu(S){BIEU.forEach(function(c){c.destroy()});BIEU=[];
  tao("b-web",Object.assign({type:"line"},cfg([{label:"Phiên truy cập",data:w.map(function(x){return x.phien}),borderColor:"#FAF6EF",backgroundColor:"rgba(250,246,239,.12)",fill:true,borderWidth:2.5,pointRadius:3,cubicInterpolationMode:"monotone"},
   {label:"Gửi form",data:w.map(function(x){return x.form}),borderColor:"#E7A9A3",backgroundColor:"#E7A9A3",borderWidth:2.5,pointRadius:3,cubicInterpolationMode:"monotone",yAxisID:"y1"}],true)));
  var tongTuan=function(f){return S.tuan.map(function(w,i){return ["tt","ig","fb"].reduce(function(s,p){return s+f(p,i)},0)})};
+ if((S.k.fb.moiNgay||[]).length)tao("b-buff",{type:"bar",data:{labels:S.k.fb.moiNgay.map(function(x){return nhan(x[0])}),datasets:[{label:"Lượt theo dõi Facebook mỗi ngày (Business Suite)",data:S.k.fb.moiNgay.map(function(x){return x[1]}),backgroundColor:"#E7A9A3",borderRadius:4}]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom",labels:{boxWidth:10,usePointStyle:true}}},scales:{x:{grid:{display:false},ticks:{maxRotation:0,autoSkip:true,maxTicksLimit:7}},y:{beginAtZero:true,grid:{color:"rgba(250,246,239,.1)"},border:{display:false}}}}});
  tao("b-lich",Object.assign({type:"bar"},cfg([{label:"Kế hoạch",data:tongTuan(function(p,i){return KH[p][i]||0}),backgroundColor:"rgba(250,246,239,.28)",borderRadius:8},
   {label:"Đã đăng",data:tongTuan(function(p,i){return (S.k[p].baiTuan||[])[i]||0}),backgroundColor:"#E7A9A3",borderRadius:8}])));
 }
