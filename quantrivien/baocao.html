@@ -226,6 +226,7 @@ body::after{content:"";position:fixed;inset:0;z-index:6;pointer-events:none;opac
 /* số quay: mỗi chữ số là một cuộn 0–9 lăn tới đích, vượt nhẹ rồi nảy về */
 .dem.quay{display:inline-flex;vertical-align:bottom}
 .rl,.rl-c{display:inline-block;height:1.08em;line-height:1.08em;overflow:hidden}
+.tang b span{font-size:inherit;opacity:1}   /* .tang span (14px) không được đè lên số lăn bên trong .tang b */
 .rl i{display:block;font-style:normal;transform:translateY(0);transition:transform var(--t) cubic-bezier(.17,1.25,.32,1) var(--tre)}
 .rl b{display:block;height:1.08em;font-weight:inherit}
 .dem.chay .rl i{transform:translateY(calc(-1.08em * (10 + var(--d))));animation:nhoe var(--t) var(--tre) both}
@@ -498,7 +499,7 @@ function ve(S,capNhat){
  // 6. Kết quả theo kênh
  ["fb","ig","tt"].forEach(function(p,i){var k=K[p],m=KPI[p],d=[k.fol>=m.fol,k.xem>=m.xem,k.er>=m.er].filter(Boolean).length;
   H.push(slide({so:"06",phan:"Kết quả theo kênh · "+TEN[p],clo:"CLO3",tieuDe:TEN[p]+": đạt "+d+"/3 chỉ số chính, lượt xem "+so(k.xem)+" / "+so(m.xem)+' <span style="white-space:nowrap">('+pt(ty(k.xem,m.xem))+")</span>",cot:"c52",noi:
-   '<div class="o">'+bangKpi(p,S)+'<p class="nho" style="margin:auto 0 0;padding-top:10px">Nguồn: '+NGUON[p]+(p==="tt"?"":" · danh sách bài Meta Graph API")+' · '+nhan(S.tu)+'–'+nhan(S.den)+'.'+(S.k[p].dash?' Tổng lượt xem, tương tác theo '+(p==="tt"?"TikTok Studio":"Meta Business Suite")+' 26/09–09/11'+(p!=="ig"?' (dashboard làm tròn '+(p==="fb"?"12,1K":"23,1K")+')':'')+'; số theo tuần từ API.':'')+'<br>Phụ trợ: '+(p==="tt"?'lượt chia sẻ '+so(k.cs)+' · xem hồ sơ '+so(k.hs)+' · người xem tiếp cận '+so(k.nguoi):'người xem/tiếp cận '+so(k.nguoi)+' · click liên kết '+so(k.clk))+'</p>'+(p==="tt"?'<p class="nho" style="margin:8px 0 0;padding:8px 10px;border-left:3px solid var(--red)"><b>Lưu ý về số lượt xem TikTok.</b> Khi tổng hợp, nhóm thấy số lượt xem cộng tay từng video trùng với số API trả về, nhưng thấp hơn nhiều so với tổng quan TikTok Studio (23,1K). Nhóm đã tìm tài liệu và trang hướng dẫn của TikTok nhưng không thấy nội dung nào giải thích chênh lệch này. Theo số TikTok Studio, kênh đã đạt KPI lượt xem từ trước ngày 06/11. Nhóm vẫn báo cáo số cộng tay (khớp API) vì kiểm chứng được từng video, và nêu rõ chênh lệch tại đây để người chấm đối chiếu.</p>':'')+'</div>'+
+   '<div class="o">'+bangKpi(p,S)+'<p class="nho" style="margin:auto 0 0;padding-top:10px">Nguồn: '+NGUON[p]+(p==="tt"?"":" · danh sách bài Meta Graph API")+' · '+nhan(S.tu)+'–'+nhan(S.den)+'.'+(S.k[p].dash?' Tổng lượt xem, tương tác theo '+(p==="tt"?"TikTok Studio":"Meta Business Suite")+' 26/09–09/11'+(p!=="ig"?' (dashboard làm tròn '+(p==="fb"?"12,1K":"23,1K")+')':'')+'; số theo tuần từ API.':'')+'<br>Phụ trợ: '+(p==="tt"?'lượt chia sẻ '+so(k.cs)+' · xem hồ sơ '+so(k.hs)+' · người xem tiếp cận '+so(k.nguoi):'người xem/tiếp cận '+so(k.nguoi)+' · click liên kết '+so(k.clk))+'</p>'+(p==="tt"?'<p class="nho" style="margin:8px 0 0;padding:8px 10px;border-left:3px solid var(--red)"><b>Lưu ý về số lượt xem TikTok.</b> Số cộng tay từng video trùng số API và trùng TikTok Studio đến hết 06/11 (7.001 lượt). Từ 07/11, Studio ghi thêm 5.848 và 10.225 lượt (ngày 07 và 08/11), tổng 23,1K, nhiều hơn số cộng tay. Nhóm đã tìm tài liệu và trang hướng dẫn của TikTok nhưng không thấy giải thích. Theo Studio, KPI 15.000 đạt ngày 08/11; theo số cộng tay là '+soTho(k.xem)+' lượt. Báo cáo dùng số cộng tay vì kiểm chứng được từng video, và nêu rõ chênh lệch để người chấm đối chiếu.</p>':'')+'</div>'+
    '<div class="o"><h2>Lượt xem và người theo dõi theo tuần</h2><div class="bd"><canvas id="b-'+p+'"></canvas></div></div>'}))});
  H.push(slide({so:"06",phan:"Kết quả theo kênh · Landing page",clo:"CLO3",tieuDe:"Landing page: "+so(W.ngoai)+" lượt truy cập từ bên ngoài / "+so(KPI.web)+' <span style="white-space:nowrap">('+pt(ty(W.ngoai,KPI.web))+")</span>",cot:"c52",noi:
   '<div class="o"><table class="bang"><tr><th>Chỉ số</th><th class="s">Kết quả / mục tiêu</th><th class="s">% đạt</th><th class="s"></th></tr>'+
@@ -605,7 +606,7 @@ function ve(S,capNhat){
  // 13. Pháp lý
  var PL=[["Thông tin trung thực","Giá 350.000đ ghi rõ; email xác nhận ghi rõ không thu tiền, không giao hàng; bài minh bạch 23/10","Luật Quảng cáo 2012 (sđ 2025); Luật BVQLNTD 2023"],
   ["Công khai hợp tác","Không có bài hợp tác/KOL trả phí","Luật 75/2025/QH15; NĐ 55/2024"],
-  ["Dữ liệu cá nhân","Form có ô đồng ý + trang Chính sách bảo mật (thêm 08/11); Sheet phân quyền, có nhật ký truy cập","Luật BVDLCN 91/2025/QH15"],
+  ["Dữ liệu cá nhân","Form có ô đồng ý + trang Chính sách bảo mật (thêm 08/11); dashboard quản trị yêu cầu đăng nhập, phân quyền theo vai trò, có nhật ký truy cập","Luật BVDLCN 91/2025/QH15"],
   ["Nội dung AI","Bật nhãn AI mọi bài dùng ảnh/video AI","Luật Trí tuệ nhân tạo 134/2025/QH15"],
   ["Bản quyền tài nguyên","Nhạc từ thư viện nền tảng; font Plus Jakarta Sans (OFL); ảnh sản phẩm tự chụp","Luật Sở hữu trí tuệ"],
   ["Minigame, bán hàng","Minigame #CanMoiOutfit dời sang khoảng 20/11: sẽ công bố thể lệ trước, công bố kết quả sau","Luật TMĐT 122/2025/QH15"]];
@@ -651,7 +652,8 @@ function ve(S,capNhat){
   '<li>Mỗi tuần 2 video quy trình / phối outfit, mở bằng cảnh tay thợ trong 3 giây đầu.</li>'+
   '<li>Mỗi bài kết bằng câu hỏi chọn mẫu để kéo tương tác ÷ lượt xem lên ≥ 5%.</li>'+
   '<li>Gắn link UTM cho mọi bài dẫn về web để biết kênh nào ra form.</li>'+
-  '<li><b>Tháng 12: TVC quay người thật</b> (5 triệu đồng, từ học phần Chiến lược quảng cáo) để chứng minh êm chân.</li></ul>'+bs("Nhóm duyệt lại bài học và kế hoạch, thêm con số mục tiêu 3 tháng nếu có.")+'</div>'}));
+  '<li><b>Tháng 12: TVC quay người thật</b> (5 triệu đồng, từ học phần Chiến lược quảng cáo) để chứng minh êm chân.</li>'+
+  '<li><b>Tầm nhìn dài hạn:</b> nhóm tiếp tục kế thừa dự án Lộc Cộc ở học phần Khởi nghiệp, giữ thương hiệu, bốn kênh, web và bộ đo số liệu đã dựng để đưa sản phẩm vào kinh doanh thật.</li></ul>'+bs("Nhóm duyệt lại bài học và kế hoạch, thêm con số mục tiêu 3 tháng nếu có.")+'</div>'}));
  H.push(slide({so:"14",phan:"Điều nhóm rút ra",clo:"CLO4",tieuDe:"AI đang thay đổi cuộc chơi, và sinh viên truyền thông phải bắt kịp",cot:"c2",noi:
   '<div class="o"><h2>Bài học từ chính Lộc Cộc</h2><div style="font-size:21px;line-height:1.55;flex:1;display:flex;flex-direction:column;justify-content:center">'+
   '<p>Hầu như toàn bộ các khâu của Lộc Cộc đều được <b>tự động hóa và thực hiện bằng AI</b>, với khoản chi phí nhỏ so với quy mô một doanh nghiệp thực tế, nhưng thu lại hiệu quả đáng ghi nhận.</p>'+
@@ -672,11 +674,11 @@ function ve(S,capNhat){
  var PLc=H.filter(function(h){return /data-pl="1"/.test(h)}),CUOI=H.filter(function(h){return /data-cuoi="1"/.test(h)}),CH=H.filter(function(h){return !/data-pl="1"|data-cuoi="1"/.test(h)});
  if(PLc.length)PLc.unshift('<section class="sl bia" data-pl="1"><p class="phan"><i>Phụ lục</i>Minh chứng</p><h1>Phụ lục minh chứng</h1><p class="mo-ta">Các slide sau là minh chứng cho số liệu và nội dung đã trình bày, không tính vào 20 slide nội dung.</p>'+
   '<ol class="ds lon" style="margin-top:auto;font-size:18px">'+PLc.map(function(h){var m=/<\/i>([^<]*)/.exec(h);return m?"<li>"+m[1]+"</li>":""}).join("")+'</ol><span class="chan">Nhóm Lộc Cộc · Lớp 09</span><span class="so-trang"></span></section>');
- var HTML=CH.concat(PLc,CUOI).join("")+'<div class="tien-do"><i></i></div>',sig=JSON.stringify(S,function(k,v){return k==="luc"?undefined:v});
+ var HTML=CH.concat(PLc,CUOI).join("")+'<div class="tien-do"><i></i></div>';
  // cập nhật nền: giữ nguyên trang, chỉ đổi số (có hiệu ứng) và vẽ lại biểu đồ khi dữ liệu biểu đồ đổi
- if(capNhat&&vaTai(HTML)){if(sig!==SIG)veBieu(S);SIG=sig;
+ if(capNhat&&vaTai(HTML)){veBieu(S,true);
   $("tt").textContent=(CHE==="chot"?"Số đã chốt lúc "+gioVN(S.luc):"Số trực tiếp (chưa chốt) · cập nhật "+new Date(S.luc).toLocaleTimeString("vi-VN"))+" · "+kh;return}
- SIG=sig;$("khung").innerHTML=HTML;
+ $("khung").innerHTML=HTML;
  vua();
  var nC=document.querySelectorAll('.sl:not([data-pl]):not([data-cuoi])').length;
  [].forEach.call(document.querySelectorAll(".sl"),function(s,i){s.querySelector(".so-trang").textContent=i<nC?(i+1)+" / "+nC:s.dataset.cuoi?"":"Phụ lục "+(i-nC+1)});
@@ -684,18 +686,36 @@ function ve(S,capNhat){
  if(capNhat)[].forEach.call(document.querySelectorAll(".sl"),function(sl,i){[].forEach.call(sl.querySelectorAll(".dem"),function(e,j){var a=(cu[i]||[])[j];if(a!=null&&a!==+e.dataset.v)chay(e,a)})});
  $("tt").textContent=(CHE==="chot"?"Số đã chốt lúc "+gioVN(S.luc):"Số trực tiếp (chưa chốt) · cập nhật "+new Date(S.luc).toLocaleTimeString("vi-VN"))+" · "+kh;
 }
-var SIG="";
-// so khớp cây DOM mới với trang đang hiện: cùng cấu trúc thì chỉ đổi số/chữ/thanh %, trả false nếu khác để dựng lại cả trang
-function vaTai(html){var t=document.createElement("div");t.innerHTML=html;
- var ds=function(r){return [].filter.call(r.querySelectorAll("*"),function(e){return !(e.parentElement&&e.parentElement.closest(".dem"))&&!e.classList.contains("so-trang")})};
- var a=ds($("khung")),b=ds(t),i;if(a.length!==b.length)return false;
+// số nhỏ viết thẳng trong chữ (không bọc .dem): đổi từng số trong đoạn chữ cũ sang mới, chạy dần trong 0,9 giây
+var SO_RE=/\d[\d.]*(?:,\d+)?/g;
+function soSo(t){return parseFloat(t.replace(/\./g,"").replace(",","."))}
+function tweenText(node,moi){var cu=node.nodeValue,a=cu.match(SO_RE)||[],b=moi.match(SO_RE)||[];
+ if(matchMedia("(prefers-reduced-motion: reduce)").matches||!a.length||a.length!==b.length||cu.replace(SO_RE,"#")!==moi.replace(SO_RE,"#")){node.nodeValue=moi;return}
+ var tx=moi.split(SO_RE),t0=performance.now();
+ (function buoc(t){var k=Math.min(1,(t-t0)/900),x=1-Math.pow(1-k,3),r=tx[0];
+  b.forEach(function(m,i){var v0=soSo(a[i]),v1=soSo(m),d=(m.split(",")[1]||"").length,v=v0+(v1-v0)*x;
+   r+=k>=1||v0===v1?m:(d?v.toFixed(d).replace(".",","):Math.round(v).toLocaleString("vi-VN"));r+=tx[i+1]});
+  node.nodeValue=r;if(k<1)requestAnimationFrame(buoc)})(t0)}
+// so khớp từng slide mới với slide đang hiện: cùng cấu trúc thì chỉ đổi số/chữ/thanh %; slide nào đổi cấu trúc thì chỉ dựng lại slide đó
+function dsPT(r){return [].filter.call(r.querySelectorAll("*"),function(e){return !(e.parentElement&&e.parentElement.closest(".dem"))&&!e.classList.contains("so-trang")})}
+function khopCT(a,b){var i;if(a.length!==b.length)return false;
  for(i=0;i<a.length;i++){if(a[i].tagName!==b[i].tagName)return false;
   if(!a[i].classList.contains("dem")&&a[i].childNodes.length!==b[i].childNodes.length)return false}
- a.forEach(function(e,i){var n=b[i];
+ return true}
+function vaSo(a,b){a.forEach(function(e,i){var n=b[i];
   if(e.classList.contains("dem")){var v=+n.dataset.v,o=+e.dataset.v;if(v!==o){e.dataset.v=v;chay(e,o)}return}
-  [].forEach.call(e.childNodes,function(c,j){if(c.nodeType===3&&c.nodeValue!==n.childNodes[j].nodeValue)c.nodeValue=n.childNodes[j].nodeValue});
+  [].forEach.call(e.childNodes,function(c,j){if(c.nodeType===3&&c.nodeValue!==n.childNodes[j].nodeValue)tweenText(c,n.childNodes[j].nodeValue)});
   var p=n.style.getPropertyValue("--p");if(p&&e.style.getPropertyValue("--p")!==p)e.style.setProperty("--p",p);
-  if(e.tagName==="SPAN"&&/^(dat|chua|tien)\b/.test(e.className)&&e.className!==n.className)e.className=n.className});
+  if(e.tagName==="SPAN"&&/^(dat|chua|tien)\b/.test(e.className)&&e.className!==n.className)e.className=n.className})}
+function vaTai(html){var t=document.createElement("div");t.innerHTML=html;
+ var A=[].slice.call($("khung").children),B=[].slice.call(t.children),doi=false;
+ if(A.length!==B.length)return false;
+ A.forEach(function(a,k){var b=B[k];if(!a.classList.contains("sl"))return;
+  var pa=dsPT(a),pb=dsPT(b);
+  if(khopCT(pa,pb))return vaSo(pa,pb);
+  var tr=a.querySelector(".so-trang"),sotr=tr?tr.textContent:"";a.innerHTML=b.innerHTML;
+  var t2=a.querySelector(".so-trang");if(t2)t2.textContent=sotr;doi=true});
+ if(doi)vua();
  return true}
 // co chữ cho vừa khung: tiêu đề dài quá 2 dòng thì nhỏ dần; thẻ hoặc lưới bị tràn thì thu nhỏ nội dung (zoom) đến khi vừa
 function vua(){[].forEach.call(document.querySelectorAll(".sl"),function(sl){var hien=sl.style.display;sl.style.display="flex";
@@ -718,10 +738,11 @@ function quay(e){if(matchMedia("(prefers-reduced-motion: reduce)").matches)retur
   return '<span class="rl"><i style="--d:'+c+';--t:'+t+'ms;--tre:'+d+'ms">'+CUON+'</i></span>'}).join("");
  e.classList.remove("chay");e.classList.add("quay");void e.offsetWidth;e.classList.add("chay");
  clearTimeout(e._q);e._q=setTimeout(function(){e.textContent=s;e.classList.remove("quay","chay");e.classList.add("nhay");setTimeout(function(){e.classList.remove("nhay")},700)},1300+j*230)}
-function veBieu(S){BIEU.forEach(function(c){c.destroy()});BIEU=[];
+function veBieu(S,giu){if(!giu){BIEU.forEach(function(c){c.destroy()});BIEU=[]}else BIEU=BIEU.filter(function(c){return c.canvas.isConnected||(c.destroy(),false)});
  Chart.defaults.font.family='"Plus Jakarta Sans",system-ui,sans-serif';Chart.defaults.color="rgba(250,246,239,.7)";Chart.defaults.animation=false;
  var nh=S.tuan.map(function(w){return "T"+w.i+" · "+nhan(w.tu)});
- var tao=function(id,cfg){var c=$(id);if(c)BIEU.push(new Chart(c,cfg))};
+ var tao=function(id,cfg){var c=$(id);if(!c)return;var ex=giu&&BIEU.filter(function(x){return x.canvas===c})[0];
+  if(ex){ex.data.labels=cfg.data.labels;ex.data.datasets.forEach(function(d,i){if(cfg.data.datasets[i])d.data=cfg.data.datasets[i].data});ex.update("none")}else BIEU.push(new Chart(c,cfg))};
  var cfg=function(ds,hai){return {data:{labels:nh,datasets:ds},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom",labels:{boxWidth:10,usePointStyle:true}}},
   scales:Object.assign({x:{grid:{display:false},border:{color:"rgba(250,246,239,.2)"}},y:{beginAtZero:true,grid:{color:"rgba(250,246,239,.1)"},border:{display:false}}},hai?{y1:{beginAtZero:true,position:"right",grid:{display:false}}}:{})}}};
  ["fb","ig","tt"].forEach(function(p){var t=S.k[p].tuan;
