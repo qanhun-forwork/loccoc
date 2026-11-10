@@ -211,6 +211,53 @@ body.in .bs{display:none}
 .sl.sang .bs{background:rgba(128,14,19,.06);border-color:rgba(128,14,19,.4)}
 .sl.sang .moc li::before{box-shadow:0 0 0 3px rgba(128,14,19,.15)}
 
+/* ═══ lớp hoàn thiện: vân hạt, tiêu đề vén màn, viền sáng theo chuột, số quay kiểu đồng hồ cơ, khung điện thoại, phóng ảnh ═══ */
+/* vân hạt phim phủ toàn trang để nền tối có chất liệu như giấy in */
+body::after{content:"";position:fixed;inset:0;z-index:6;pointer-events:none;opacity:.08;mix-blend-mode:overlay;
+ background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+/* tiêu đề vén từ dưới lên như rèm sân khấu */
+.sl.vao h1{animation:man 1s .05s var(--em) both}
+@keyframes man{from{clip-path:inset(0 0 100% 0);transform:translateY(34px)}to{clip-path:inset(-20% -4% -30% -4%);transform:none}}
+.sl.vao .phan{animation:len .7s var(--em) both}
+/* viền thẻ sáng lên theo vị trí chuột, thẻ nhấc nhẹ khi rê */
+.o{transition:translate .5s var(--em),box-shadow .5s var(--em)}
+.o::before{background:radial-gradient(240px circle at var(--mx,-300px) var(--my,-300px),rgba(255,255,255,.95),transparent 70%),linear-gradient(140deg,var(--ria),rgba(255,255,255,.04) 38%,rgba(255,255,255,.04) 62%,rgba(255,255,255,.3))}
+.o:hover{translate:0 -3px}
+/* số quay: mỗi chữ số là một cuộn 0–9 lăn tới đích, vượt nhẹ rồi nảy về */
+.dem.quay{display:inline-flex;vertical-align:bottom}
+.rl,.rl-c{display:inline-block;height:1.08em;line-height:1.08em;overflow:hidden}
+.rl i{display:block;font-style:normal;transform:translateY(0);transition:transform var(--t) cubic-bezier(.17,1.25,.32,1) var(--tre)}
+.rl b{display:block;height:1.08em;font-weight:inherit}
+.dem.chay .rl i{transform:translateY(calc(-1.08em * (10 + var(--d))));animation:nhoe var(--t) var(--tre) both}
+@keyframes nhoe{0%{filter:blur(0)}25%{filter:blur(1.6px)}70%,100%{filter:blur(0)}}
+/* khung điện thoại cho ảnh chụp màn hình */
+.dt-o{flex:1;min-height:0;display:flex;justify-content:center;align-items:flex-start}
+/* khung đặt cạnh chữ: rộng cố định theo cột, cao suy ra từ tỉ lệ máy */
+.dt-o.ben{flex:none;align-self:center}.dt-o.ben .dt{height:auto;width:100%}
+.dt{position:relative;margin:0;height:100%;aspect-ratio:9/18.5;max-width:100%;border-radius:30px;padding:6px;
+ background:linear-gradient(150deg,#4A352B,#140C09 55%,#2B1B15);box-shadow:inset 0 0 0 1px rgba(255,255,255,.2),inset 0 1px 0 rgba(255,255,255,.35),0 34px 60px -26px rgba(0,0,0,.85),0 0 0 1px rgba(0,0,0,.45)}
+.dt img{width:100%;height:100%;object-fit:cover;object-position:top;border-radius:24px;display:block;cursor:zoom-in;background:#0c0806}
+.dt::after{content:"";position:absolute;inset:6px;border-radius:24px;pointer-events:none;background:linear-gradient(115deg,rgba(255,255,255,.14),transparent 30%)}
+.anh img{cursor:zoom-in}
+/* ảnh TikTok còn là bản chụp máy tính (TikTok bắt CAPTCHA khi chụp bản điện thoại): canh trái để thấy tên kênh */
+.dt img[src*="/tt.jpg"]{object-position:left top}
+.sl.vao .dt{animation:noi 1.1s .25s var(--em) both}
+@keyframes noi{from{opacity:0;transform:translateY(40px) rotate(-1.5deg) scale(.96)}}
+/* so sánh trước / sau */
+.ss{flex:1;min-height:0;display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.ss-c{display:flex;flex-direction:column;align-items:center;gap:12px;min-height:0;position:relative}
+.ss-c .nhan{font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;padding:5px 14px;border-radius:999px;background:rgba(250,246,239,.14);border:1px solid var(--vien)}
+.ss-c.sau .nhan{background:#FAF6EF;color:#5E0A0E}
+.ss-c .dt{position:relative}
+.diem{position:absolute;left:4%;right:4%;border-radius:14px;pointer-events:none;box-shadow:0 0 0 2px #FAF6EF,0 0 0 6px rgba(250,246,239,.25),0 0 28px 6px rgba(231,169,163,.55);animation:diem 2.4s 1.2s ease-in-out infinite both}
+@keyframes diem{0%,100%{opacity:.55}50%{opacity:1}}
+/* phóng ảnh */
+#xem{position:fixed;inset:0;z-index:20;display:none;place-items:center;background:rgba(14,8,6,.8);backdrop-filter:blur(20px) saturate(140%);-webkit-backdrop-filter:blur(20px) saturate(140%);cursor:zoom-out;padding:3vh}
+#xem.on{display:grid;animation:mo .35s ease both}
+#xem img{max-width:94vw;max-height:94vh;border-radius:20px;box-shadow:0 40px 120px -30px rgba(0,0,0,.9);animation:phong .55s var(--em) both}
+@keyframes mo{from{opacity:0}}
+@keyframes phong{from{transform:scale(.9) translateY(20px);opacity:0}}
+
 #loi{position:fixed;inset:0;display:none;place-items:center;background:#1A100C;z-index:9;padding:24px;text-align:center}
 #loi.on{display:grid}
 #loi div{max-width:460px}
@@ -219,7 +266,7 @@ body.in .bs{display:none}
  @page{size:1280px 720px;margin:0}
  *{-webkit-print-color-adjust:exact;print-color-adjust:exact;animation:none!important}
  body{background:#1A100C}
- .thanh,#dem,#loi,#tt,.nen,.tien-do{display:none!important}
+ .thanh,#dem,#loi,#tt,.nen,.tien-do,#xem,body::after{display:none!important}
  #san{display:block;padding:0}
  .khung{width:auto;height:auto;box-shadow:none;border-radius:0}
  .sl{display:flex!important;position:relative;transform:none;border-radius:0;page-break-after:always;break-after:page}
@@ -247,6 +294,7 @@ body.in .bs{display:none}
 <div id="tt">Đang tải…</div>
 <main id="san"><div class="khung" id="khung"></div></main>
 <div id="dem"></div>
+<div id="xem" role="dialog" aria-label="Ảnh phóng to"><img alt=""></div>
 <div id="loi"><div><h1 style="font-size:28px">Cần đăng nhập quản trị</h1><p id="loi-nd">Mở trang quản trị, đăng nhập, rồi bấm "Báo cáo cuối kỳ" để vào đây.</p><p><a href="./">Đến trang quản trị</a></p></div></div>
 
 <script>
@@ -260,6 +308,8 @@ function ptTho(n){return (Math.round(n*1000)/10).toLocaleString("vi-VN")+"%"}
 // so()/pt() bọc số trong span.dem để khi cập nhật nền số chạy từ giá trị cũ sang giá trị mới
 function so(n){n=Number(n||0);return '<span class="dem" data-v="'+n+'" data-f="so">'+soTho(n)+'</span>'}
 function pt(n){n=Number(n||0);return '<span class="dem" data-v="'+n+'" data-f="pt">'+ptTho(n)+'</span>'}
+// ảnh chụp màn hình đặt trong khung điện thoại; o = thêm HTML phủ lên ảnh (vd. vòng sáng chỉ vào ô đồng ý)
+function dt(src,alt,o,lop){return '<div class="dt-o'+(lop?' '+lop:'')+'"><figure class="dt"><img src="'+src+'?v=2" alt="'+esc(alt)+'">'+(o||"")+'</figure></div>'}
 function ngay(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
 function nhan(t){return t.slice(8,10)+"/"+t.slice(5,7)}
 function gioVN(iso){var d=new Date(iso);return isNaN(d)?"":d.toLocaleString("vi-VN",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"})}
@@ -422,9 +472,9 @@ function ve(S,capNhat){
   '<li>Không nhất thiết theo đúng công thức Hero – Hub – Help, nhưng vẫn <b>bám sát tinh thần thương hiệu</b>.</li>'+
   '<li>Đồng bộ cách kể chuyện và cách truyền thông trên cả 4 kênh, không đánh mất tinh thần Lộc Cộc.</li></ul></div>'}));
  // 4. Một thương hiệu – 4 nền tảng
- H.push(slide({so:"04",phan:"Một thương hiệu – 4 nền tảng",clo:"CLO2",tieuDe:"Be · đỏ burgundy · nâu gỗ đồng bộ trên cả 4 kênh",cot:"c2",noi:
-  ["fb","ig","tt","web"].map(function(p){return '<div class="o" style="padding:12px"><h2>'+TEN[p]+' · <span class="nho" style="text-transform:none;letter-spacing:0">'+LINK[p]+'</span></h2>'+
-   '<div class="anh"><img src="anh-bao-cao/'+p+'.jpg" alt="Ảnh chụp '+TEN[p]+'" onerror="this.parentNode.innerHTML=bs(\'Đặt ảnh chụp trang vào quantrivien/anh-bao-cao/'+p+'.jpg\')"></div></div>'}).join("")}));
+ H.push(slide({so:"04",phan:"Một thương hiệu – 4 nền tảng",clo:"CLO2",tieuDe:"Be · đỏ burgundy · nâu gỗ đồng bộ trên cả 4 kênh",cot:"c4",noi:
+  ["fb","ig","tt","web"].map(function(p){return '<div class="o" style="padding:16px 16px 18px;align-items:center;text-align:center"><h2 style="margin-bottom:2px">'+TEN[p]+'</h2><p class="nho" style="margin:0 0 12px">'+LINK[p]+'</p>'+
+   dt("anh-bao-cao/"+p+".jpg","Ảnh chụp "+TEN[p])+'</div>'}).join("")}));
  // 5. Sản phẩm tiêu biểu
  var top=K.tt.video.slice(0,3),igTop=K.ig.top||[];
  H.push(slide({so:"05",phan:"Sản phẩm tiêu biểu",clo:"CLO2",lop:"sang",tieuDe:"Video quy trình làm guốc kéo lượt xem mạnh nhất",cot:"c2",noi:
@@ -531,14 +581,16 @@ function ve(S,capNhat){
   (gi?'<p class="nho" style="margin:0">Số tạm từ Trình quản lý quảng cáo (09/11 18:30 → 10/11 18:30, quảng cáo còn đang chạy).</p>':bs("Xác nhận không còn quảng cáo nào khác (TikTok Promote)."))+'</div>'}))});
  // 12b. Phản hồi khách từ quảng cáo
  H.push(slide({so:"12",phan:"Phản hồi khách từ quảng cáo",clo:"CLO3",tieuDe:"Quảng cáo Instagram đến đúng người: khách nhắn tin đặt hàng, có cả người trong nghề",cot:"c2",noi:
-  '<div class="o"><h2>Tin nhắn Instagram</h2><div class="so">4 <small>khách nhắn tin quan tâm và đặt hàng</small></div>'+
-  '<p>Khách hỏi đặt làm theo mẫu, hỏi khu vực, xin Zalo để đặt. Sau khi nhóm giải thích đây là dự án sinh viên, 2 khách vẫn điền form trên web để ủng hộ nhóm.</p>'+
-  '<div class="anh"><img src="anh-bao-cao/tin-nhan-2.jpg" alt="Tin nhắn Instagram của một khách sau khi nhận email xác nhận" style="object-position:bottom"></div>'+
-  '<p class="nho" style="margin:8px 0 0">Ảnh chụp hộp thư Instagram @loccoc.com.vn; đã che ảnh đại diện và tên khách.</p></div>'+
-  '<div class="o toi"><h2>Khách từ quảng cáo là người trong nghề</h2>'+
+  '<div class="o"><div style="display:grid;grid-template-columns:1fr 212px;gap:20px;flex:1;min-height:0"><div style="display:flex;flex-direction:column">'+
+  '<h2>Tin nhắn Instagram</h2><div class="so">4</div><p class="nho" style="margin:2px 0 14px">khách nhắn tin quan tâm và đặt hàng</p>'+
+  '<p style="font-size:15.5px">Khách hỏi đặt làm theo mẫu, hỏi khu vực, xin Zalo để đặt. Sau khi nhóm giải thích đây là dự án sinh viên, 2 khách vẫn điền form trên web để ủng hộ nhóm.</p>'+
+  '<p class="nho" style="margin:auto 0 0">Ảnh chụp hộp thư Instagram @loccoc.com.vn; đã che ảnh đại diện và tên khách. Bấm vào ảnh để phóng to.</p></div>'+
+  dt("anh-bao-cao/tin-nhan-2.jpg","Tin nhắn Instagram của một khách sau khi nhận email xác nhận","","ben")+'</div></div>'+
+  '<div class="o toi"><div style="display:grid;grid-template-columns:1fr 212px;gap:20px;flex:1;min-height:0"><div style="display:flex;flex-direction:column">'+
+  '<h2>Khách từ quảng cáo là người trong nghề</h2>'+
   '<p style="font-size:15.5px">Chị <b>Trương Thu Hằng</b>, founder Gypsy Store (kinh doanh guốc gỗ từ 2013), biết đến Lộc Cộc qua quảng cáo, đã điền form ủng hộ nhóm và nhắn tin bày tỏ sự yêu mến, ủng hộ các bạn trẻ làm guốc, sẵn sàng giúp đỡ nếu Lộc Cộc muốn đưa dự án đi xa hơn.</p>'+
-  '<div class="anh" style="margin:8px 0"><img src="anh-bao-cao/tin-nhan-1.jpg" alt="Tin nhắn Instagram của chị Thu Hằng"></div>'+
-  '<p style="font-size:15.5px;margin:0"><b>Ý nghĩa:</b> người hiểu thị trường guốc gỗ tiếp cận Lộc Cộc qua quảng cáo, chứng minh nhóm đã đặt quảng cáo đúng tệp khách hàng mục tiêu.</p></div>'}));
+  '<p style="font-size:15.5px;margin:auto 0 0"><b>Ý nghĩa:</b> người hiểu thị trường guốc gỗ tiếp cận Lộc Cộc qua quảng cáo, chứng minh nhóm đã đặt quảng cáo đúng tệp khách hàng mục tiêu.</p></div>'+
+  dt("anh-bao-cao/tin-nhan-1.jpg","Tin nhắn Instagram của chị Thu Hằng","","ben")+'</div></div>'}));
  // 13. Pháp lý
  var PL=[["Thông tin trung thực","Giá 350.000đ ghi rõ; email xác nhận ghi rõ không thu tiền, không giao hàng; bài minh bạch 23/10","Luật Quảng cáo 2012 (sđ 2025); Luật BVQLNTD 2023"],
   ["Công khai hợp tác","Không có bài hợp tác/KOL trả phí","Luật 75/2025/QH15; NĐ 55/2024"],
@@ -548,13 +600,21 @@ function ve(S,capNhat){
   ["Minigame, bán hàng","Minigame #CanMoiOutfit dời sang khoảng 20/11: sẽ công bố thể lệ trước, công bố kết quả sau","Luật TMĐT 122/2025/QH15"]];
  H.push(slide({so:"13",phan:"Tuân thủ pháp lý & minh chứng",clo:"CLO3",tieuDe:"Tự phát hiện và sửa: form web thêm ô đồng ý dữ liệu cá nhân",cot:"c52",noi:
   '<div class="o"><table class="bang"><tr><th style="width:24%">Nhóm nội dung</th><th>Lộc Cộc đã làm</th><th style="width:30%">Căn cứ</th></tr>'+PL.map(function(r){return '<tr><td><b>'+r[0]+'</b></td><td>'+r[1]+'</td><td class="nho">'+r[2]+'</td></tr>'}).join("")+'</table></div>'+
-  '<div class="o toi"><h2>Minh chứng mở được ngay</h2><ul class="ds" style="font-size:14.5px">'+
+  '<div class="o toi"><h2>Minh chứng mở được ngay</h2><ul class="ds" style="font-size:18px;line-height:1.45;gap:16px;margin:6px 0">'+
   '<li><b>Ô đồng ý dữ liệu cá nhân</b> ở cả 3 form: loccoc.com.vn/#/lien-he</li><li><b>Chính sách bảo mật</b>: loccoc.com.vn/#/chinh-sach-bao-mat</li>'+
   '<li><b>Thông báo không thu tiền, không giao hàng</b> trong email xác nhận đơn; chân trang web ghi rõ sản phẩm môn học</li><li><b>Nhãn AI</b> trên video quy trình làm guốc (TikTok 16/10)</li>'+
   '<li><b>Nhật ký truy cập</b> dữ liệu khách: dashboard → Thành viên & nhật ký</li></ul>'+
-  '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;flex:1;min-height:0;margin:10px 0 4px">'+
-   [["form-truoc-0811.jpg","Trước 08/11: chưa có ô đồng ý"],["form-dong-y.jpg","Từ 08/11: có ô đồng ý + Chính sách bảo mật"]].map(function(a){return '<div style="display:flex;flex-direction:column;min-height:0"><div class="anh" style="flex:1;margin:0"><img src="anh-bao-cao/'+a[0]+'" alt="Form đặt hàng loccoc.com.vn, '+a[1]+'" style="object-position:bottom"></div><p class="nho" style="margin:4px 0 0">'+a[1]+'</p></div>'}).join("")+'</div>'+
-  '<p class="nho" style="margin:0">Ảnh “trước” chụp lại từ mã nguồn web ngày 07/11 (git 888e794).</p></div>'}));
+  '<p class="nho" style="margin:auto 0 0">Slide sau: so sánh form đặt hàng trước và sau 08/11.</p></div>'}));
+ // 13a. Form trước / sau 08/11
+ H.push(slide({so:"13",phan:"Minh chứng · form trước và sau 08/11",clo:"CLO3",tieuDe:"Cùng một form đặt hàng, thêm ô đồng ý dữ liệu cá nhân và Chính sách bảo mật",cot:"c25",noi:
+  '<div class="o"><h2>Điều đã thay đổi</h2><ul class="ds lon" style="font-size:18px;gap:14px">'+
+  '<li><b>Trước 08/11:</b> khách gửi tên, số điện thoại, email nhưng chưa có bước đồng ý cho phép dùng dữ liệu.</li>'+
+  '<li><b>Từ 08/11:</b> thêm ô <b>“Tôi đồng ý…”</b> ở cả 3 form, kèm link <b>Chính sách bảo mật</b>.</li>'+
+  '<li>Căn cứ: Luật Bảo vệ dữ liệu cá nhân 91/2025/QH15.</li></ul>'+
+  '<p class="nho" style="margin:auto 0 0">Ảnh “trước” chụp lại từ mã nguồn web ngày 07/11 (git 888e794); ảnh “sau” chụp từ web hiện tại. Bấm vào ảnh để phóng to.</p></div>'+
+  '<div class="o toi"><div class="ss">'+
+   [["form-truoc-0811.jpg","Trước 08/11",""],["form-dong-y.jpg","Từ 08/11",'<i class="diem" style="top:76.5%;height:9.5%"></i>']].map(function(a,i){
+    return '<div class="ss-c'+(i?" sau":"")+'"><span class="nhan">'+a[1]+'</span>'+dt("anh-bao-cao/"+a[0],"Form đặt hàng loccoc.com.vn, "+a[1],a[2])+'</div>'}).join("")+'</div></div>'}));
  // 13b. Chứng minh êm chân
  H.push(slide({so:"14",phan:"Chứng minh êm chân",clo:"CLO4",tieuDe:"Khắc phục góp ý “cần video người thật để chứng minh êm chân”",cot:"c2",noi:
   '<div class="o"><h2>Nghiên cứu bổ sung so với Proposal giữa kỳ</h2><ul class="ds" style="font-size:14px">'+
@@ -563,11 +623,11 @@ function ve(S,capNhat){
    ["Biomechanics of postoperative shoes","Arch Orthop Trauma Surg, 2011","https://pubmed.ncbi.nlm.nih.gov/20549221/"],
    ["Effects of Different Heel Heights on Plantar Foot Pressure","J Phys Ther Sci, 2012","https://www.jstage.jst.go.jp/article/jpts/24/11/24_1091/_article"],
    ["Prolonged occupational standing: the impact of time and footwear","Footwear Science, 2018","https://salford-repository.worktribe.com/OutputFile/1490420"]].map(function(n){return '<li><a href="'+n[2]+'" target="_blank" rel="noopener">'+esc(n[0])+'</a><br><span class="nho">'+n[1]+'</span></li>'}).join("")+'</ul>'+
-  '<div class="anh" style="margin-top:8px"><img src="../img/basic/B01-3-600.webp" alt="Mẫu Basic khi mang" style="object-position:center 75%"></div></div>'+
+  '<div class="anh" style="margin-top:8px"><img src="../img/basic/B01-3.webp" alt="Mẫu Basic khi mang" style="object-position:center 75%"></div></div>'+
   '<div class="o toi"><h2>TVC quay người thật · tháng 12</h2><div class="so">5 <small>triệu đồng</small></div>'+
   '<p style="font-size:15.5px">Đầu tư từ học phần Chiến lược quảng cáo, kế thừa giá trị thương hiệu Lộc Cộc để tiếp tục thực hiện.</p>'+
   '<p style="font-size:15.5px">Người thật mang guốc trong sinh hoạt hằng ngày: bằng chứng trực quan cho cảm giác êm chân, bổ sung cho cơ sở nghiên cứu bên trái.</p>'+
-  '<div class="anh" style="margin-top:6px"><img src="../img/basic/B01-2-600.webp" alt="Đế gỗ cong của mẫu Basic" style="object-position:center"></div>'+
+  '<div class="anh" style="margin-top:6px"><img src="../img/basic/B01-2.webp" alt="Đế gỗ cong của mẫu Basic" style="object-position:center"></div>'+
   '<p class="nho" style="margin:6px 0 0">Ảnh AI minh hoạ đế gỗ cong ôm vòm chân (dòng Basic). TVC sẽ thay bằng cảnh quay người thật.</p></div>'}));
  // 14–15–16
  H.push(slide({so:"14",phan:"Bài học & đề xuất",clo:"CLO4",lop:"sang",tieuDe:"Cho người xem thấy cách làm thật, đăng đều, và đo được mới sửa được",cot:"c2",noi:
@@ -609,7 +669,7 @@ function vua(){[].forEach.call(document.querySelectorAll(".sl"),function(sl){var
  var h=sl.querySelector("h1");if(h){h.style.fontSize="";var f=parseFloat(getComputedStyle(h).fontSize),min=f*.72;
   while(h.offsetHeight>f*1.18*2+f*.2&&f>min){f-=1;h.style.fontSize=f+"px"}}
  var thu=function(hop,con){var z=1;con.forEach(function(c){c.style.zoom=""});while(hop.scrollHeight>hop.clientHeight+1&&z>.62){z-=.03;con.forEach(function(c){c.style.zoom=z})}};
- [].forEach.call(sl.querySelectorAll(".o"),function(o){if(!o.querySelector("canvas,.anh"))thu(o,[].slice.call(o.children))});
+ [].forEach.call(sl.querySelectorAll(".o"),function(o){if(!o.querySelector("canvas,.anh,.dt"))thu(o,[].slice.call(o.children))});
  var n=sl.querySelector(".noi.tu");if(n)thu(n,[].slice.call(n.children));
  sl.style.display=hien})}
 // số chạy từ a đến giá trị mới trong 0,9 giây rồi sáng lên một nhịp
@@ -617,6 +677,14 @@ function chay(e,a,em){var b=+e.dataset.v,f=e.dataset.f==="pt"?ptTho:soTho,t0=per
  if(matchMedia("(prefers-reduced-motion: reduce)").matches)return;
  (function buoc(t){var k=Math.min(1,Math.max(0,t-t0)/dai),x=1-Math.pow(1-k,3);e.textContent=f(a+(b-a)*x);if(k<1)requestAnimationFrame(buoc);else setTimeout(function(){e.classList.remove("nhay")},700)})(t0)
 }
+// số lớn khi vào slide: mỗi chữ số lăn như đồng hồ cơ, chữ số sau lăn lâu hơn, xong thì trả lại chữ thường
+var CUON="01234567890123456789".split("").map(function(x){return "<b>"+x+"</b>"}).join("");
+function quay(e){if(matchMedia("(prefers-reduced-motion: reduce)").matches)return;
+ var s=(e.dataset.f==="pt"?ptTho:soTho)(+e.dataset.v),j=0;
+ e.innerHTML=s.split("").map(function(c){if(!/\d/.test(c))return '<span class="rl-c">'+c+'</span>';var t=1100+j*160,d=j++*70;
+  return '<span class="rl"><i style="--d:'+c+';--t:'+t+'ms;--tre:'+d+'ms">'+CUON+'</i></span>'}).join("");
+ e.classList.remove("chay");e.classList.add("quay");void e.offsetWidth;e.classList.add("chay");
+ clearTimeout(e._q);e._q=setTimeout(function(){e.textContent=s;e.classList.remove("quay","chay");e.classList.add("nhay");setTimeout(function(){e.classList.remove("nhay")},700)},1300+j*230)}
 function veBieu(S){BIEU.forEach(function(c){c.destroy()});BIEU=[];
  Chart.defaults.font.family='"Plus Jakarta Sans",system-ui,sans-serif';Chart.defaults.color="rgba(250,246,239,.7)";Chart.defaults.animation=false;
  var nh=S.tuan.map(function(w){return "T"+w.i+" · "+nhan(w.tu)});
@@ -641,7 +709,7 @@ var SL=0,CHE="chot",CHOT=null,SONG=null;
 var DANG=-1;
 function hien(i){var a=document.querySelectorAll(".sl");if(!a.length)return;SL=Math.max(0,Math.min(a.length-1,i));
  if(SL!==DANG){$("khung").style.setProperty("--huong",SL<DANG?-1:1);
-  [].forEach.call(a[SL].querySelectorAll(".so .dem,.tang .dem,.vong .dem"),function(e){chay(e,0,true)})}
+  [].forEach.call(a[SL].querySelectorAll(".so .dem,.tang .dem,.vong .dem"),quay)}
  var td=document.querySelector(".tien-do");if(td)td.style.setProperty("--w",((SL+1)/a.length*100)+"%");
  // chỉ chạy hiệu ứng vào trang khi đổi slide, không chạy khi cập nhật nền
  [].forEach.call(a,function(s,j){s.classList.toggle("on",j===SL);s.classList.toggle("vao",j===SL&&SL!==DANG)});DANG=SL;$("dem").textContent=(SL+1)+" / "+a.length;
@@ -649,9 +717,17 @@ function hien(i){var a=document.querySelectorAll(".sl");if(!a.length)return;SL=M
 function co(){var cao=document.body.classList.contains("chieu")?innerHeight:innerHeight-84,k=Math.min(innerWidth/1280,cao/720);document.documentElement.style.setProperty("--k",k)}
 addEventListener("resize",co);co();
 if(document.fonts)document.fonts.ready.then(function(){if(document.querySelector(".sl"))vua()});
-addEventListener("keydown",function(e){if(/^(ArrowRight|PageDown| )$/.test(e.key)){e.preventDefault();hien(SL+1)}if(/^(ArrowLeft|PageUp)$/.test(e.key)){e.preventDefault();hien(SL-1)}
+function dongXem(){$("xem").classList.remove("on")}
+$("xem").onclick=dongXem;
+addEventListener("keydown",function(e){if($("xem").classList.contains("on")){if(e.key==="Escape"||/^Arrow|^Page| /.test(e.key)){e.preventDefault();dongXem()}return}
+ if(/^(ArrowRight|PageDown| )$/.test(e.key)){e.preventDefault();hien(SL+1)}if(/^(ArrowLeft|PageUp)$/.test(e.key)){e.preventDefault();hien(SL-1)}
  if(e.key==="Home")hien(0);if(e.key==="End")hien(99)});
-$("khung").addEventListener("click",function(e){if(e.target.closest("a"))return;hien(SL+(e.clientX>innerWidth/2?1:-1))});
+// viền sáng chạy theo chuột: toạ độ tính trong hệ 1280×720 của slide (slide đang bị scale theo --k)
+$("khung").addEventListener("pointermove",function(e){var o=e.target.closest(".o");if(!o)return;var r=o.getBoundingClientRect(),k=r.width/o.offsetWidth;
+ o.style.setProperty("--mx",(e.clientX-r.left)/k+"px");o.style.setProperty("--my",(e.clientY-r.top)/k+"px")});
+$("khung").addEventListener("pointerout",function(e){var o=e.target.closest(".o");if(o&&!o.contains(e.relatedTarget)){o.style.removeProperty("--mx");o.style.removeProperty("--my")}});
+$("khung").addEventListener("click",function(e){var im=e.target.closest(".dt img,.anh img");if(im){$("xem").querySelector("img").src=im.src;$("xem").querySelector("img").alt=im.alt;$("xem").classList.add("on");return}
+ if(e.target.closest("a"))return;hien(SL+(e.clientX>innerWidth/2?1:-1))});
 $("n-chieu").onclick=function(){var r=document.documentElement;(r.requestFullscreen?r.requestFullscreen():Promise.resolve()).catch(function(){})};
 document.addEventListener("fullscreenchange",function(){document.body.classList.toggle("chieu",!!document.fullscreenElement);co()});
 $("n-in").onclick=function(){document.body.classList.add("in");window.print()};
