@@ -807,10 +807,11 @@ function vMxVe(p,j,jt,k){
   them("mxmoi","Người theo dõi mới",T.moi,"so",'Tổng người theo dõi: <b>'+so(tong)+'</b> · '+(T.hs?'Chuyển đổi từ hồ sơ: '+pt(chia(T.moi,T.hs)):""),cnt("moi"));
  }else{
   them("mxtt","Tương tác",T.tt,"so",soSanh(T.tt,TT.tt),cnt("tt"));
-  // ER organic: trừ lượt xem + tương tác của quảng cáo bắt đầu trong kỳ (tab 📣 Quảng cáo, cột Kênh), giống báo cáo
-  var qcKy=function(a,b){var o={xem:0,tt:0};(j.qcIg||[]).forEach(function(q){if((/^f/i.test(q.kenh||"")?"fb":"ig")===p&&q.tu>=a&&q.tu<=b){o.xem+=q.xem||0;o.tt+=q.tt||0}});return o};
+  // ER Facebook organic: trừ lượt xem + tương tác của quảng cáo bắt đầu trong kỳ (tab 📣 Quảng cáo, cột Kênh); Instagram gộp. Giống báo cáo
+  var qcKy=function(a,b){var o={xem:0,tt:0};if(p==="ig")return o;   // Instagram: ER gộp organic + quảng cáo (giống báo cáo)
+   (j.qcIg||[]).forEach(function(q){if((/^f/i.test(q.kenh||"")?"fb":"ig")===p&&q.tu>=a&&q.tu<=b){o.xem+=q.xem||0;o.tt+=q.tt||0}});return o};
   var kt=kyTruoc(k),Q0=qcKy(tu,k.den),Q1=kt?qcKy(kt.tu,kt.den):{xem:0,tt:0},er=chia(T.tt-Q0.tt,T.xem-Q0.xem);
-  them("mxer","Engagement rate"+(Q0.xem?" (organic)":""),er,"pt",(ssTl(er,DT?chia(TT.tt-Q1.tt,TT.xem-Q1.xem):null)||"")+'<br>Tương tác ÷ lượt xem (theo đề cuối kỳ)'+(Q0.xem?', đã trừ '+so(Q0.xem)+' lượt xem, '+so(Q0.tt)+' tương tác từ quảng cáo':'')+' · ÷ '+(p==="ig"?"người tiếp cận":"người xem")+': '+pt(chia(T.tt,T.nguoi)),tlNgay("tt","xem"));
+  them("mxer","Engagement rate"+(Q0.xem?" (organic)":""),er,"pt",(ssTl(er,DT?chia(TT.tt-Q1.tt,TT.xem-Q1.xem):null)||"")+'<br>Tương tác ÷ lượt xem (theo đề cuối kỳ)'+(p==="ig"?", gộp organic và quảng cáo":"")+(Q0.xem?', đã trừ '+so(Q0.xem)+' lượt xem, '+so(Q0.tt)+' tương tác từ quảng cáo':'')+' · ÷ '+(p==="ig"?"người tiếp cận":"người xem")+': '+pt(chia(T.tt,T.nguoi)),tlNgay("tt","xem"));
   them("mxclk","Click liên kết",T.clk,"so",soSanh(T.clk,TT.clk)||"Lượt bấm vào link trong bài",cnt("clk"));
   them("mxctr","CTR",chia(T.clk,T.xem),"pt",(ssTl(chia(T.clk,T.xem),DT?chia(TT.clk,TT.xem):null)||"")+'<br>Click liên kết ÷ lượt xem',tlNgay("clk","xem"));
   them("mxtc",p==="ig"?"Truy cập trang cá nhân":"Lượt truy cập trang",T.tc,"so",soSanh(T.tc,TT.tc),cnt("tc"));
